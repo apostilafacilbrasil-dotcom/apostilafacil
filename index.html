@@ -3643,8 +3643,53 @@ function renderSummary(){
   document.getElementById('estimateTotal').textContent = (temTrad && tradTotal === 0) ? 'A calcular' : money(total);
 }
 
-document.getElementById('quoteForm').addEventListener('submit', function(e){
+// ── SUPABASE INTEGRATION ──
+const SUPABASE_URL = 'https://kclbawvrvmiiyngkzibi.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_0qmC4DKUTpeafAhcaa9ZQA_2rVHMagY';
+
+document.getElementById('quoteForm').addEventListener('submit', async function(e){
   e.preventDefault();
+  const btn = this.querySelector('[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  try {
+    const sb = window._sbClient || (window._sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY));
+    const nome     = document.getElementById('nome').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const whatsapp = document.getElementById('whatsapp').value.trim();
+    const pais     = (document.getElementById('pais')||{}).value || '';
+    const qty      = getQty();
+    const tipoServico = (document.getElementById('tipoServico')||{}).value || 'Apenas Apostila de Haia';
+    const obs      = (document.getElementById('obs')||{}).value || '';
+    const unit     = unitPrice(qty);
+    const total    = unit * qty;
+
+    const { data: { session } } = await sb.auth.getSession();
+
+    const { data: order } = await sb.from('orders').insert({
+      user_id: session?.user?.id || null,
+      servico: tipoServico,
+      valor: total,
+      pais,
+      status: 'aguardando_pagamento',
+      prazo: tipoServico === 'Apenas Apostila de Haia' ? 'Em até 24h' : 'Apos analise',
+      obs_admin: obs || null,
+    }).select().single();
+
+    await sb.from('leads').upsert({
+      email, nome, whatsapp, pais,
+      servico: tipoServico,
+      order_id: order?.id || null,
+      created_at: new Date().toISOString()
+    });
+
+  } catch(err) {
+    console.warn('Supabase indisponivel:', err);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Enviar orcamento';
   nextStep(4);
 });
 
@@ -3684,6 +3729,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
