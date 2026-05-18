@@ -3507,7 +3507,9 @@ function formSimCalc(){
     if(nt) nt.style.display='none';
   }
 
-  const apost = temApost ? unitApost*qty : 0;
+  const isProcessoCompleto = servico.toLowerCase().includes('apostilamento da tradução') && servico.toLowerCase().includes('apostilamento');
+  const numApostilas = isProcessoCompleto ? 2 : (temApost ? 1 : 0);
+  const apost = numApostilas * unitApost * qty;
   const total = apost + trad;
   const eta = document.getElementById('formSimEta');
   if(eta) eta.innerHTML = temTrad ? '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Prazo após análise' : '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M13 2 4.5 13.5H11L10 22l9-13h-6.5L13 2z"/></svg> Entrega em até 24h';
@@ -3595,8 +3597,10 @@ function renderSummary(){
 
   const temApost = !tipoServico.toLowerCase().includes('apenas tradução');
   const temTrad  = tipoServico.toLowerCase().includes('tradu');
+  const isProcessoCompleto = tipoServico.toLowerCase().includes('apostilamento da tradução') && tipoServico.toLowerCase().includes('apostilamento');
   const unitApost = unitPrice(qty);
-  const apostTotal = temApost ? unitApost * qty : 0;
+  const numApostilas = isProcessoCompleto ? 2 : (temApost ? 1 : 0);
+  const apostTotal = numApostilas * unitApost * qty;
 
   // Translation cost from formSimPalavras
   let tradTotal = 0;
