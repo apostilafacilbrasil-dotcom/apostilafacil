@@ -3618,8 +3618,42 @@ function renderSummary(){
   const tipoServico = document.getElementById('tipoServico') ? document.getElementById('tipoServico').value : 'Apenas Apostila de Haia';
   const obs = document.getElementById('obs').value || 'Sem observações';
   const files = selectedFiles.length ? selectedFiles.length + ' arquivo(s)' : 'Nenhum arquivo anexado';
-  const unit = unitPrice(qty);
-  const total = unit * qty;
+
+  const temApost = !tipoServico.toLowerCase().includes('apenas tradução');
+  const temTrad  = tipoServico.toLowerCase().includes('tradu');
+  const unitApost = unitPrice(qty);
+  const apostTotal = temApost ? unitApost * qty : 0;
+
+  // Translation cost from formSimPalavras
+  let tradTotal = 0;
+  if(temTrad && formSimPalavras > 0){
+    const simIdioma = document.getElementById('simIdiomaForm');
+    const k = simIdioma ? simIdioma.value : '';
+    const c = FORM_IDIOMAS[k];
+    if(c){
+      const extraWords = Math.max(0, formSimPalavras - 200);
+      const extraBlocks = Math.ceil(extraWords / 200);
+      tradTotal = c.m + (extraBlocks * c.b);
+    }
+  }
+
+  const total = apostTotal + tradTotal;
+  const hasBothServices = temApost && temTrad && tradTotal > 0;
+
+  let valorUnitarioLabel, valorUnitarioVal;
+  if(hasBothServices){
+    valorUnitarioLabel = 'Apostila (unit.) + Tradução';
+    valorUnitarioVal = money(unitApost) + ' + ' + money(tradTotal);
+  } else if(temTrad && tradTotal > 0){
+    valorUnitarioLabel = 'Tradução';
+    valorUnitarioVal = money(tradTotal);
+  } else if(temTrad && tradTotal === 0){
+    valorUnitarioLabel = 'Tradução';
+    valorUnitarioVal = 'A calcular após análise';
+  } else {
+    valorUnitarioLabel = 'Valor unitário';
+    valorUnitarioVal = money(unitApost);
+  }
 
   document.getElementById('summaryBox').innerHTML = `
     <div class="summary-row"><span>Nome</span><span>${nome}</span></div>
@@ -3627,12 +3661,12 @@ function renderSummary(){
     <div class="summary-row"><span>WhatsApp</span><span>${whatsapp}</span></div>
     <div class="summary-row"><span>País</span><span>${pais}</span></div>
     <div class="summary-row"><span>Quantidade</span><span>${qty} documento(s)</span></div>
-    <div class="summary-row"><span>Valor unitário</span><span>${money(unit)}</span></div>
+    <div class="summary-row"><span>${valorUnitarioLabel}</span><span>${valorUnitarioVal}</span></div>
     <div class="summary-row"><span>Serviço</span><span>${tipoServico}</span></div>
     <div class="summary-row"><span>Arquivos</span><span>${files}</span></div>
     <div class="summary-row"><span>Observações</span><span>${obs}</span></div>
   `;
-  document.getElementById('estimateTotal').textContent = money(total);
+  document.getElementById('estimateTotal').textContent = (temTrad && tradTotal === 0) ? 'A calcular' : money(total);
 }
 
 document.getElementById('quoteForm').addEventListener('submit', function(e){
