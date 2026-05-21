@@ -381,13 +381,23 @@ sb.auth.onAuthStateChange(async (event, session)=>{
 });
 
 // ── ADMIN ──
+let allLeads = [];
+
 async function loadAdminData(){
-  // Orders
+  const {data:leads} = await sb.from('leads').select('*').order('created_at', {ascending:false});
+  allLeads = leads || [];
+  renderLeads(allLeads);
+
   const {data:orders} = await sb.from('orders').select('*').order('created_at', {ascending:false});
-  allOrders = orders || [];
+  allOrders = (orders || []).map(o=>{
+    const lead = allLeads.find(l=>
+      (l.servico === o.servico) ||
+      (l.created_at && o.created_at && Math.abs(new Date(l.created_at)-new Date(o.created_at)) < 30000)
+    );
+    return {...o, _lead: lead || null};
+  });
   renderOrders(allOrders);
 
-  // Stats
   const total = allOrders.length;
   const pending = allOrders.filter(o=>o.status==='aguardando_pagamento').length;
   const done = allOrders.filter(o=>o.status==='concluido').length;
@@ -396,10 +406,6 @@ async function loadAdminData(){
   document.getElementById('statPending').textContent = pending;
   document.getElementById('statDone').textContent = done;
   document.getElementById('statRevenue').textContent = 'R$'+(revenue).toFixed(0);
-
-  // Leads
-  const {data:leads} = await sb.from('leads').select('*').order('created_at', {ascending:false});
-  renderLeads(leads||[]);
 }
 
 function renderOrders(orders){
@@ -412,9 +418,19 @@ function renderOrders(orders){
     return;
   }
   document.getElementById('ordersEmpty').style.display='none';
-  tbody.innerHTML = orders.map(o=>`
+  tbody.innerHTML = orders.map((o,i)=>{
+    const lead = o._lead;
+    const nome = lead?.nome || '—';
+    const email = lead?.email || '';
+    const whats = lead?.whatsapp || '';
+    return `
     <tr>
-      <td>${o.user_id||'<span style="color:#8899AA;font-size:.75rem;">Sem login</span>'}</td>
+      <td>
+        <button onclick="openModal(${i})" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
+          <span style="font-weight:500;color:#0D1B2A;">${nome}</span>
+          ${email?`<br><span style="font-size:.72rem;color:#2E7EC6;">${email}</span>`:''}
+        </button>
+      </td>
       <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.servico||'—'}</td>
       <td>${o.pais||'—'}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'—'}</td>
@@ -427,8 +443,36 @@ function renderOrders(orders){
         </select>
       </td>
       <td style="color:#4A6A82;font-size:.78rem;">${formatDate(o.created_at)}</td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
+}
+
+function openModal(i){
+  const o = allOrders[i];
+  const lead = o._lead;
+  document.getElementById('modalContent').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <h3 style="font-family:'EB Garamond',Georgia,serif;font-size:1.4rem;color:#0D1B2A;">Detalhes do pedido</h3>
+      <button onclick="closeModal()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem 1.5rem;">
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Nome</div><div style="font-weight:500;">${lead?.nome||'—'}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">WhatsApp</div><div style="font-weight:500;">${lead?.whatsapp||'—'}</div></div>
+      <div style="grid-column:1/3"><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">E-mail</div><div style="color:#2E7EC6;">${lead?.email||'—'}</div></div>
+      <div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;"><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Serviço</div><div style="font-weight:500;">${o.servico||'—'}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">País</div><div>${o.pais||'—'}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Valor</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'A confirmar'}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Prazo</div><div>${o.prazo||'—'}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Data</div><div>${formatDate(o.created_at)}</div></div>
+      ${o.obs_admin?`<div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;"><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Observações</div><div style="color:#1E3A52;line-height:1.6;">${o.obs_admin}</div></div>`:''}
+    </div>
+    ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 Chamar no WhatsApp</a>`:''}
+  `;
+  document.getElementById('orderModal').style.display='flex';
+}
+
+function closeModal(){
+  document.getElementById('orderModal').style.display='none';
 }
 
 function renderLeads(leads){
@@ -526,5 +570,11 @@ function formatDate(d){
   return new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
 }
 </script>
+
+<!-- ORDER MODAL -->
+<div id="orderModal" onclick="if(event.target===this)closeModal()" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
+  <div id="modalContent" style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,27,42,.2);"></div>
+</div>
+
 </body>
 </html>
