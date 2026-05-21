@@ -455,6 +455,12 @@ function renderOrders(orders){
 function openModal(i){
   const o = allOrders[i];
   const lead = o._lead;
+  // Normalize arquivos field
+  let arquivos = o.arquivos || [];
+  if(typeof arquivos === 'string'){
+    try { arquivos = JSON.parse(arquivos); } catch(e){ arquivos = []; }
+  }
+  o._arquivos = arquivos;
   document.getElementById('modalContent').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
       <h3 style="font-family:'EB Garamond',Georgia,serif;font-size:1.4rem;color:#0D1B2A;">Detalhes do pedido</h3>
@@ -475,6 +481,18 @@ function openModal(i){
     ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 Chamar no WhatsApp</a>`:''}
   `;
   document.getElementById('orderModal').style.display='flex';
+
+  // Load signed URLs for files
+  if(o._arquivos && o._arquivos.length){
+    const container = document.getElementById('arquivos-' + o.id);
+    if(container){
+      Promise.all(o._arquivos.map(async path => {
+        const {data} = await sb.storage.from('documentos').createSignedUrl(path, 3600);
+        const nome = path.split('/').pop().replace(/^\d+_/, '');
+        return `<a href="${data?.signedUrl||'#'}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#EBF4FF;border:1px solid rgba(46,126,198,.2);padding:.5rem .9rem;border-radius:6px;font-size:.8rem;color:#2E7EC6;text-decoration:none;">📄 ${nome}</a>`;
+      })).then(links => { container.innerHTML = links.join(''); });
+    }
+  }
 }
 
 function closeModal(){
