@@ -225,9 +225,9 @@ tbody tr:hover td{background:var(--bg2);}
       </div>
 
       <div class="stats-grid" id="statsGrid">
-        <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total de pedidos</div></div>
-        <div class="stat-card"><div class="stat-num" id="statPending">—</div><div class="stat-label">Aguardando</div></div>
-        <div class="stat-card"><div class="stat-num" id="statDone">—</div><div class="stat-label">Concluídos</div></div>
+        <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total de orçamentos</div></div>
+        <div class="stat-card"><div class="stat-num" id="statPending">—</div><div class="stat-label">Aguardando / Follow-up</div></div>
+        <div class="stat-card"><div class="stat-num" id="statDone" style="font-size:1.6rem;">—</div><div class="stat-label">Projetos / Concluídos</div></div>
         <div class="stat-card"><div class="stat-num" id="statRevenue">—</div><div class="stat-label">Receita total</div></div>
       </div>
 
@@ -252,10 +252,10 @@ tbody tr:hover td{background:var(--bg2);}
                 <th style="width:90px;">Código</th>
                 <th>Cliente</th>
                 <th>Serviço</th>
-                <th>País</th>
                 <th>Valor</th>
                 <th>Status</th>
-                <th>Data</th>
+                <th>Recebido</th>
+                <th>Entrega</th>
               </tr></thead>
               <tbody id="ordersTbody"></tbody>
             </table>
@@ -407,12 +407,14 @@ async function loadAdminData(){
   renderOrders(allOrders);
 
   const total = allOrders.length;
-  const pending = allOrders.filter(o=>o.status==='aguardando_pagamento').length;
+  const pending = allOrders.filter(o=>['aguardando_aprovacao','aguardando_pagamento','followup_1','followup_2','followup_3'].includes(o.status)).length;
+  const approved = allOrders.filter(o=>o.status==='em_andamento').length;
   const done = allOrders.filter(o=>o.status==='concluido').length;
+  const lost = allOrders.filter(o=>o.status==='perdido').length;
   const revenue = allOrders.filter(o=>o.status==='concluido').reduce((s,o)=>s+(o.valor||0),0);
   document.getElementById('statTotal').textContent = total;
   document.getElementById('statPending').textContent = pending;
-  document.getElementById('statDone').textContent = done;
+  document.getElementById('statDone').textContent = approved + ' proj. / ' + done + ' concl.';
   document.getElementById('statRevenue').textContent = 'R$'+(revenue).toFixed(0);
 }
 
@@ -441,17 +443,20 @@ function renderOrders(orders){
         </button>
       </td>
       <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.servico||'—'}</td>
-      <td>${o.pais||'—'}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'—'}</td>
       <td>
         <select class="status-select" onchange="updateStatus('${o.id}',this.value)">
-          <option value="aguardando_pagamento" ${o.status==='aguardando_pagamento'?'selected':''}>Aguardando</option>
-          <option value="em_andamento" ${o.status==='em_andamento'?'selected':''}>Em andamento</option>
+          <option value="aguardando_aprovacao" ${o.status==='aguardando_aprovacao'||o.status==='aguardando_pagamento'?'selected':''}>Aguardando aprovação</option>
+          <option value="followup_1" ${o.status==='followup_1'?'selected':''}>Follow-up 1</option>
+          <option value="followup_2" ${o.status==='followup_2'?'selected':''}>Follow-up 2</option>
+          <option value="followup_3" ${o.status==='followup_3'?'selected':''}>Follow-up 3</option>
+          <option value="em_andamento" ${o.status==='em_andamento'?'selected':''}>Projeto aprovado</option>
           <option value="concluido" ${o.status==='concluido'?'selected':''}>Concluído</option>
-          <option value="cancelado" ${o.status==='cancelado'?'selected':''}>Cancelado</option>
+          <option value="perdido" ${o.status==='perdido'?'selected':''}>Perdido</option>
         </select>
       </td>
       <td style="color:#4A6A82;font-size:.78rem;">${formatDate(o.created_at)}</td>
+      <td style="color:${o.data_entrega ? '#00875A' : '#8899AA'};font-size:.78rem;font-weight:${o.data_entrega?'600':'400'}">${o.data_entrega ? formatDate(o.data_entrega) : '—'}</td>
     </tr>`;
   }).join('');
 }
@@ -474,7 +479,14 @@ function openModal(i){
       <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">País</div><div>${o.pais||'—'}</div></div>
       <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Valor</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'A confirmar'}</div></div>
       <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Prazo</div><div>${o.prazo||'—'}</div></div>
-      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Data</div><div>${formatDate(o.created_at)}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Recebido em</div><div>${formatDate(o.created_at)}</div></div>
+      <div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;">
+        <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;">Data de entrega</div>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <input type="date" id="dataEntrega-${o.id}" value="${o.data_entrega||''}" style="padding:.5rem .75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;color:#0D1B2A;outline:none;"/>
+          <button onclick="salvarDataEntrega('${o.id}')" style="background:#2E7EC6;color:#fff;border:none;padding:.5rem 1rem;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;">Salvar</button>
+        </div>
+      </div>
       ${o.obs_admin?`<div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;"><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Observações</div><div style="color:#1E3A52;line-height:1.6;">${o.obs_admin}</div></div>`:''}
     </div>
     ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 Chamar no WhatsApp</a>`:''}
@@ -518,6 +530,20 @@ function openModal(i){
 
 function closeModal(){
   document.getElementById('orderModal').style.display='none';
+}
+
+async function salvarDataEntrega(id){
+  const input = document.getElementById('dataEntrega-' + id);
+  if(!input) return;
+  const data = input.value;
+  await sb.from('orders').update({data_entrega: data||null}).eq('id', id);
+  // Update local state
+  const order = allOrders.find(o=>o.id===id);
+  if(order) order.data_entrega = data;
+  renderOrders(allOrders);
+  // Visual feedback
+  input.style.borderColor = '#00875A';
+  setTimeout(()=>input.style.borderColor='rgba(46,126,198,.25)', 1500);
 }
 
 async function downloadArquivo(path){
@@ -565,11 +591,11 @@ async function updateStatus(id, status){
       const {data: prjData} = await sb.from('orders').select('codigo').like('codigo', 'PRJ-%').order('codigo', {ascending: false}).limit(1);
       const ultimoNum = prjData && prjData.length > 0 ? parseInt((prjData[0].codigo || 'PRJ-0000').split('-')[1]) : 0;
       updateData.codigo = 'PRJ-' + String(ultimoNum + 1).padStart(4, '0');
-      // Update local state
       order.codigo = updateData.codigo;
-      renderOrders(allOrders);
     }
   }
+  // Reload after update
+  setTimeout(()=>loadAdminData(), 500);
 
   await sb.from('orders').update(updateData).eq('id', id);
 }
@@ -615,8 +641,13 @@ async function loadClientData(user){
 function statusBadge(s){
   const map={
     'aguardando_pagamento':'<span class="badge badge-pending">Aguardando</span>',
-    'em_andamento':'<span class="badge badge-blue">Em andamento</span>',
+    'aguardando_aprovacao':'<span class="badge badge-pending">Aguardando aprovação</span>',
+    'followup_1':'<span class="badge badge-blue">Follow-up 1</span>',
+    'followup_2':'<span class="badge badge-blue">Follow-up 2</span>',
+    'followup_3':'<span class="badge badge-blue">Follow-up 3</span>',
+    'em_andamento':'<span class="badge badge-done">Projeto aprovado</span>',
     'concluido':'<span class="badge badge-done">Concluído</span>',
+    'perdido':'<span class="badge badge-danger">Perdido</span>',
     'cancelado':'<span class="badge badge-danger">Cancelado</span>',
   };
   return map[s]||'<span class="badge badge-pending">Aguardando</span>';
