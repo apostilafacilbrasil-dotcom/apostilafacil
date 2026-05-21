@@ -481,6 +481,11 @@ function closeModal(){
   document.getElementById('orderModal').style.display='none';
 }
 
+async function downloadArquivo(path){
+  const {data} = await sb.storage.from('documentos').createSignedUrl(path, 60);
+  if(data?.signedUrl) window.open(data.signedUrl, '_blank');
+}
+
 function renderLeads(leads){
   document.getElementById('leadsLoading').style.display='none';
   document.getElementById('leadsTable').style.display='block';
@@ -623,6 +628,7 @@ function formatDate(d){
         <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Valor (R$)</label><input id="newValor" type="number" placeholder="109.90" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
       </div>
       <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Observações</label><textarea id="newObs" placeholder="Contexto do atendimento..." style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;min-height:80px;resize:vertical;"></textarea></div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Documentos (opcional)</label><input id="newFiles" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx" style="width:100%;padding:.6rem;border:1.5px dashed rgba(46,126,198,.4);border-radius:8px;font-size:.82rem;background:rgba(46,126,198,.03);cursor:pointer;"/></div>
     </div>
     <button onclick="criarOrcamentoManual()" style="width:100%;margin-top:1.2rem;background:linear-gradient(135deg,#2E7EC6,#1A5FA0);color:#fff;border:none;padding:.9rem;font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:10px;cursor:pointer;">Criar orçamento</button>
   </div>
@@ -647,8 +653,19 @@ async function criarOrcamentoManual(){
   const ultimoNum = orcData && orcData.length > 0 ? parseInt((orcData[0].codigo || 'ORC-0000').split('-')[1]) : 0;
   const codigo = 'ORC-' + String(ultimoNum + 1).padStart(4, '0');
 
+  // Upload arquivos se houver
+  const arquivosUrls = [];
+  const newFilesInput = document.getElementById('newFiles');
+  if(newFilesInput && newFilesInput.files.length > 0){
+    for(const file of Array.from(newFilesInput.files)){
+      const filePath = codigo + '/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const {data: uploadData, error: uploadError} = await sb.storage.from('documentos').upload(filePath, file);
+      if(!uploadError && uploadData) arquivosUrls.push(filePath);
+    }
+  }
+
   await sb.from('leads').upsert({ nome, whatsapp: whats, email, servico, pais, codigo, created_at: new Date().toISOString() });
-  await sb.from('orders').insert({ servico, valor, pais, status: 'aguardando_pagamento', prazo: 'A confirmar', obs_admin: obs||null, codigo });
+  await sb.from('orders').insert({ servico, valor, pais, status: 'aguardando_pagamento', prazo: 'A confirmar', obs_admin: obs||null, codigo, arquivos: arquivosUrls.length > 0 ? arquivosUrls : null });
 
   closeNewOrcModal();
   // Reset fields

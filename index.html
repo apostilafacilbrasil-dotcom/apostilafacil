@@ -1823,6 +1823,18 @@ document.getElementById('quoteForm').addEventListener('submit', async function(e
     const ultimoNum = orcData && orcData.length > 0 ? parseInt((orcData[0].codigo || 'ORC-0000').split('-')[1]) : 0;
     codigoOrc = 'ORC-' + String(ultimoNum + 1).padStart(4, '0');
 
+    // Upload arquivos para Supabase Storage
+    const arquivosUrls = [];
+    if(selectedFiles.length > 0){
+      for(const file of selectedFiles){
+        const filePath = codigoOrc + '/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const {data: uploadData, error: uploadError} = await sb.storage.from('documentos').upload(filePath, file);
+        if(!uploadError && uploadData){
+          arquivosUrls.push(filePath);
+        }
+      }
+    }
+
     await sb.from('leads').upsert({
       email, nome, whatsapp, pais,
       servico: tipoServico,
@@ -1834,6 +1846,7 @@ document.getElementById('quoteForm').addEventListener('submit', async function(e
       prazo: tipoServico === 'Apenas Apostila de Haia' ? 'Em até 24h' : 'Após análise',
       obs_admin: obs || null,
       codigo: codigoOrc,
+      arquivos: arquivosUrls.length > 0 ? arquivosUrls : null,
     });
   } catch(err) {
     console.warn('Supabase:', err);
