@@ -395,16 +395,15 @@ async function loadAdminData(){
   const {data:orders} = await sb.from('orders').select('*').order('created_at', {ascending:false});
   allOrders = (orders || []).map(o=>{
     const lead = allLeads.find(l=>
-      (l.servico === o.servico) ||
-      (l.created_at && o.created_at && Math.abs(new Date(l.created_at)-new Date(o.created_at)) < 30000)
+      (l.codigo && o.codigo && l.codigo === o.codigo) ||
+      (l.servico === o.servico && l.created_at && o.created_at && Math.abs(new Date(l.created_at)-new Date(o.created_at)) < 60000)
     );
-    // Normalize arquivos
+    // Normalize arquivos — Supabase returns text[] as JS array already
     let arqs = o.arquivos || [];
     if(typeof arqs === 'string'){ try{ arqs=JSON.parse(arqs); }catch(e){ arqs=[]; } }
     if(!Array.isArray(arqs)) arqs = [];
     return {...o, _lead: lead || null, _arquivos: arqs};
   });
-  console.log('allOrders sample:', JSON.stringify(allOrders[0]?.arquivos), typeof allOrders[0]?.arquivos, allOrders[0]?._arquivos);
   renderOrders(allOrders);
 
   const total = allOrders.length;
