@@ -404,6 +404,7 @@ async function loadAdminData(){
     if(!Array.isArray(arqs)) arqs = [];
     return {...o, _lead: lead || null, _arquivos: arqs};
   });
+  console.log('allOrders sample:', JSON.stringify(allOrders[0]?.arquivos), typeof allOrders[0]?.arquivos, allOrders[0]?._arquivos);
   renderOrders(allOrders);
 
   const total = allOrders.length;
