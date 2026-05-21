@@ -493,37 +493,38 @@ function openModal(i){
   `;
   document.getElementById('orderModal').style.display='flex';
 
-  // Load signed URLs for files — fetch directly from DB to ensure fresh data
+  // Load files directly from DB
   (async () => {
     const {data: freshOrder} = await sb.from('orders').select('arquivos').eq('id', o.id).single();
     let arqs = freshOrder?.arquivos || [];
     if(typeof arqs === 'string'){ try{ arqs=JSON.parse(arqs); }catch(e){ arqs=[]; } }
     if(!Array.isArray(arqs)) arqs = [];
 
-    // Update file section in modal
-    const modalContent = document.getElementById('modalContent');
-    let fileSection = document.getElementById('file-section-' + o.id);
-
     if(arqs.length > 0){
-      if(!fileSection){
-        // Add file section before the WhatsApp button
-        const wppBtn = modalContent.querySelector('a[href*="wa.me"]');
-        const div = document.createElement('div');
-        div.id = 'file-section-' + o.id;
-        div.style.cssText = 'border-top:1px solid #eee;padding-top:.75rem;margin-top:.75rem;';
-        div.innerHTML = '<div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.5rem;">Arquivos enviados</div><div id="file-links-' + o.id + '"></div>';
-        if(wppBtn) modalContent.insertBefore(div, wppBtn.parentElement || wppBtn);
-        else modalContent.appendChild(div);
+      const modalContent = document.getElementById('modalContent');
+      const wppBtn = modalContent.querySelector('a[href*="wa.me"]');
+
+      const div = document.createElement('div');
+      div.style.cssText = 'border-top:1px solid #eee;padding-top:.75rem;margin-top:.75rem;margin-bottom:.75rem;';
+
+      const label = document.createElement('div');
+      label.style.cssText = 'font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.5rem;';
+      label.textContent = 'Arquivos enviados';
+      div.appendChild(label);
+
+      for(const path of arqs){
+        const {data: urlData} = await sb.storage.from('documentos').createSignedUrl(path, 3600);
+        const nome = path.split('/').pop().replace(/^[0-9]+_/, '');
+        const a = document.createElement('a');
+        a.href = urlData?.signedUrl || '#';
+        a.target = '_blank';
+        a.style.cssText = 'display:inline-flex;align-items:center;gap:.5rem;background:#EBF4FF;border:1px solid rgba(46,126,198,.2);padding:.5rem .9rem;border-radius:6px;font-size:.8rem;color:#2E7EC6;text-decoration:none;margin-bottom:.3rem;margin-right:.3rem;';
+        a.textContent = '📄 ' + nome;
+        div.appendChild(a);
       }
-      const linksContainer = document.getElementById('file-links-' + o.id);
-      if(linksContainer){
-        const links = await Promise.all(arqs.map(async path => {
-          const {data} = await sb.storage.from('documentos').createSignedUrl(path, 3600);
-          const nome = path.split('/').pop().replace(/^\d+_/, '');
-          return '<a href="' + (data?.signedUrl||'#') + '" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#EBF4FF;border:1px solid rgba(46,126,198,.2);padding:.5rem .9rem;border-radius:6px;font-size:.8rem;color:#2E7EC6;text-decoration:none;margin-bottom:.3rem;">📄 ' + nome + '</a>';
-        }));
-        linksContainer.innerHTML = links.join('');
-      }
+
+      if(wppBtn) modalContent.insertBefore(div, wppBtn);
+      else modalContent.appendChild(div);
     }
   })();
 }
