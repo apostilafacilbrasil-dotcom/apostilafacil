@@ -1645,6 +1645,20 @@ function nextStep(step){
   document.getElementById('step'+step).classList.add('active');
   currentStep=step;
   for(let i=1;i<=3;i++){ const bar=document.getElementById('bar'+i); if(bar) bar.classList.toggle('on',i<=Math.min(step,3)); }
+
+  // Ao ir para etapa 2, carrega arquivos da etapa 1 automaticamente
+  if(step===2){
+    const simFileInput = document.getElementById('formSimFile');
+    if(simFileInput && simFileInput.files && simFileInput.files.length > 0){
+      Array.from(simFileInput.files).forEach(file => {
+        if(!selectedFiles.some(f => f.name === file.name && f.size === file.size)){
+          selectedFiles.push(file);
+        }
+      });
+      renderFiles();
+    }
+  }
+
   document.getElementById('orcamento').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
