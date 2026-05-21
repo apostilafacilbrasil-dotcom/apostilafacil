@@ -584,10 +584,11 @@ function filterOrders(q){
 
 async function updateStatus(id, status){
   let updateData = {status, updated_at: new Date().toISOString()};
+  const order = allOrders.find(o=>o.id===id);
+  const lead = order?._lead;
 
-  // Se aprovado (em_andamento), gera código PRJ
+  // Se aprovado, gera código PRJ
   if(status === 'em_andamento'){
-    const order = allOrders.find(o=>o.id===id);
     if(order && (!order.codigo || order.codigo.startsWith('ORC-'))){
       const {data: prjData} = await sb.from('orders').select('codigo').like('codigo', 'PRJ-%').order('codigo', {ascending: false}).limit(1);
       const ultimoNum = prjData && prjData.length > 0 ? parseInt((prjData[0].codigo || 'PRJ-0000').split('-')[1]) : 0;
@@ -595,10 +596,113 @@ async function updateStatus(id, status){
       order.codigo = updateData.codigo;
     }
   }
-  // Reload after update
-  setTimeout(()=>loadAdminData(), 500);
 
   await sb.from('orders').update(updateData).eq('id', id);
+
+  // Follow-up: disparar e-mail + mostrar mensagem WhatsApp
+  if(['followup_1','followup_2','followup_3'].includes(status) && lead?.email){
+    // Dispara e-mail via Edge Function
+    try {
+      await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer sb_publishable_0qmC4DKUTpeafAhcaa9ZQA_2rVHMagY',
+        },
+        body: JSON.stringify({
+          nome: lead.nome,
+          email: lead.email,
+          servico: order.servico,
+          descricao: order.obs_admin || '',
+          codigo: order.codigo,
+          tipo: status,
+          valor: order.valor,
+        }),
+      });
+    } catch(e){ console.warn('email followup error', e); }
+
+    // Mostra botão WhatsApp com mensagem pré-escrita
+    showFollowupWpp(status, lead, order);
+  }
+
+  setTimeout(()=>loadAdminData(), 500);
+}
+
+function showFollowupWpp(tipo, lead, order){
+  const nome = lead?.nome?.split(' ')[0] || 'cliente';
+  const codigo = order?.codigo || '';
+  const servico = order?.servico || 'apostilamento';
+  const whats = (lead?.whatsapp||'').replace(/\D/g,'');
+  const WHATSAPP = '5511999999999';
+
+  const msgs = {
+    followup_1: `Olá, ${nome}! 😊
+
+Passando para verificar se você teve a oportunidade de analisar o orçamento *${codigo}* para o serviço de *${servico}*.
+
+Estamos prontos para atender você com:
+
+📋 Atendimento ágil e profissional
+🔒 Processo seguro e 100% online
+📩 Suporte pelo WhatsApp em cada etapa
+✨ Sem burocracia e sem deslocamento
+
+Qualquer dúvida, é só nos chamar. Será um prazer ajudar! 🙌
+
+Apostila Simples`,
+
+    followup_2: `Olá, ${nome}! 👋
+
+Sabemos que a rotina é corrida, mas o orçamento *${codigo}* ainda está disponível para o seu *${servico}*.
+
+Veja por que nossos clientes escolhem a Apostila Simples:
+
+✅ Processo 100% online — sem sair de casa
+✅ Entrega digital em até 24h
+✅ Sem filas e sem cartório
+✅ Suporte pelo WhatsApp em cada etapa
+✅ Pagamento somente após confirmação
+
+Podemos dar início *hoje mesmo*. O que acha? 🚀
+
+Apostila Simples`,
+
+    followup_3: `${nome}, última chance! 🎯
+
+Queremos muito te ajudar com o *${servico}* e preparamos uma condição especial exclusiva para você:
+
+🎁 *15% de desconto* no orçamento ${codigo}
+⏰ Válido por apenas *24 horas*
+
+Para garantir seu desconto:
+
+👉 Responda esta mensagem com *QUERO*
+👉 Ou clique aqui para confirmar agora
+
+Não perca essa oportunidade! 🙌
+
+Apostila Simples`,
+  };
+
+  const msg = encodeURIComponent(msgs[tipo] || '');
+  const num = whats || WHATSAPP;
+  const url = \`https://wa.me/55\${num}?text=\${msg}\`;
+
+  // Show modal with WPP link
+  const existing = document.getElementById('wppFollowupBar');
+  if(existing) existing.remove();
+
+  const bar = document.createElement('div');
+  bar.id = 'wppFollowupBar';
+  bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:200;background:#0D1B2A;border-top:1px solid rgba(46,126,198,.3);padding:1rem 4vw;display:flex;align-items:center;justify-content:space-between;gap:1rem;';
+  bar.innerHTML = \`
+    <span style="color:#fff;font-size:.85rem;">✉️ E-mail de follow-up enviado! Envie também pelo WhatsApp:</span>
+    <div style="display:flex;gap:.75rem;align-items:center;">
+      <a href="\${url}" target="_blank" style="background:#25D366;color:#000;font-weight:700;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;padding:.65rem 1.2rem;border-radius:8px;text-decoration:none;white-space:nowrap;">💬 Abrir WhatsApp</a>
+      <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);padding:.5rem .75rem;border-radius:6px;font-size:.75rem;cursor:pointer;">Fechar</button>
+    </div>
+  \`;
+  document.body.appendChild(bar);
 }
 
 // ── CLIENT ──
