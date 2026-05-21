@@ -3,29 +3,35 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ApostilaFácil — Portal</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>Apostila Simples — Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  --black:#030303;
-  --deep:#080808;
-  --panel:#0E0E0D;
-  --panel2:#141412;
-  --white:#F5F1E8;
-  --muted:#8E8A80;
-  --muted2:#5F5B53;
-  --line:rgba(245,241,232,.1);
-  --line2:rgba(245,241,232,.2);
-  --emerald:#00A86B;
-  --emerald2:#11C982;
-  --emerald-soft:rgba(0,168,107,.12);
-  --danger:#DC5757;
-  --warning:#E8A020;
+  --navy:#0D1B2A;
+  --navy2:#163A5F;
+  --blue:#2E7EC6;
+  --blue2:#1A5FA0;
+  --blue-soft:rgba(46,126,198,.1);
+  --blue-soft2:rgba(46,126,198,.18);
+  --bg:#F0F7FF;
+  --bg2:#EBF4FF;
+  --white:#ffffff;
+  --text:#0D1B2A;
+  --muted:#1E3A52;
+  --muted2:#4A6A82;
+  --line:rgba(13,27,42,.1);
+  --line2:rgba(13,27,42,.18);
+  --success:#00875A;
+  --success-bg:rgba(0,135,90,.08);
+  --warning:#B45309;
+  --warning-bg:rgba(180,83,9,.08);
+  --danger:#C0392B;
+  --danger-bg:rgba(192,57,43,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--black);color:var(--white);font-family:Inter,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--text);font-family:Inter,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}
 a{text-decoration:none;color:inherit}
 button{cursor:pointer;font-family:inherit}
 input,select,textarea{font-family:inherit}
@@ -33,691 +39,490 @@ input,select,textarea{font-family:inherit}
 /* ── NAV ── */
 .nav{
   position:fixed;top:0;left:0;right:0;z-index:100;
-  height:64px;display:flex;align-items:center;justify-content:space-between;
+  height:68px;display:flex;align-items:center;justify-content:space-between;
   padding:0 4vw;
-  background:rgba(3,3,3,.95);
-  border-bottom:1px solid var(--line);
+  background:var(--navy);
+  border-bottom:1px solid rgba(46,126,198,.2);
 }
-.logo{font-family:"Bebas Neue",sans-serif;font-size:1.6rem;letter-spacing:.08em}
-.logo span{color:var(--emerald)}
-.nav-right{display:flex;align-items:center;gap:1rem}
-.nav-user{font-size:.78rem;color:var(--muted)}
-.btn-logout{background:none;border:1px solid var(--line2);color:var(--muted);padding:.4rem .9rem;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase}
-.btn-logout:hover{border-color:var(--danger);color:var(--danger)}
-
-/* ── PAGES ── */
-.page{display:none;min-height:100vh;padding-top:64px}
-.page.active{display:block}
+.nav-logo{display:flex;align-items:center;gap:.6rem;}
+.nav-logo svg{width:38px;height:38px;}
+.nav-logo-text{font-family:"Bebas Neue",sans-serif;font-size:1.1rem;letter-spacing:.1em;color:#fff;white-space:nowrap;}
+.nav-logo-text span{color:#2E7EC6;}
+.nav-right{display:flex;align-items:center;gap:1rem;}
+.nav-user{font-size:.78rem;color:rgba(255,255,255,.6);letter-spacing:.04em;}
+.btn-logout{background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:.4rem .9rem;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;transition:.2s;}
+.btn-logout:hover{border-color:rgba(255,255,255,.35);color:#fff;}
 
 /* ── AUTH ── */
-.auth-wrap{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  padding:2rem;
-  background:radial-gradient(circle at 30% 20%, rgba(0,168,107,.07) 0%, transparent 50%);
-}
-.auth-box{
-  width:100%;max-width:420px;
-  background:var(--panel);
-  border:1px solid var(--line2);
-  padding:2.5rem;
-}
-.auth-logo{font-family:"Bebas Neue",sans-serif;font-size:2rem;letter-spacing:.08em;margin-bottom:.3rem}
-.auth-logo span{color:var(--emerald)}
-.auth-sub{font-size:.82rem;color:var(--muted);margin-bottom:2rem}
-.auth-tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:1.8rem}
-.auth-tab{
-  flex:1;padding:.7rem;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;
-  background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;
-  margin-bottom:-1px;
-}
-.auth-tab.active{color:var(--emerald);border-bottom-color:var(--emerald)}
-.field{margin-bottom:1.2rem}
-.field label{display:block;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
-.field input{
-  width:100%;background:var(--deep);border:1px solid var(--line2);
-  color:var(--white);padding:.75rem 1rem;font-size:.9rem;
-  outline:none;transition:border-color .2s;
-}
-.field input:focus{border-color:var(--emerald)}
-.btn-primary{
-  width:100%;background:var(--emerald);color:#000;border:none;
-  padding:.85rem;font-size:.8rem;font-weight:700;letter-spacing:.14em;
-  text-transform:uppercase;transition:background .2s;
-}
-.btn-primary:hover{background:var(--emerald2)}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed}
-.auth-err{color:var(--danger);font-size:.8rem;margin-bottom:1rem;display:none}
-.auth-switch{text-align:center;margin-top:1.2rem;font-size:.78rem;color:var(--muted)}
-.auth-switch a{color:var(--emerald);cursor:pointer}
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+.auth-card{background:var(--white);border:1px solid var(--line2);border-radius:16px;padding:2.5rem;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(13,27,42,.08);}
+.auth-logo{display:flex;align-items:center;gap:.6rem;margin-bottom:2rem;justify-content:center;}
+.auth-logo svg{width:52px;height:52px;}
+.auth-logo-text{font-family:"Bebas Neue",sans-serif;font-size:1.3rem;letter-spacing:.1em;color:var(--navy);white-space:nowrap;}
+.auth-logo-text span{color:#2E7EC6;}
+.auth-title{font-family:"EB Garamond",Georgia,serif;font-size:1.6rem;line-height:1.1;color:var(--navy);margin-bottom:.4rem;text-align:center;}
+.auth-sub{font-size:.82rem;color:var(--muted2);text-align:center;margin-bottom:1.8rem;line-height:1.6;}
+.auth-tabs{display:flex;gap:0;border:1px solid var(--line2);border-radius:8px;overflow:hidden;margin-bottom:1.8rem;}
+.auth-tab{flex:1;padding:.65rem;font-size:.78rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;background:none;border:none;color:var(--muted2);transition:.2s;}
+.auth-tab.active{background:var(--navy);color:#fff;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;font-weight:500;}
+.field input{width:100%;background:var(--bg);border:1.5px solid var(--line2);color:var(--text);padding:.75rem .9rem;border-radius:8px;font-size:.92rem;outline:none;transition:.2s;}
+.field input:focus{border-color:var(--blue);}
+.field input::placeholder{color:#8899AA;}
+.btn-primary{width:100%;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border:none;padding:.9rem;font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 16px rgba(46,126,198,.3);transition:.2s;margin-top:.5rem;}
+.btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px);}
+.auth-err{background:var(--danger-bg);border:1px solid rgba(192,57,43,.2);color:var(--danger);font-size:.8rem;padding:.7rem 1rem;border-radius:8px;margin-bottom:1rem;display:none;}
+.auth-err.show{display:block;}
 
-/* ── DASHBOARD LAYOUT ── */
-.dash{display:flex;min-height:calc(100vh - 64px)}
-.sidebar{
-  width:220px;flex-shrink:0;
-  background:var(--deep);border-right:1px solid var(--line);
-  padding:1.5rem 0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;
-}
-.sidebar-item{
-  display:flex;align-items:center;gap:.75rem;
-  padding:.75rem 1.5rem;font-size:.82rem;color:var(--muted);
-  cursor:pointer;border-left:2px solid transparent;transition:all .15s;
-}
-.sidebar-item:hover{color:var(--white);background:rgba(255,255,255,.03)}
-.sidebar-item.active{color:var(--emerald);border-left-color:var(--emerald);background:var(--emerald-soft)}
-.sidebar-item svg{flex-shrink:0}
-.sidebar-sep{height:1px;background:var(--line);margin:.75rem 1.5rem}
+/* ── LAYOUT ── */
+.app{display:none;padding-top:68px;min-height:100vh;}
+.app.show{display:block;}
+.container{max-width:1100px;margin:0 auto;padding:2.5rem 4vw;}
 
-.main-content{flex:1;padding:2rem 2.5rem;overflow-x:hidden}
-.page-title{font-family:"Bebas Neue",sans-serif;font-size:2rem;letter-spacing:.05em;margin-bottom:.3rem}
-.page-sub{font-size:.82rem;color:var(--muted);margin-bottom:2rem}
+/* ── PAGE HEADER ── */
+.page-header{margin-bottom:2rem;}
+.page-eyebrow{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);margin-bottom:.4rem;font-weight:600;}
+.page-title{font-family:"EB Garamond",Georgia,serif;font-size:clamp(1.6rem,3vw,2.4rem);line-height:1.1;color:var(--navy);}
+.page-title em{color:var(--blue);font-style:normal;}
 
-/* ── CARDS ── */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
-.stat-card{background:var(--panel);border:1px solid var(--line);padding:1.3rem 1.5rem}
-.stat-label{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
-.stat-value{font-family:"Bebas Neue",sans-serif;font-size:2.2rem;letter-spacing:.03em}
-.stat-value.green{color:var(--emerald)}
-.stat-value.yellow{color:var(--warning)}
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:2rem;}
+@media(max-width:700px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--white);padding:1.4rem 1.2rem;text-align:center;}
+.stat-num{font-family:"Bebas Neue",sans-serif;font-size:2.6rem;line-height:1;color:var(--blue);letter-spacing:.02em;}
+.stat-label{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-top:.3rem;}
 
 /* ── TABLE ── */
-.table-wrap{background:var(--panel);border:1px solid var(--line);overflow-x:auto}
-.table-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--line)}
-.table-header h3{font-size:.9rem;font-weight:600}
-table{width:100%;border-collapse:collapse}
-th{font-size:.67rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:.9rem 1.2rem;text-align:left;border-bottom:1px solid var(--line);font-weight:500}
-td{padding:.9rem 1.2rem;font-size:.85rem;border-bottom:1px solid var(--line)}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(255,255,255,.02)}
+.table-wrap{background:var(--white);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.table-head{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--line);}
+.table-title{font-family:"EB Garamond",Georgia,serif;font-size:1.1rem;color:var(--navy);}
+.table-search{background:var(--bg);border:1px solid var(--line2);color:var(--text);padding:.5rem .85rem;border-radius:8px;font-size:.82rem;width:220px;outline:none;}
+.table-search:focus{border-color:var(--blue);}
+table{width:100%;border-collapse:collapse;}
+thead th{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);padding:.9rem 1.2rem;text-align:left;border-bottom:1px solid var(--line);background:var(--bg);font-weight:500;}
+tbody td{padding:1rem 1.2rem;font-size:.85rem;border-bottom:1px solid var(--line);color:var(--text);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--bg2);}
+.badge{display:inline-flex;align-items:center;padding:.25rem .65rem;border-radius:100px;font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+.badge-pending{background:var(--warning-bg);color:var(--warning);}
+.badge-done{background:var(--success-bg);color:var(--success);}
+.badge-danger{background:var(--danger-bg);color:var(--danger);}
+.badge-blue{background:var(--blue-soft);color:var(--blue2);}
+.empty-state{text-align:center;padding:3.5rem 2rem;color:var(--muted2);}
+.empty-state svg{opacity:.3;margin-bottom:1rem;}
+.empty-state p{font-size:.88rem;line-height:1.7;}
 
-/* ── BADGES ── */
-.badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;padding:.3rem .7rem;border-radius:2px;font-weight:600}
-.badge-pending{background:rgba(232,160,32,.12);color:var(--warning);border:1px solid rgba(232,160,32,.25)}
-.badge-paid{background:rgba(0,168,107,.12);color:var(--emerald);border:1px solid rgba(0,168,107,.25)}
-.badge-progress{background:rgba(100,149,237,.12);color:#6495ED;border:1px solid rgba(100,149,237,.25)}
-.badge-done{background:rgba(150,150,150,.12);color:#aaa;border:1px solid rgba(150,150,150,.2)}
-.badge-cancelled{background:rgba(220,87,87,.12);color:var(--danger);border:1px solid rgba(220,87,87,.25)}
+/* ── CLIENT AREA ── */
+.client-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+@media(max-width:700px){.client-grid{grid-template-columns:1fr;}}
+.client-card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:1.5rem;}
+.client-card-title{font-family:"EB Garamond",Georgia,serif;font-size:1.05rem;color:var(--navy);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--line);}
+.info-row{display:flex;justify-content:space-between;gap:1rem;padding:.6rem 0;border-bottom:1px solid var(--line);font-size:.85rem;}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:var(--muted2);}
+.info-value{color:var(--text);font-weight:500;text-align:right;}
+.order-row{padding:1rem 0;border-bottom:1px solid var(--line);}
+.order-row:last-child{border-bottom:none;}
+.order-row-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.35rem;}
+.order-service{font-size:.88rem;font-weight:500;color:var(--navy);}
+.order-date{font-size:.72rem;color:var(--muted2);}
+.order-val{font-family:"Bebas Neue",sans-serif;font-size:1.4rem;color:var(--blue);}
 
-/* ── ACTION BTNS ── */
-.btn-sm{padding:.35rem .8rem;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line2);background:none;color:var(--muted);cursor:pointer}
-.btn-sm:hover{border-color:var(--emerald);color:var(--emerald)}
-.btn-sm.danger:hover{border-color:var(--danger);color:var(--danger)}
-
-/* ── MODAL ── */
-.modal-overlay{
-  display:none;position:fixed;inset:0;z-index:200;
-  background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:1rem;
-}
-.modal-overlay.open{display:flex}
-.modal{background:var(--panel);border:1px solid var(--line2);width:100%;max-width:520px;padding:2rem}
-.modal-title{font-size:1.1rem;font-weight:600;margin-bottom:1.5rem}
-.modal-actions{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem}
-.btn-ghost{background:none;border:1px solid var(--line2);color:var(--muted);padding:.6rem 1.2rem;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase}
-.btn-ghost:hover{border-color:var(--white);color:var(--white)}
-select.field-select{width:100%;background:var(--deep);border:1px solid var(--line2);color:var(--white);padding:.75rem 1rem;font-size:.88rem;outline:none}
-select.field-select:focus{border-color:var(--emerald)}
-
-/* ── CLIENT PORTAL ── */
-.portal-hero{
-  background:var(--panel);border:1px solid var(--line);
-  padding:2rem;margin-bottom:1.5rem;
-  display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
-}
-.portal-welcome{font-family:"Bebas Neue",sans-serif;font-size:1.8rem;letter-spacing:.04em}
-.portal-welcome span{color:var(--emerald)}
-.order-card{background:var(--panel);border:1px solid var(--line);padding:1.5rem;margin-bottom:1rem}
-.order-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
-.order-id{font-family:"Bebas Neue",sans-serif;font-size:1.1rem;letter-spacing:.05em;color:var(--muted)}
-.order-service{font-size:.9rem;font-weight:600;margin-bottom:.3rem}
-.order-meta{font-size:.78rem;color:var(--muted)}
-.progress-bar{height:3px;background:var(--line);margin:1rem 0;position:relative}
-.progress-fill{height:100%;background:var(--emerald);transition:width .4s ease}
-.progress-steps{display:flex;justify-content:space-between;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2)}
-.progress-steps span.done{color:var(--emerald)}
-
-.pay-btn{
-  display:inline-flex;align-items:center;gap:.5rem;
-  background:var(--emerald);color:#000;border:none;
-  padding:.6rem 1.2rem;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-}
-.pay-btn:hover{background:var(--emerald2)}
-
-/* ── EMPTY ── */
-.empty{text-align:center;padding:4rem 2rem;color:var(--muted)}
-.empty svg{margin-bottom:1rem;opacity:.4}
-.empty p{font-size:.9rem}
-
-/* ── TOAST ── */
-#toast{
-  position:fixed;bottom:2rem;right:2rem;z-index:999;
-  background:var(--panel);border:1px solid var(--line2);
-  padding:1rem 1.5rem;font-size:.85rem;
-  transform:translateY(120%);transition:transform .3s;
-  display:flex;align-items:center;gap:.75rem;max-width:340px;
-}
-#toast.show{transform:translateY(0)}
-#toast.success{border-color:var(--emerald);color:var(--emerald)}
-#toast.error{border-color:var(--danger);color:var(--danger)}
+/* ── SELECT STATUS ── */
+.status-select{background:var(--bg);border:1px solid var(--line2);color:var(--text);padding:.3rem .5rem;border-radius:6px;font-size:.72rem;outline:none;cursor:pointer;}
+.status-select:focus{border-color:var(--blue);}
 
 /* ── LOADING ── */
-.loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted);font-size:.85rem;gap:.75rem}
-.spinner{width:18px;height:18px;border:2px solid var(--line2);border-top-color:var(--emerald);border-radius:50%;animation:spin .7s linear infinite}
+.loading{text-align:center;padding:3rem;color:var(--muted2);font-size:.85rem;}
+.spinner{width:28px;height:28px;border:2px solid var(--line2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-@media(max-width:768px){
-  .sidebar{display:none}
-  .main-content{padding:1.2rem}
-  .cards-grid{grid-template-columns:1fr 1fr}
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:2rem;}
+.tab{padding:.75rem 1.2rem;font-size:.78rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;background:none;border:none;color:var(--muted2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:.2s;}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+@media(max-width:600px){
+  .table-head{flex-direction:column;gap:.8rem;align-items:stretch;}
+  .table-search{width:100%;}
+  thead{display:none;}
+  tbody td{display:block;padding:.4rem 1rem;}
+  tbody td:first-child{padding-top:.8rem;}
+  tbody td:last-child{padding-bottom:.8rem;}
+  tbody tr{display:block;border-bottom:1px solid var(--line);}
 }
 </style>
 </head>
 <body>
 
 <!-- NAV -->
-<nav class="nav" id="mainNav" style="display:none">
-  <div class="logo">Apostila<span>Fácil</span></div>
+<nav class="nav">
+  <a class="nav-logo" href="/">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="#2E7EC6" stroke-width="2" stroke-dasharray="4 2.5"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="#2E7EC6" stroke-width="1"/>
+      <line x1="27" y1="40" x2="73" y2="40" stroke="#2E7EC6" stroke-width="0.9"/>
+      <line x1="27" y1="62" x2="73" y2="62" stroke="#2E7EC6" stroke-width="0.9"/>
+      <text x="50" y="49" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="900" fill="#fff" letter-spacing="1">APOSTILA</text>
+      <text x="50" y="60" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#7CB9E8" letter-spacing="4">SIMPLES</text>
+    </svg>
+    <span class="nav-logo-text">APOSTILA <span>SIMPLES</span></span>
+  </a>
   <div class="nav-right">
     <span class="nav-user" id="navUser"></span>
-    <button class="btn-logout" onclick="logout()">Sair</button>
+    <button class="btn-logout" id="btnLogout">Sair</button>
   </div>
 </nav>
 
-<!-- AUTH PAGE -->
-<div class="page active" id="pageAuth">
-  <div class="auth-wrap">
-    <div class="auth-box">
-      <div class="auth-logo">Apostila<span>Fácil</span></div>
-      <div class="auth-sub">Portal do Cliente</div>
-      <div class="auth-tabs">
-        <button class="auth-tab active" onclick="switchTab('login')">Entrar</button>
-        <button class="auth-tab" onclick="switchTab('register')">Criar conta</button>
-      </div>
-      <div id="authErr" class="auth-err"></div>
-
-      <!-- LOGIN -->
-      <div id="formLogin">
-        <div class="field"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com"></div>
-        <div class="field"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••"></div>
-        <button class="btn-primary" id="btnLogin" onclick="doLogin()">Entrar</button>
-        <div class="auth-switch">Não tem conta? <a onclick="switchTab('register')">Criar agora</a></div>
-      </div>
-
-      <!-- REGISTER -->
-      <div id="formRegister" style="display:none">
-        <div class="field"><label>Nome completo</label><input type="text" id="regNome" placeholder="João Silva"></div>
-        <div class="field"><label>E-mail</label><input type="email" id="regEmail" placeholder="seu@email.com"></div>
-        <div class="field"><label>WhatsApp</label><input type="tel" id="regWhats" placeholder="11999999999"></div>
-        <div class="field"><label>Senha</label><input type="password" id="regPass" placeholder="Mínimo 6 caracteres"></div>
-        <button class="btn-primary" id="btnReg" onclick="doRegister()">Criar conta</button>
-        <div class="auth-switch">Já tem conta? <a onclick="switchTab('login')">Entrar</a></div>
-      </div>
+<!-- AUTH -->
+<div class="auth-wrap" id="authWrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="47" fill="none" stroke="#2E7EC6" stroke-width="2" stroke-dasharray="4 2.5"/>
+        <circle cx="50" cy="50" r="38" fill="none" stroke="#2E7EC6" stroke-width="1"/>
+        <line x1="27" y1="40" x2="73" y2="40" stroke="#2E7EC6" stroke-width="0.9"/>
+        <line x1="27" y1="62" x2="73" y2="62" stroke="#2E7EC6" stroke-width="0.9"/>
+        <text x="50" y="49" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="900" fill="#0D1B2A" letter-spacing="1">APOSTILA</text>
+        <text x="50" y="60" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#2E7EC6" letter-spacing="4">SIMPLES</text>
+      </svg>
+      <span class="auth-logo-text">APOSTILA <span>SIMPLES</span></span>
+    </div>
+    <h2 class="auth-title">Acesse sua conta</h2>
+    <p class="auth-sub">Acompanhe seus pedidos ou gerencie o painel.</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="showAuthTab('login')">Entrar</button>
+      <button class="auth-tab" onclick="showAuthTab('register')">Criar conta</button>
+    </div>
+    <div id="authErr" class="auth-err"></div>
+    <div id="loginForm">
+      <div class="field"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com"/></div>
+      <div class="field"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••"/></div>
+      <button class="btn-primary" onclick="doLogin()">Entrar no portal</button>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="field"><label>Nome completo</label><input type="text" id="regNome" placeholder="Seu nome"/></div>
+      <div class="field"><label>E-mail</label><input type="email" id="regEmail" placeholder="seu@email.com"/></div>
+      <div class="field"><label>WhatsApp</label><input type="tel" id="regWhats" placeholder="(11) 99999-9999"/></div>
+      <div class="field"><label>Senha</label><input type="password" id="regPass" placeholder="Mínimo 6 caracteres"/></div>
+      <button class="btn-primary" onclick="doRegister()">Criar conta</button>
     </div>
   </div>
 </div>
 
-<!-- ADMIN PAGE -->
-<div class="page" id="pageAdmin">
-  <div class="dash">
-    <aside class="sidebar">
-      <div class="sidebar-item active" onclick="adminTab('pedidos')" id="sideAdmin1">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        Pedidos
+<!-- APP -->
+<div class="app" id="appWrap">
+  <div class="container">
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" style="display:none">
+      <div class="page-header">
+        <div class="page-eyebrow">Painel administrativo</div>
+        <h1 class="page-title">Olá, <em>Admin</em>.</h1>
       </div>
-      <div class="sidebar-item" onclick="adminTab('clientes')" id="sideAdmin2">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Clientes
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total de pedidos</div></div>
+        <div class="stat-card"><div class="stat-num" id="statPending">—</div><div class="stat-label">Aguardando</div></div>
+        <div class="stat-card"><div class="stat-num" id="statDone">—</div><div class="stat-label">Concluídos</div></div>
+        <div class="stat-card"><div class="stat-num" id="statRevenue">—</div><div class="stat-label">Receita total</div></div>
       </div>
-    </aside>
 
-    <div class="main-content">
-      <!-- TAB: PEDIDOS -->
-      <div id="tabPedidos">
-        <div class="page-title">Pedidos</div>
-        <div class="page-sub">Gerencie todos os pedidos dos clientes</div>
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('orders')">Pedidos</button>
+        <button class="tab" onclick="showTab('leads')">Leads</button>
+      </div>
 
-        <div class="cards-grid" id="adminStats">
-          <div class="stat-card"><div class="stat-label">Total de pedidos</div><div class="stat-value" id="statTotal">—</div></div>
-          <div class="stat-card"><div class="stat-label">Aguard. pagamento</div><div class="stat-value yellow" id="statPending">—</div></div>
-          <div class="stat-card"><div class="stat-label">Em andamento</div><div class="stat-value" id="statProgress">—</div></div>
-          <div class="stat-card"><div class="stat-label">Concluídos</div><div class="stat-value green" id="statDone">—</div></div>
-        </div>
-
+      <div class="tab-panel active" id="tab-orders">
         <div class="table-wrap">
-          <div class="table-header">
-            <h3>Todos os pedidos</h3>
-            <button class="btn-sm" onclick="loadAdminOrders()">↻ Atualizar</button>
+          <div class="table-head">
+            <span class="table-title">Todos os pedidos</span>
+            <input class="table-search" type="text" placeholder="Buscar por nome ou serviço..." oninput="filterOrders(this.value)"/>
           </div>
-          <div id="adminOrdersTable"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
+          <div id="ordersLoading" class="loading"><div class="spinner"></div>Carregando pedidos...</div>
+          <div id="ordersTable" style="display:none">
+            <table>
+              <thead><tr>
+                <th>Cliente</th>
+                <th>Serviço</th>
+                <th>País</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th>Data</th>
+              </tr></thead>
+              <tbody id="ordersTbody"></tbody>
+            </table>
+            <div id="ordersEmpty" class="empty-state" style="display:none">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+              <p>Nenhum pedido encontrado.</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- TAB: CLIENTES -->
-      <div id="tabClientes" style="display:none">
-        <div class="page-title">Clientes</div>
-        <div class="page-sub">Lista de clientes cadastrados</div>
+      <div class="tab-panel" id="tab-leads">
         <div class="table-wrap">
-          <div id="adminClientsTable"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CLIENT PAGE -->
-<div class="page" id="pageClient">
-  <div class="dash">
-    <aside class="sidebar">
-      <div class="sidebar-item active" onclick="clientTab('meus')" id="sideCli1">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-        Meus Pedidos
-      </div>
-      <div class="sidebar-item" onclick="clientTab('dados')" id="sideCli2">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Meus Dados
-      </div>
-    </aside>
-
-    <div class="main-content">
-      <!-- TAB: PEDIDOS -->
-      <div id="tabMeus">
-        <div id="clientHero" class="portal-hero">
-          <div>
-            <div class="portal-welcome">Olá, <span id="clientName">—</span></div>
-            <div style="font-size:.82rem;color:var(--muted);margin-top:.3rem">Acompanhe seus pedidos aqui</div>
+          <div class="table-head">
+            <span class="table-title">Leads captados</span>
           </div>
-          <a href="/" class="btn-sm">← Voltar ao site</a>
-        </div>
-        <div id="clientOrders"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
-      </div>
-
-      <!-- TAB: DADOS -->
-      <div id="tabDados" style="display:none">
-        <div class="page-title">Meus Dados</div>
-        <div class="page-sub">Informações da sua conta</div>
-        <div class="table-wrap" style="padding:1.5rem">
-          <div id="clientDados"></div>
+          <div id="leadsLoading" class="loading"><div class="spinner"></div>Carregando leads...</div>
+          <div id="leadsTable" style="display:none">
+            <table>
+              <thead><tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>WhatsApp</th>
+                <th>Serviço</th>
+                <th>País</th>
+                <th>Data</th>
+              </tr></thead>
+              <tbody id="leadsTbody"></tbody>
+            </table>
+            <div id="leadsEmpty" class="empty-state" style="display:none">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <p>Nenhum lead encontrado.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- CLIENT AREA -->
+    <div id="clientPanel" style="display:none">
+      <div class="page-header">
+        <div class="page-eyebrow">Área do cliente</div>
+        <h1 class="page-title">Olá, <em id="clientName">—</em>.</h1>
+      </div>
+      <div class="client-grid">
+        <div class="client-card">
+          <div class="client-card-title">Meus dados</div>
+          <div id="clientInfo"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="client-card">
+          <div class="client-card-title">Meus pedidos</div>
+          <div id="clientOrders"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
-
-<!-- MODAL: ATUALIZAR STATUS -->
-<div class="modal-overlay" id="modalStatus">
-  <div class="modal">
-    <div class="modal-title">Atualizar Status do Pedido</div>
-    <input type="hidden" id="modalOrderId">
-    <div class="field">
-      <label>Novo status</label>
-      <select class="field-select" id="modalStatusSel">
-        <option value="aguardando_pagamento">Aguardando Pagamento</option>
-        <option value="pago">Pago</option>
-        <option value="em_andamento">Em Andamento</option>
-        <option value="concluido">Concluído</option>
-        <option value="cancelado">Cancelado</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Observação interna (opcional)</label>
-      <input type="text" id="modalObs" placeholder="Ex: Aguardando documento original...">
-    </div>
-    <div class="modal-actions">
-      <button class="btn-ghost" onclick="closeModal()">Cancelar</button>
-      <button class="btn-primary" style="width:auto;padding:.6rem 1.5rem" onclick="saveStatus()">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div id="toast"></div>
 
 <script>
 const SUPABASE_URL = 'https://kclbawvrvmiiyngkzibi.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_0qmC4DKUTpeafAhcaa9ZQA_2rVHMagY';
-const ADMIN_EMAIL  = 'contato@apostilafacil.com.br'; // ← troque pelo seu e-mail
+const ADMIN_EMAIL  = 'contato@apostilasimples.com.br';
 
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentUser = null;
-let isAdmin = false;
+let allOrders = [];
 
-// ── INIT ──
-window.addEventListener('DOMContentLoaded', async () => {
-  await setupDB();
-  const { data: { session } } = await sb.auth.getSession();
-  if(session) await onLogin(session.user);
-});
-
-sb.auth.onAuthStateChange(async (event, session) => {
-  if(event === 'SIGNED_IN' && session) await onLogin(session.user);
-  if(event === 'SIGNED_OUT') showPage('auth');
-});
-
-// ── SETUP DB (cria tabelas se não existirem via RPC não disponível — orientações abaixo) ──
-async function setupDB(){
-  // As tabelas precisam ser criadas no Supabase Dashboard (instruções automáticas)
+// ── AUTH TABS ──
+function showAuthTab(tab){
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('loginForm').style.display = tab==='login'?'block':'none';
+  document.getElementById('registerForm').style.display = tab==='register'?'block':'none';
+  document.getElementById('authErr').classList.remove('show');
 }
 
-async function onLogin(user){
-  currentUser = user;
-  isAdmin = user.email === ADMIN_EMAIL;
-  document.getElementById('mainNav').style.display = 'flex';
-  document.getElementById('navUser').textContent = user.email;
+function showErr(msg){ const el=document.getElementById('authErr'); el.textContent=msg; el.classList.add('show'); }
 
-  // Salva/atualiza perfil
-  await sb.from('profiles').upsert({
-    id: user.id,
-    email: user.email,
-    nome: user.user_metadata?.nome || '',
-    whatsapp: user.user_metadata?.whatsapp || '',
-    updated_at: new Date().toISOString()
-  });
-
-  if(isAdmin){
-    showPage('admin');
-    loadAdminOrders();
-  } else {
-    showPage('client');
-    loadClientOrders();
-    loadClientDados();
-  }
-}
-
-// ── AUTH ──
-function switchTab(t){
-  document.getElementById('formLogin').style.display   = t==='login'    ? 'block' : 'none';
-  document.getElementById('formRegister').style.display = t==='register' ? 'block' : 'none';
-  document.querySelectorAll('.auth-tab').forEach((el,i) => el.classList.toggle('active', (t==='login'&&i===0)||(t==='register'&&i===1)));
-  document.getElementById('authErr').style.display = 'none';
-}
-
+// ── LOGIN ──
 async function doLogin(){
   const email = document.getElementById('loginEmail').value.trim();
   const pass  = document.getElementById('loginPass').value;
-  const btn   = document.getElementById('btnLogin');
-  if(!email||!pass) return showErr('Preencha e-mail e senha.');
-  btn.disabled = true; btn.textContent = 'Entrando...';
-  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-  btn.disabled = false; btn.textContent = 'Entrar';
+  if(!email||!pass){ showErr('Preencha e-mail e senha.'); return; }
+  const {error} = await sb.auth.signInWithPassword({email, password:pass});
   if(error) showErr('E-mail ou senha incorretos.');
 }
 
+// ── REGISTER ──
 async function doRegister(){
   const nome  = document.getElementById('regNome').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const whats = document.getElementById('regWhats').value.trim();
   const pass  = document.getElementById('regPass').value;
-  const btn   = document.getElementById('btnReg');
-  if(!nome||!email||!pass) return showErr('Preencha todos os campos.');
-  if(pass.length < 6) return showErr('Senha deve ter ao menos 6 caracteres.');
-  btn.disabled = true; btn.textContent = 'Criando conta...';
-  const { error } = await sb.auth.signUp({
-    email, password: pass,
-    options: { data: { nome, whatsapp: whats } }
-  });
-  btn.disabled = false; btn.textContent = 'Criar conta';
-  if(error) return showErr(error.message);
-  showErr(''); 
-  toast('Conta criada! Verifique seu e-mail para confirmar.', 'success');
+  if(!nome||!email||!pass){ showErr('Preencha todos os campos.'); return; }
+  if(pass.length<6){ showErr('A senha precisa ter pelo menos 6 caracteres.'); return; }
+  const {data, error} = await sb.auth.signUp({email, password:pass, options:{data:{nome, whatsapp:whats}}});
+  if(error){ showErr(error.message); return; }
+  await sb.from('leads').upsert({email, nome, whatsapp:whats, created_at:new Date().toISOString()});
+  showErr('Conta criada! Verifique seu e-mail para confirmar.');
 }
 
-async function logout(){
-  await sb.auth.signOut();
-  document.getElementById('mainNav').style.display = 'none';
-  showPage('auth');
-}
+// ── LOGOUT ──
+document.getElementById('btnLogout').onclick = ()=> sb.auth.signOut();
 
-function showErr(msg){
-  const el = document.getElementById('authErr');
-  el.textContent = msg;
-  el.style.display = msg ? 'block' : 'none';
-}
+// ── AUTH STATE ──
+sb.auth.onAuthStateChange(async (event, session)=>{
+  if(session?.user){
+    document.getElementById('authWrap').style.display = 'none';
+    document.getElementById('appWrap').classList.add('show');
+    const email = session.user.email;
+    document.getElementById('navUser').textContent = email;
+    if(email === ADMIN_EMAIL){
+      document.getElementById('adminPanel').style.display = 'block';
+      document.getElementById('clientPanel').style.display = 'none';
+      loadAdminData();
+    } else {
+      document.getElementById('adminPanel').style.display = 'none';
+      document.getElementById('clientPanel').style.display = 'block';
+      loadClientData(session.user);
+    }
+  } else {
+    document.getElementById('authWrap').style.display = 'flex';
+    document.getElementById('appWrap').classList.remove('show');
+  }
+});
 
 // ── ADMIN ──
-async function loadAdminOrders(){
-  const el = document.getElementById('adminOrdersTable');
-  el.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+async function loadAdminData(){
+  // Orders
+  const {data:orders} = await sb.from('orders').select('*').order('created_at', {ascending:false});
+  allOrders = orders || [];
+  renderOrders(allOrders);
 
-  const { data: orders, error } = await sb
-    .from('orders')
-    .select('*, profiles(nome, email, whatsapp)')
-    .order('created_at', { ascending: false });
+  // Stats
+  const total = allOrders.length;
+  const pending = allOrders.filter(o=>o.status==='aguardando_pagamento').length;
+  const done = allOrders.filter(o=>o.status==='concluido').length;
+  const revenue = allOrders.filter(o=>o.status==='concluido').reduce((s,o)=>s+(o.valor||0),0);
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statRevenue').textContent = 'R$'+(revenue).toFixed(0);
 
-  if(error){ el.innerHTML = '<div class="loading">Erro ao carregar pedidos. Verifique se as tabelas foram criadas.</div>'; updateStats([]); return; }
+  // Leads
+  const {data:leads} = await sb.from('leads').select('*').order('created_at', {ascending:false});
+  renderLeads(leads||[]);
+}
 
-  updateStats(orders || []);
-
-  if(!orders || !orders.length){
-    el.innerHTML = '<div class="empty"><p>Nenhum pedido ainda.</p></div>';
+function renderOrders(orders){
+  document.getElementById('ordersLoading').style.display = 'none';
+  document.getElementById('ordersTable').style.display = 'block';
+  const tbody = document.getElementById('ordersTbody');
+  if(!orders.length){
+    tbody.innerHTML='';
+    document.getElementById('ordersEmpty').style.display='block';
     return;
   }
-
-  el.innerHTML = `<table>
-    <thead><tr>
-      <th>ID</th><th>Cliente</th><th>Serviço</th><th>Valor</th><th>Status</th><th>Data</th><th>Ações</th>
-    </tr></thead>
-    <tbody>${orders.map(o => `
-      <tr>
-        <td style="font-family:monospace;font-size:.78rem;color:var(--muted)">#${o.id.slice(-6).toUpperCase()}</td>
-        <td>
-          <div style="font-weight:500">${o.profiles?.nome || '—'}</div>
-          <div style="font-size:.75rem;color:var(--muted)">${o.profiles?.email || ''}</div>
-        </td>
-        <td style="max-width:180px;font-size:.82rem">${o.servico || '—'}</td>
-        <td style="font-weight:600;color:var(--emerald)">${o.valor ? 'R$'+Number(o.valor).toFixed(2).replace('.',',') : '—'}</td>
-        <td>${badgeHtml(o.status)}</td>
-        <td style="font-size:.78rem;color:var(--muted)">${fmtDate(o.created_at)}</td>
-        <td><button class="btn-sm" onclick="openModal('${o.id}','${o.status}')">Atualizar</button></td>
-      </tr>`).join('')}
-    </tbody>
-  </table>`;
+  document.getElementById('ordersEmpty').style.display='none';
+  tbody.innerHTML = orders.map(o=>`
+    <tr>
+      <td>${o.user_id||'<span style="color:#8899AA;font-size:.75rem;">Sem login</span>'}</td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.servico||'—'}</td>
+      <td>${o.pais||'—'}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'—'}</td>
+      <td>
+        <select class="status-select" onchange="updateStatus('${o.id}',this.value)">
+          <option value="aguardando_pagamento" ${o.status==='aguardando_pagamento'?'selected':''}>Aguardando</option>
+          <option value="em_andamento" ${o.status==='em_andamento'?'selected':''}>Em andamento</option>
+          <option value="concluido" ${o.status==='concluido'?'selected':''}>Concluído</option>
+          <option value="cancelado" ${o.status==='cancelado'?'selected':''}>Cancelado</option>
+        </select>
+      </td>
+      <td style="color:#4A6A82;font-size:.78rem;">${formatDate(o.created_at)}</td>
+    </tr>
+  `).join('');
 }
 
-function updateStats(orders){
-  document.getElementById('statTotal').textContent    = orders.length;
-  document.getElementById('statPending').textContent  = orders.filter(o=>o.status==='aguardando_pagamento').length;
-  document.getElementById('statProgress').textContent = orders.filter(o=>o.status==='em_andamento').length;
-  document.getElementById('statDone').textContent     = orders.filter(o=>o.status==='concluido').length;
+function renderLeads(leads){
+  document.getElementById('leadsLoading').style.display='none';
+  document.getElementById('leadsTable').style.display='block';
+  const tbody=document.getElementById('leadsTbody');
+  if(!leads.length){
+    tbody.innerHTML='';
+    document.getElementById('leadsEmpty').style.display='block';
+    return;
+  }
+  document.getElementById('leadsEmpty').style.display='none';
+  tbody.innerHTML=leads.map(l=>`
+    <tr>
+      <td style="font-weight:500;">${l.nome||'—'}</td>
+      <td style="color:#2E7EC6;">${l.email||'—'}</td>
+      <td>${l.whatsapp||'—'}</td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${l.servico||'—'}</td>
+      <td>${l.pais||'—'}</td>
+      <td style="color:#4A6A82;font-size:.78rem;">${formatDate(l.created_at)}</td>
+    </tr>
+  `).join('');
 }
 
-async function loadAdminClients(){
-  const el = document.getElementById('adminClientsTable');
-  el.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
-  const { data, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
-  if(error||!data||!data.length){ el.innerHTML = '<div class="empty"><p>Nenhum cliente ainda.</p></div>'; return; }
-  el.innerHTML = `<table>
-    <thead><tr><th>Nome</th><th>E-mail</th><th>WhatsApp</th><th>Cadastro</th></tr></thead>
-    <tbody>${data.map(p=>`
-      <tr>
-        <td style="font-weight:500">${p.nome||'—'}</td>
-        <td style="font-size:.82rem">${p.email||'—'}</td>
-        <td style="font-size:.82rem">${p.whatsapp||'—'}</td>
-        <td style="font-size:.78rem;color:var(--muted)">${fmtDate(p.created_at)}</td>
-      </tr>`).join('')}
-    </tbody>
-  </table>`;
+function filterOrders(q){
+  const filtered = allOrders.filter(o=>
+    (o.servico||'').toLowerCase().includes(q.toLowerCase()) ||
+    (o.pais||'').toLowerCase().includes(q.toLowerCase())
+  );
+  renderOrders(filtered);
 }
 
-function adminTab(tab){
-  document.getElementById('tabPedidos').style.display  = tab==='pedidos'  ? 'block' : 'none';
-  document.getElementById('tabClientes').style.display = tab==='clientes' ? 'block' : 'none';
-  document.getElementById('sideAdmin1').classList.toggle('active', tab==='pedidos');
-  document.getElementById('sideAdmin2').classList.toggle('active', tab==='clientes');
-  if(tab==='clientes') loadAdminClients();
-}
-
-// ── MODAL STATUS ──
-function openModal(id, status){
-  document.getElementById('modalOrderId').value = id;
-  document.getElementById('modalStatusSel').value = status || 'aguardando_pagamento';
-  document.getElementById('modalObs').value = '';
-  document.getElementById('modalStatus').classList.add('open');
-}
-function closeModal(){ document.getElementById('modalStatus').classList.remove('open'); }
-
-async function saveStatus(){
-  const id     = document.getElementById('modalOrderId').value;
-  const status = document.getElementById('modalStatusSel').value;
-  const obs    = document.getElementById('modalObs').value;
-  const { error } = await sb.from('orders').update({ status, obs_admin: obs, updated_at: new Date().toISOString() }).eq('id', id);
-  if(error) return toast('Erro ao atualizar.', 'error');
-  closeModal();
-  toast('Status atualizado!', 'success');
-  loadAdminOrders();
+async function updateStatus(id, status){
+  await sb.from('orders').update({status, updated_at:new Date().toISOString()}).eq('id', id);
 }
 
 // ── CLIENT ──
-async function loadClientOrders(){
-  const el = document.getElementById('clientOrders');
-  el.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+async function loadClientData(user){
+  const meta = user.user_metadata || {};
+  const nome = meta.nome || user.email;
+  document.getElementById('clientName').textContent = nome.split(' ')[0];
 
-  const { data: profile } = await sb.from('profiles').select('nome').eq('id', currentUser.id).single();
-  document.getElementById('clientName').textContent = profile?.nome || currentUser.email.split('@')[0];
+  // Info
+  document.getElementById('clientInfo').innerHTML = `
+    <div class="info-row"><span class="info-label">Nome</span><span class="info-value">${nome}</span></div>
+    <div class="info-row"><span class="info-label">E-mail</span><span class="info-value">${user.email}</span></div>
+    <div class="info-row"><span class="info-label">WhatsApp</span><span class="info-value">${meta.whatsapp||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Membro desde</span><span class="info-value">${formatDate(user.created_at)}</span></div>
+  `;
 
-  const { data: orders, error } = await sb
-    .from('orders')
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .order('created_at', { ascending: false });
-
-  if(error||!orders||!orders.length){
-    el.innerHTML = `<div class="empty">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-      <p>Você ainda não tem pedidos.<br><a href="/" style="color:var(--emerald)">Faça seu primeiro orçamento →</a></p>
-    </div>`;
+  // Orders
+  const {data:orders} = await sb.from('orders').select('*').eq('user_id', user.id).order('created_at',{ascending:false});
+  if(!orders||!orders.length){
+    document.getElementById('clientOrders').innerHTML = `
+      <div class="empty-state">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+        <p>Nenhum pedido encontrado.<br>Faça seu primeiro pedido no site!</p>
+      </div>`;
     return;
   }
-
-  el.innerHTML = orders.map(o => {
-    const steps = ['Aguardando Pagamento','Em Análise','Em Andamento','Concluído'];
-    const stepIdx = o.status==='concluido' ? 3 : o.status==='em_andamento' ? 2 : o.status==='pago' ? 1 : 0;
-    const pct = Math.round((stepIdx / 3) * 100);
-
-    return `<div class="order-card">
-      <div class="order-card-header">
-        <div>
-          <div class="order-id">Pedido #${o.id.slice(-6).toUpperCase()}</div>
-          <div class="order-service">${o.servico || '—'}</div>
-          <div class="order-meta">${fmtDate(o.created_at)} · ${o.pais || ''}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
-          ${badgeHtml(o.status)}
-          ${o.status==='aguardando_pagamento' && o.mp_link ? `<a href="${o.mp_link}" target="_blank" class="pay-btn">💳 Pagar agora</a>` : ''}
-        </div>
+  document.getElementById('clientOrders').innerHTML = orders.map(o=>`
+    <div class="order-row">
+      <div class="order-row-top">
+        <span class="order-service">${o.servico||'Serviço'}</span>
+        ${statusBadge(o.status)}
       </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div class="progress-steps">
-        ${steps.map((s,i)=>`<span class="${i<=stepIdx?'done':''}">${s}</span>`).join('')}
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="order-date">${formatDate(o.created_at)}</span>
+        <span class="order-val">${o.valor?'R$'+Number(o.valor).toFixed(2):'A confirmar'}</span>
       </div>
-      ${o.obs_admin ? `<div style="margin-top:.75rem;font-size:.78rem;color:var(--muted);background:var(--deep);padding:.6rem .9rem;border-left:2px solid var(--emerald)">📋 ${o.obs_admin}</div>` : ''}
-      <div style="margin-top:1rem;font-size:.8rem;color:var(--muted)">
-        Valor: <strong style="color:var(--white)">${o.valor ? 'R$'+Number(o.valor).toFixed(2).replace('.',',') : 'A confirmar'}</strong>
-        · Entrega: <strong style="color:var(--white)">${o.prazo || 'Após análise'}</strong>
-      </div>
-    </div>`;
-  }).join('');
+    </div>
+  `).join('');
 }
 
-async function loadClientDados(){
-  const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
-  if(!data) return;
-  document.getElementById('clientDados').innerHTML = `
-    <div style="display:grid;gap:.75rem">
-      <div style="display:flex;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--line)">
-        <span style="color:var(--muted);font-size:.82rem">Nome</span>
-        <span style="font-weight:500">${data.nome||'—'}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--line)">
-        <span style="color:var(--muted);font-size:.82rem">E-mail</span>
-        <span>${data.email||'—'}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:.75rem 0">
-        <span style="color:var(--muted);font-size:.82rem">WhatsApp</span>
-        <span>${data.whatsapp||'—'}</span>
-      </div>
-    </div>`;
-}
-
-function clientTab(tab){
-  document.getElementById('tabMeus').style.display   = tab==='meus'   ? 'block' : 'none';
-  document.getElementById('tabDados').style.display  = tab==='dados'  ? 'block' : 'none';
-  document.getElementById('sideCli1').classList.toggle('active', tab==='meus');
-  document.getElementById('sideCli2').classList.toggle('active', tab==='dados');
-}
-
-// ── HELPERS ──
-function showPage(p){
-  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
-  const map = {auth:'pageAuth', admin:'pageAdmin', client:'pageClient'};
-  document.getElementById(map[p]).classList.add('active');
-}
-
-function badgeHtml(status){
-  const map = {
-    aguardando_pagamento: ['badge-pending','⏳ Aguard. pagamento'],
-    pago:                 ['badge-paid','✓ Pago'],
-    em_andamento:         ['badge-progress','⚡ Em andamento'],
-    concluido:            ['badge-done','✔ Concluído'],
-    cancelado:            ['badge-cancelled','✕ Cancelado'],
+function statusBadge(s){
+  const map={
+    'aguardando_pagamento':'<span class="badge badge-pending">Aguardando</span>',
+    'em_andamento':'<span class="badge badge-blue">Em andamento</span>',
+    'concluido':'<span class="badge badge-done">Concluído</span>',
+    'cancelado':'<span class="badge badge-danger">Cancelado</span>',
   };
-  const [cls,label] = map[status] || ['badge-pending', status];
-  return `<span class="badge ${cls}">${label}</span>`;
+  return map[s]||'<span class="badge badge-pending">Aguardando</span>';
 }
 
-function fmtDate(d){
+// ── TABS ──
+function showTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&name==='orders')||(i===1&&name==='leads')));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ── UTILS ──
+function formatDate(d){
   if(!d) return '—';
   return new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
 }
-
-let toastTimer;
-function toast(msg, type='success'){
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = `show ${type}`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>el.className='', 3500);
-}
-</script>
-
-<!-- INSTRUÇÕES SETUP (remova após configurar) -->
-<script>
-// ─────────────────────────────────────────────
-// SETUP OBRIGATÓRIO — Leia antes de publicar!
-// ─────────────────────────────────────────────
-// 1) No Supabase Dashboard → SQL Editor, execute:
-//
-// CREATE TABLE profiles (
-//   id UUID PRIMARY KEY REFERENCES auth.users(id),
-//   email TEXT, nome TEXT, whatsapp TEXT,
-//   created_at TIMESTAMPTZ DEFAULT NOW(),
-//   updated_at TIMESTAMPTZ DEFAULT NOW()
-// );
-//
-// CREATE TABLE orders (
-//   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-//   user_id UUID REFERENCES profiles(id),
-//   servico TEXT, valor NUMERIC, pais TEXT,
-//   status TEXT DEFAULT 'aguardando_pagamento',
-//   prazo TEXT, mp_link TEXT, obs_admin TEXT,
-//   created_at TIMESTAMPTZ DEFAULT NOW(),
-//   updated_at TIMESTAMPTZ DEFAULT NOW()
-// );
-//
-// ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-// ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
-//
-// CREATE POLICY "profiles_own" ON profiles FOR ALL USING (auth.uid() = id);
-// CREATE POLICY "orders_own"   ON orders   FOR ALL USING (auth.uid() = user_id);
-// CREATE POLICY "orders_admin" ON orders   FOR ALL USING (
-//   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND email = 'contato@apostilafacil.com.br')
-// );
-// CREATE POLICY "profiles_admin" ON profiles FOR SELECT USING (
-//   EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND email = 'contato@apostilafacil.com.br')
-// );
-//
-// 2) Troque ADMIN_EMAIL no script pelo seu e-mail real
-// 3) Publique este arquivo como portal.html no GitHub
-// ─────────────────────────────────────────────
 </script>
 </body>
 </html>
