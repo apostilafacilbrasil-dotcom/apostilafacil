@@ -240,12 +240,16 @@ tbody tr:hover td{background:var(--bg2);}
         <div class="table-wrap">
           <div class="table-head">
             <span class="table-title">Todos os pedidos</span>
-            <input class="table-search" type="text" placeholder="Buscar por nome ou serviço..." oninput="filterOrders(this.value)"/>
+            <div style="display:flex;gap:.6rem;align-items:center;">
+              <input class="table-search" type="text" placeholder="Buscar..." oninput="filterOrders(this.value)"/>
+              <button onclick="openNewOrcModal()" style="background:#2E7EC6;color:#fff;border:none;padding:.5rem 1rem;border-radius:8px;font-size:.75rem;font-weight:600;letter-spacing:.06em;white-space:nowrap;">+ Novo orçamento</button>
+            </div>
           </div>
           <div id="ordersLoading" class="loading"><div class="spinner"></div>Carregando pedidos...</div>
           <div id="ordersTable" style="display:none">
             <table>
               <thead><tr>
+                <th>Código</th>
                 <th>Cliente</th>
                 <th>Serviço</th>
                 <th>País</th>
@@ -425,6 +429,7 @@ function renderOrders(orders){
     const whats = lead?.whatsapp || '';
     return `
     <tr>
+      <td><span style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:#2E7EC6;background:rgba(46,126,198,.08);padding:.2rem .6rem;border-radius:4px;">${o.codigo||'—'}</span></td>
       <td>
         <button onclick="openModal(${i})" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
           <span style="font-weight:500;color:#0D1B2A;">${nome}</span>
@@ -455,6 +460,7 @@ function openModal(i){
       <h3 style="font-family:'EB Garamond',Georgia,serif;font-size:1.4rem;color:#0D1B2A;">Detalhes do pedido</h3>
       <button onclick="closeModal()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
     </div>
+    <div style="margin-bottom:1rem;"><span style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;background:rgba(46,126,198,.08);padding:.3rem .8rem;border-radius:6px;">${o.codigo||'Sem código'}</span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem 1.5rem;">
       <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Nome</div><div style="font-weight:500;">${lead?.nome||'—'}</div></div>
       <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">WhatsApp</div><div style="font-weight:500;">${lead?.whatsapp||'—'}</div></div>
@@ -506,7 +512,22 @@ function filterOrders(q){
 }
 
 async function updateStatus(id, status){
-  await sb.from('orders').update({status, updated_at:new Date().toISOString()}).eq('id', id);
+  let updateData = {status, updated_at: new Date().toISOString()};
+
+  // Se aprovado (em_andamento), gera código PRJ
+  if(status === 'em_andamento'){
+    const order = allOrders.find(o=>o.id===id);
+    if(order && (!order.codigo || order.codigo.startsWith('ORC-'))){
+      const {data: prjData} = await sb.from('orders').select('codigo').like('codigo', 'PRJ-%').order('codigo', {ascending: false}).limit(1);
+      const ultimoNum = prjData && prjData.length > 0 ? parseInt((prjData[0].codigo || 'PRJ-0000').split('-')[1]) : 0;
+      updateData.codigo = 'PRJ-' + String(ultimoNum + 1).padStart(4, '0');
+      // Update local state
+      order.codigo = updateData.codigo;
+      renderOrders(allOrders);
+    }
+  }
+
+  await sb.from('orders').update(updateData).eq('id', id);
 }
 
 // ── CLIENT ──
@@ -576,5 +597,65 @@ function formatDate(d){
   <div id="modalContent" style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,27,42,.2);"></div>
 </div>
 
+
+<!-- NEW ORC MODAL -->
+<div id="newOrcModal" onclick="if(event.target===this)closeNewOrcModal()" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(13,27,42,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <h3 style="font-family:'EB Garamond',Georgia,serif;font-size:1.4rem;color:#0D1B2A;">Novo orçamento</h3>
+      <button onclick="closeNewOrcModal()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
+    </div>
+    <div style="display:grid;gap:.85rem;">
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Nome do cliente</label><input id="newNome" type="text" placeholder="Nome completo" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">WhatsApp</label><input id="newWhats" type="tel" placeholder="(11) 99999-9999" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">E-mail</label><input id="newEmail" type="email" placeholder="cliente@email.com" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Serviço</label>
+        <select id="newServico" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;">
+          <option>Apenas Apostila de Haia</option>
+          <option>Apenas Tradução Juramentada</option>
+          <option>Tradução Juramentada + Apostila de Haia</option>
+          <option>Tradução Juramentada + Apostilamento da Tradução</option>
+          <option>Apostilamento + Tradução + Apostilamento da Tradução</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+        <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">País</label><input id="newPais" type="text" placeholder="Portugal..." style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
+        <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Valor (R$)</label><input id="newValor" type="number" placeholder="109.90" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
+      </div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Observações</label><textarea id="newObs" placeholder="Contexto do atendimento..." style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;min-height:80px;resize:vertical;"></textarea></div>
+    </div>
+    <button onclick="criarOrcamentoManual()" style="width:100%;margin-top:1.2rem;background:linear-gradient(135deg,#2E7EC6,#1A5FA0);color:#fff;border:none;padding:.9rem;font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:10px;cursor:pointer;">Criar orçamento</button>
+  </div>
+</div>
+<script>
+function openNewOrcModal(){ document.getElementById('newOrcModal').style.display='flex'; }
+function closeNewOrcModal(){ document.getElementById('newOrcModal').style.display='none'; }
+
+async function criarOrcamentoManual(){
+  const nome    = document.getElementById('newNome').value.trim();
+  const whats   = document.getElementById('newWhats').value.trim();
+  const email   = document.getElementById('newEmail').value.trim();
+  const servico = document.getElementById('newServico').value;
+  const pais    = document.getElementById('newPais').value.trim();
+  const valor   = parseFloat(document.getElementById('newValor').value) || null;
+  const obs     = document.getElementById('newObs').value.trim();
+
+  if(!nome){ alert('Informe o nome do cliente.'); return; }
+
+  // Gerar código ORC
+  const {data: orcData} = await sb.from('orders').select('codigo').like('codigo', 'ORC-%').order('codigo', {ascending: false}).limit(1);
+  const ultimoNum = orcData && orcData.length > 0 ? parseInt((orcData[0].codigo || 'ORC-0000').split('-')[1]) : 0;
+  const codigo = 'ORC-' + String(ultimoNum + 1).padStart(4, '0');
+
+  await sb.from('leads').upsert({ nome, whatsapp: whats, email, servico, pais, codigo, created_at: new Date().toISOString() });
+  await sb.from('orders').insert({ servico, valor, pais, status: 'aguardando_pagamento', prazo: 'A confirmar', obs_admin: obs||null, codigo });
+
+  closeNewOrcModal();
+  // Reset fields
+  ['newNome','newWhats','newEmail','newPais','newValor','newObs'].forEach(id=>document.getElementById(id).value='');
+  loadAdminData();
+  alert('Orçamento ' + codigo + ' criado com sucesso!');
+}
+</script>
 </body>
 </html>

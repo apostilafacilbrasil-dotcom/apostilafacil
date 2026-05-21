@@ -1814,17 +1814,26 @@ document.getElementById('quoteForm').addEventListener('submit', async function(e
   const descricao = obs || 'Sem observações adicionais.';
 
   // 1. Salvar no Supabase
+  let codigoOrc = '';
   try {
     const sb = window._sbClient || (window._sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY));
+
+    // Gerar código do orçamento
+    const {data: orcData} = await sb.from('orders').select('codigo').like('codigo', 'ORC-%').order('codigo', {ascending: false}).limit(1);
+    const ultimoNum = orcData && orcData.length > 0 ? parseInt((orcData[0].codigo || 'ORC-0000').split('-')[1]) : 0;
+    codigoOrc = 'ORC-' + String(ultimoNum + 1).padStart(4, '0');
+
     await sb.from('leads').upsert({
       email, nome, whatsapp, pais,
       servico: tipoServico,
+      codigo: codigoOrc,
       created_at: new Date().toISOString()
     });
     await sb.from('orders').insert({
       servico: tipoServico, valor: total, pais, status: 'aguardando_pagamento',
       prazo: tipoServico === 'Apenas Apostila de Haia' ? 'Em até 24h' : 'Após análise',
       obs_admin: obs || null,
+      codigo: codigoOrc,
     });
   } catch(err) {
     console.warn('Supabase:', err);
@@ -1838,7 +1847,7 @@ document.getElementById('quoteForm').addEventListener('submit', async function(e
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
       },
-      body: JSON.stringify({ nome, email, servico: tipoServico, descricao }),
+      body: JSON.stringify({ nome, email, servico: tipoServico, descricao, codigo: codigoOrc }),
     });
   } catch(err) {
     console.warn('Edge Function:', err);
