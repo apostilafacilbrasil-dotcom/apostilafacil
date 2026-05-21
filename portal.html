@@ -398,7 +398,11 @@ async function loadAdminData(){
       (l.servico === o.servico) ||
       (l.created_at && o.created_at && Math.abs(new Date(l.created_at)-new Date(o.created_at)) < 30000)
     );
-    return {...o, _lead: lead || null};
+    // Normalize arquivos
+    let arqs = o.arquivos || [];
+    if(typeof arqs === 'string'){ try{ arqs=JSON.parse(arqs); }catch(e){ arqs=[]; } }
+    if(!Array.isArray(arqs)) arqs = [];
+    return {...o, _lead: lead || null, _arquivos: arqs};
   });
   renderOrders(allOrders);
 
@@ -455,12 +459,7 @@ function renderOrders(orders){
 function openModal(i){
   const o = allOrders[i];
   const lead = o._lead;
-  // Normalize arquivos field
-  let arquivos = o.arquivos || [];
-  if(typeof arquivos === 'string'){
-    try { arquivos = JSON.parse(arquivos); } catch(e){ arquivos = []; }
-  }
-  o._arquivos = arquivos;
+  // _arquivos already normalized in loadAdminData
   document.getElementById('modalContent').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
       <h3 style="font-family:'EB Garamond',Georgia,serif;font-size:1.4rem;color:#0D1B2A;">Detalhes do pedido</h3>
