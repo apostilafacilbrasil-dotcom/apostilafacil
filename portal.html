@@ -341,8 +341,23 @@ async function doLogin(){
   const email = document.getElementById('loginEmail').value.trim();
   const pass  = document.getElementById('loginPass').value;
   if(!email||!pass){ showErr('Preencha e-mail e senha.'); return; }
-  const {error} = await sb.auth.signInWithPassword({email, password:pass});
-  if(error) showErr('E-mail ou senha incorretos.');
+  
+  const btn = document.querySelector('#loginForm .btn-primary');
+  btn.textContent = 'Entrando...';
+  btn.disabled = true;
+
+  try {
+    const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
+    if(error){
+      showErr('Erro: ' + error.message);
+      btn.textContent = 'Entrar no portal';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    showErr('Erro de conexão: ' + e.message);
+    btn.textContent = 'Entrar no portal';
+    btn.disabled = false;
+  }
 }
 
 // ── REGISTER ──
