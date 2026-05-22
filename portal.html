@@ -6,6 +6,7 @@
 <title>Apostila Simples — Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{
   --navy:#0D1B2A;--navy2:#163A5F;--blue:#2E7EC6;--blue2:#1A5FA0;
@@ -219,11 +220,21 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
         <div class="page-eyebrow">Painel administrativo</div>
         <h1 class="page-title">Olá, <em>Admin</em>.</h1>
       </div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total de orçamentos</div></div>
-        <div class="stat-card"><div class="stat-num" id="statPending">—</div><div class="stat-label">Aguardando / Follow-up</div></div>
-        <div class="stat-card"><div class="stat-num" id="statDone" style="font-size:1.6rem;">—</div><div class="stat-label">Projetos / Concluídos</div></div>
+      <div class="stats-grid" style="grid-template-columns:repeat(6,1fr);">
+        <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total</div></div>
+        <div class="stat-card"><div class="stat-num" id="statPending">—</div><div class="stat-label">Aguard. / Follow</div></div>
+        <div class="stat-card"><div class="stat-num" id="statDone" style="font-size:1.5rem;">—</div><div class="stat-label">Proj. / Concluídos</div></div>
         <div class="stat-card"><div class="stat-num" id="statRevenue">—</div><div class="stat-label">Receita total</div></div>
+        <div class="stat-card"><div class="stat-num" id="statPago" style="color:#00875A;">—</div><div class="stat-label">Recebido (pago)</div></div>
+        <div class="stat-card"><div class="stat-num" id="statTicket">—</div><div class="stat-label">Ticket médio</div></div>
+      </div>
+      <!-- GRÁFICO DE RECEITA -->
+      <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;margin-bottom:2rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+          <span style="font-family:'EB Garamond',Georgia,serif;font-size:1.1rem;color:var(--navy);">Receita por mês</span>
+          <span style="font-size:.72rem;color:var(--muted2);letter-spacing:.08em;">Últimos 6 meses</span>
+        </div>
+        <canvas id="revenueChart" height="90"></canvas>
       </div>
       <div class="tabs">
         <button class="tab active" onclick="showTab('orders')">Pedidos</button>
@@ -437,11 +448,60 @@ async function loadAdminData(){
   const pending=allOrders.filter(o=>['aguardando_aprovacao','aguardando_pagamento','followup_1','followup_2','followup_3'].includes(o.status)).length;
   const approved=allOrders.filter(o=>o.status==='em_andamento').length;
   const done=allOrders.filter(o=>o.status==='concluido').length;
+  const comValor=allOrders.filter(o=>o.valor>0);
   const revenue=allOrders.filter(o=>o.status==='concluido').reduce((s,o)=>s+(o.valor||0),0);
+  const pago=allOrders.filter(o=>o.pago).reduce((s,o)=>s+(o.valor||0),0);
+  const ticket=comValor.length>0?(comValor.reduce((s,o)=>s+(o.valor||0),0)/comValor.length):0;
   document.getElementById('statTotal').textContent=total;
   document.getElementById('statPending').textContent=pending;
-  document.getElementById('statDone').textContent=approved+' proj. / '+done+' concl.';
+  document.getElementById('statDone').textContent=approved+' / '+done;
   document.getElementById('statRevenue').textContent='R$'+revenue.toFixed(0);
+  document.getElementById('statPago').textContent='R$'+pago.toFixed(0);
+  document.getElementById('statTicket').textContent='R$'+ticket.toFixed(0);
+  renderRevenueChart();
+}
+
+let revenueChartInstance = null;
+function renderRevenueChart(){
+  const ctx = document.getElementById('revenueChart');
+  if(!ctx) return;
+  // Montar últimos 6 meses
+  const now = new Date();
+  const months = [];
+  for(let i=5;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    months.push({ key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}) });
+  }
+  const receitaMap = {}, pagosMap = {};
+  months.forEach(m=>{ receitaMap[m.key]=0; pagosMap[m.key]=0; });
+  allOrders.forEach(o=>{
+    if(!o.created_at||!o.valor) return;
+    const k=o.created_at.slice(0,7);
+    if(receitaMap[k]!==undefined) receitaMap[k]+=(o.valor||0);
+    if(o.pago && pagosMap[k]!==undefined) pagosMap[k]+=(o.valor||0);
+  });
+  const labels=months.map(m=>m.label);
+  const dataReceita=months.map(m=>receitaMap[m.key]);
+  const dataPagos=months.map(m=>pagosMap[m.key]);
+  if(revenueChartInstance) revenueChartInstance.destroy();
+  revenueChartInstance = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Orçamentos (R$)',data:dataReceita,backgroundColor:'rgba(46,126,198,.15)',borderColor:'rgba(46,126,198,.6)',borderWidth:1.5,borderRadius:4},
+        {label:'Recebido (R$)',data:dataPagos,backgroundColor:'rgba(0,135,90,.2)',borderColor:'rgba(0,135,90,.7)',borderWidth:1.5,borderRadius:4},
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:16}}},
+      scales:{
+        y:{beginAtZero:true,ticks:{callback:v=>'R$'+v.toLocaleString('pt-BR')},grid:{color:'rgba(13,27,42,.05)'}},
+        x:{grid:{display:false}}
+      }
+    }
+  });
 }
 
 function isNew(dateStr){ if(!dateStr) return false; return (Date.now()-new Date(dateStr).getTime()) < 86400000; }
@@ -530,7 +590,7 @@ function renderOrders(orders){
       <td><span style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:#2E7EC6;background:rgba(46,126,198,.08);padding:.2rem .6rem;border-radius:4px;white-space:nowrap;display:inline-block;">${o.codigo||'—'}</span>${novoBadge}</td>
       <td><button onclick="openModal(${idx})" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;"><span style="font-weight:500;color:#0D1B2A;">${nome}</span>${email?`<br><span style="font-size:.72rem;color:#2E7EC6;">${email}</span>`:''}</button></td>
       <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.servico||'—'}</td>
-      <td style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'—'}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'—'}${o.pago?'<br><span style="font-size:.58rem;background:rgba(0,135,90,.1);color:#00875A;padding:.1rem .4rem;border-radius:4px;font-family:Inter,sans-serif;font-weight:600;letter-spacing:.06em;">PAGO</span>':''}</td>
       <td><select class="status-select" onchange="updateStatus('${o.id}',this.value)">
         <option value="aguardando_aprovacao" ${o.status==='aguardando_aprovacao'||o.status==='aguardando_pagamento'?'selected':''}>Aguardando aprovação</option>
         <option value="followup_1" ${o.status==='followup_1'?'selected':''}>Follow-up 1</option>
@@ -584,7 +644,17 @@ function openModal(i){
         </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #eee;flex-wrap:wrap;gap:.75rem;">
-        ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 Chamar no WhatsApp</a>`:'<span></span>'}
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+          ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 Chamar no WhatsApp</a>`:''}
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem;font-weight:500;color:${o.pago?'#00875A':'#4A6A82'};" id="pagoLabel-${o.id}">
+            <div style="position:relative;width:36px;height:20px;">
+              <input type="checkbox" id="pagoToggle-${o.id}" ${o.pago?'checked':''} onchange="togglePago('${o.id}',this.checked)" style="position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;margin:0;z-index:1;">
+              <div id="pagoTrack-${o.id}" style="position:absolute;inset:0;border-radius:10px;background:${o.pago?'#00875A':'#CBD5E1'};transition:.2s;"></div>
+              <div id="pagoThumb-${o.id}" style="position:absolute;top:2px;left:${o.pago?'18':'2'}px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s;"></div>
+            </div>
+            ${o.pago?'✓ Pago':'Marcar como pago'}
+          </label>
+        </div>
         <button class="btn-delete" onclick="confirmDelete('${o.id}','${o.codigo||''}','${lead?.email||''}')">🗑️ Excluir</button>
       </div>
     </div>
@@ -672,6 +742,24 @@ async function salvarNotas(id){
   if(order) order.notas = val;
   const fb = document.getElementById('notasFeedback');
   if(fb){ fb.style.display='inline'; setTimeout(()=>fb.style.display='none', 2000); }
+}
+
+async function togglePago(id, checked){
+  const updateData = {pago: checked, data_pagamento: checked ? new Date().toISOString() : null};
+  await sb.from('orders').update(updateData).eq('id', id);
+  const order = allOrders.find(o=>o.id===id);
+  if(order){ order.pago=checked; order.data_pagamento=updateData.data_pagamento; }
+  // Atualizar visual do toggle sem fechar modal
+  const track=document.getElementById('pagoTrack-'+id);
+  const thumb=document.getElementById('pagoThumb-'+id);
+  const label=document.getElementById('pagoLabel-'+id);
+  if(track) track.style.background=checked?'#00875A':'#CBD5E1';
+  if(thumb) thumb.style.left=checked?'18px':'2px';
+  if(label){ label.style.color=checked?'#00875A':'#4A6A82'; label.childNodes[label.childNodes.length-1].textContent=checked?'✓ Pago':'Marcar como pago'; }
+  // Atualizar stats e gráfico
+  renderRevenueChart();
+  const pago=allOrders.filter(o=>o.pago).reduce((s,o)=>s+(o.valor||0),0);
+  document.getElementById('statPago').textContent='R$'+pago.toFixed(0);
 }
 
 async function carregarHistorico(){
