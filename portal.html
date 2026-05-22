@@ -782,27 +782,34 @@ function renderTimeline(status, perdido){
   const ordemFases = ['lead','orcamento','aprovado','pagamento','producao','entregue'];
   const idxAtual = ordemFases.indexOf(faseAtual);
 
-  return `<div style="margin-bottom:1.5rem;overflow-x:auto;padding-bottom:.5rem;">
-    <div style="display:flex;align-items:center;min-width:420px;gap:0;">
-      ${fases.map((f,i)=>{
-        const idx = ordemFases.indexOf(f.key);
-        const concluido = !perdido && idx < idxAtual;
-        const atual = !perdido && idx === idxAtual;
-        const isPerdido = perdido && idx === idxAtual;
-        const cor = isPerdido?'#C0392B': concluido?'#00875A': atual?'#2E7EC6':'#CBD5E1';
-        const bgCor = isPerdido?'rgba(192,57,43,.08)': concluido?'rgba(0,135,90,.08)': atual?'rgba(46,126,198,.1)':'transparent';
-        const textCor = isPerdido?'#C0392B': concluido?'#00875A': atual?'#2E7EC6':'#94A3B8';
-        return `
-          <div style="display:flex;align-items:center;flex:1;min-width:0;">
-            <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem;flex:1;">
-              <div style="width:36px;height:36px;border-radius:50%;background:${bgCor};border:2px solid ${cor};display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:.3s;">${concluido?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+cor+'" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':f.icon}</div>
-              <span style="font-size:.62rem;font-weight:${atual||concluido?'600':'400'};color:${textCor};text-align:center;letter-spacing:.02em;white-space:nowrap;">${f.label}</span>
-            </div>
-            ${i<fases.length-1?`<div style="height:2px;flex:1;background:${concluido?'#00875A':'#E2E8F0'};margin-bottom:1.1rem;transition:.3s;"></div>`:''}
-          </div>`;
-      }).join('')}
-    </div>
-  </div>`;
+  const itens = fases.map(function(f,i){
+    const idx = ordemFases.indexOf(f.key);
+    const concluido = !perdido && idx < idxAtual;
+    const atual = !perdido && idx === idxAtual;
+    const isPerdido = perdido && idx === idxAtual;
+    const cor     = isPerdido?'#C0392B': concluido?'#00875A': atual?'#2E7EC6':'#CBD5E1';
+    const bgCor   = isPerdido?'rgba(192,57,43,.08)': concluido?'rgba(0,135,90,.08)': atual?'rgba(46,126,198,.1)':'transparent';
+    const textCor = isPerdido?'#C0392B': concluido?'#00875A': atual?'#2E7EC6':'#94A3B8';
+    const fw      = (atual||concluido) ? '600' : '400';
+    const icon    = concluido
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+cor+'" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+      : f.icon;
+    const linha   = i < fases.length-1
+      ? '<div style="height:2px;flex:1;background:'+(concluido?'#00875A':'#E2E8F0')+';margin-bottom:1.1rem;transition:.3s;"></div>'
+      : '';
+    return '<div style="display:flex;align-items:center;flex:1;min-width:0;">'
+      + '<div style="display:flex;flex-direction:column;align-items:center;gap:.3rem;flex:1;">'
+      + '<div style="width:36px;height:36px;border-radius:50%;background:'+bgCor+';border:2px solid '+cor+';display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:.3s;">'+icon+'</div>'
+      + '<span style="font-size:.62rem;font-weight:'+fw+';color:'+textCor+';text-align:center;letter-spacing:.02em;white-space:nowrap;">'+f.label+'</span>'
+      + '</div>'
+      + linha
+      + '</div>';
+  }).join('');
+
+  return '<div style="margin-bottom:1.5rem;overflow-x:auto;padding-bottom:.5rem;">'
+    + '<div style="display:flex;align-items:center;min-width:420px;gap:0;">'
+    + itens
+    + '</div></div>';
 }
 
 function openModal(i){
