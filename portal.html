@@ -792,18 +792,21 @@ function openModal(i){
         </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #eee;flex-wrap:wrap;gap:.75rem;">
-        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-          ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 Chamar no WhatsApp</a>`:''}
-          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem;font-weight:500;color:${o.pago?'#00875A':'#4A6A82'};" id="pagoLabel-${o.id}">
-            <div style="position:relative;width:36px;height:20px;">
-              <input type="checkbox" id="pagoToggle-${o.id}" ${o.pago?'checked':''} onchange="togglePago('${o.id}',this.checked)" style="position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;margin:0;z-index:1;">
-              <div id="pagoTrack-${o.id}" style="position:absolute;inset:0;border-radius:10px;background:${o.pago?'#00875A':'#CBD5E1'};transition:.2s;"></div>
-              <div id="pagoThumb-${o.id}" style="position:absolute;top:2px;left:${o.pago?'18':'2'}px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s;"></div>
-            </div>
-            ${o.pago?'✓ Pago':'Marcar como pago'}
-          </label>
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+          ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 WhatsApp</a>`:''}
+          <button onclick="gerarLinkPagamento('${o.id}','${o.codigo||''}')" id="btnGerarLink-${o.id}" style="display:inline-flex;align-items:center;gap:.5rem;background:#009EE3;color:#fff;border:none;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;cursor:pointer;">
+            💳 Gerar link de pagamento
+          </button>
         </div>
         <button class="btn-delete" onclick="confirmDelete('${o.id}','${o.codigo||''}','${lead?.email||''}')">🗑️ Excluir</button>
+      </div>
+      <div id="mpLinkBox-${o.id}" style="display:none;margin-top:1rem;background:#F0F9FF;border:1px solid rgba(0,158,227,.2);border-radius:10px;padding:1rem 1.2rem;">
+        <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#0077B6;margin-bottom:.5rem;font-weight:600;">Link de pagamento gerado</div>
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
+          <input id="mpLinkInput-${o.id}" readonly style="flex:1;min-width:0;padding:.5rem .75rem;border:1px solid rgba(0,158,227,.3);border-radius:6px;font-size:.8rem;color:#0D1B2A;background:#fff;outline:none;"/>
+          <button onclick="copiarLink('${o.id}')" style="background:#009EE3;color:#fff;border:none;padding:.5rem .9rem;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;">Copiar</button>
+          <a id="mpLinkOpen-${o.id}" href="#" target="_blank" style="background:#0D1B2A;color:#fff;padding:.5rem .9rem;border-radius:6px;font-size:.75rem;font-weight:600;text-decoration:none;white-space:nowrap;">Abrir ↗</a>
+        </div>
       </div>
     </div>
 
@@ -932,14 +935,17 @@ async function carregarHistorico(){
   };
   el.innerHTML = hist.map(h=>`
     <div class="hist-item">
-      <div class="hist-dot"></div>
+      <div class="hist-dot" style="background:${h.origem==='Mercado Pago'?'#009EE3':'#2E7EC6'};"></div>
       <div>
         <div class="hist-text">
           <span style="color:#8899AA;">${labelMap[h.status_anterior]||h.status_anterior||'—'}</span>
           <span style="margin:0 .4rem;">→</span>
           <strong>${labelMap[h.status_novo]||h.status_novo}</strong>
         </div>
-        <div class="hist-date">${formatDate(h.created_at)} às ${new Date(h.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="hist-date">
+          ${formatDate(h.created_at)} às ${new Date(h.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}
+          ${h.origem&&h.origem!=='Portal Admin'?`<span style="background:rgba(0,158,227,.1);color:#009EE3;font-size:.65rem;font-weight:600;padding:.1rem .4rem;border-radius:4px;margin-left:.4rem;">${h.origem}</span>`:''}
+        </div>
       </div>
     </div>`).join('');
 }
@@ -1180,7 +1186,44 @@ function showTab(name){
   document.getElementById('tab-'+name).classList.add('active');
 }
 
-function exportarCSV(){
+async function gerarLinkPagamento(orderId, codigo){
+  const btn = document.getElementById('btnGerarLink-'+orderId);
+  if(btn){ btn.textContent='⏳ Gerando...'; btn.disabled=true; }
+  try {
+    const res = await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/criar-preferencia-mp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w',
+      },
+      body: JSON.stringify({ order_id: orderId }),
+    });
+    const data = await res.json();
+    if(!res.ok || data.error) throw new Error(data.error || 'Erro ao gerar link');
+
+    // Usar init_point (produção) ou sandbox_init_point (testes)
+    const link = data.init_point || data.sandbox_init_point;
+    const box   = document.getElementById('mpLinkBox-'+orderId);
+    const input = document.getElementById('mpLinkInput-'+orderId);
+    const open  = document.getElementById('mpLinkOpen-'+orderId);
+    if(box)   box.style.display='block';
+    if(input) input.value = link;
+    if(open)  open.href   = link;
+    if(btn){ btn.textContent='✓ Link gerado'; btn.style.background='#00875A'; }
+    showNotifBar('💳 Link de pagamento gerado para '+codigo+'! Copie e envie ao cliente.', '#009EE3');
+  } catch(e){
+    if(btn){ btn.textContent='💳 Gerar link de pagamento'; btn.disabled=false; }
+    showAlertBar('Erro ao gerar link: '+e.message);
+  }
+}
+
+function copiarLink(orderId){
+  const input = document.getElementById('mpLinkInput-'+orderId);
+  if(!input) return;
+  navigator.clipboard.writeText(input.value).then(()=>{
+    showNotifBar('✓ Link copiado para a área de transferência!', '#00875A');
+  });
+}
   const statusLabel={
     aguardando_aprovacao:'Aguardando aprovação',aguardando_pagamento:'Aguardando pagamento',
     followup_1:'Follow-up 1',followup_2:'Follow-up 2',followup_3:'Follow-up 3',
