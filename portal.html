@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Apostila Simples — Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy:#0D1B2A;
+  --navy2:#163A5F;
+  --blue:#2E7EC6;
+  --blue2:#1A5FA0;
+  --blue-soft:rgba(46,126,198,.1);
+  --blue-soft2:rgba(46,126,198,.18);
+  --bg:#F0F7FF;
+  --bg2:#EBF4FF;
+  --white:#ffffff;
+  --text:#0D1B2A;
+  --muted:#1E3A52;
+  --muted2:#4A6A82;
+  --line:rgba(13,27,42,.1);
+  --line2:rgba(13,27,42,.18);
+  --success:#00875A;
+  --success-bg:rgba(0,135,90,.08);
+  --warning:#B45309;
+  --warning-bg:rgba(180,83,9,.08);
+  --danger:#C0392B;
+  --danger-bg:rgba(192,57,43,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:Inter,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;font-family:inherit}
+input,select,textarea{font-family:inherit}
+
+/* ── NAV ── */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:68px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 4vw;
+  background:var(--navy);
+  border-bottom:1px solid rgba(46,126,198,.2);
+}
+.nav-logo{display:flex;align-items:center;gap:.6rem;}
+.nav-logo svg{width:38px;height:38px;}
+.nav-logo-text{font-family:"Bebas Neue",sans-serif;font-size:1.1rem;letter-spacing:.1em;color:#fff;white-space:nowrap;}
+.nav-logo-text span{color:#2E7EC6;}
+.nav-right{display:flex;align-items:center;gap:1rem;}
+.nav-user{font-size:.78rem;color:rgba(255,255,255,.6);letter-spacing:.04em;}
+.btn-logout{background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:.4rem .9rem;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;transition:.2s;}
+.btn-logout:hover{border-color:rgba(255,255,255,.35);color:#fff;}
+
+/* ── AUTH ── */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+.auth-card{background:var(--white);border:1px solid var(--line2);border-radius:16px;padding:2.5rem;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(13,27,42,.08);}
+.auth-logo{display:flex;align-items:center;gap:.6rem;margin-bottom:2rem;justify-content:center;}
+.auth-logo svg{width:52px;height:52px;}
+.auth-logo-text{font-family:"Bebas Neue",sans-serif;font-size:1.3rem;letter-spacing:.1em;color:var(--navy);white-space:nowrap;}
+.auth-logo-text span{color:#2E7EC6;}
+.auth-title{font-family:"EB Garamond",Georgia,serif;font-size:1.6rem;line-height:1.1;color:var(--navy);margin-bottom:.4rem;text-align:center;}
+.auth-sub{font-size:.82rem;color:var(--muted2);text-align:center;margin-bottom:1.8rem;line-height:1.6;}
+.auth-tabs{display:flex;gap:0;border:1px solid var(--line2);border-radius:8px;overflow:hidden;margin-bottom:1.8rem;}
+.auth-tab{flex:1;padding:.65rem;font-size:.78rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;background:none;border:none;color:var(--muted2);transition:.2s;}
+.auth-tab.active{background:var(--navy);color:#fff;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;font-weight:500;}
+.field input{width:100%;background:var(--bg);border:1.5px solid var(--line2);color:var(--text);padding:.75rem .9rem;border-radius:8px;font-size:.92rem;outline:none;transition:.2s;}
+.field input:focus{border-color:var(--blue);}
+.field input::placeholder{color:#8899AA;}
+.btn-primary{width:100%;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border:none;padding:.9rem;font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 16px rgba(46,126,198,.3);transition:.2s;margin-top:.5rem;}
+.btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px);}
+.auth-err{background:var(--danger-bg);border:1px solid rgba(192,57,43,.2);color:var(--danger);font-size:.8rem;padding:.7rem 1rem;border-radius:8px;margin-bottom:1rem;display:none;}
+.auth-err.show{display:block;}
+
+/* ── LAYOUT ── */
+.app{display:none;padding-top:68px;min-height:100vh;}
+.app.show{display:block;}
+.container{max-width:1100px;margin:0 auto;padding:2.5rem 4vw;}
+
+/* ── PAGE HEADER ── */
+.page-header{margin-bottom:2rem;}
+.page-eyebrow{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);margin-bottom:.4rem;font-weight:600;}
+.page-title{font-family:"EB Garamond",Georgia,serif;font-size:clamp(1.6rem,3vw,2.4rem);line-height:1.1;color:var(--navy);}
+.page-title em{color:var(--blue);font-style:normal;}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:2rem;}
+@media(max-width:700px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--white);padding:1.4rem 1.2rem;text-align:center;}
+.stat-num{font-family:"Bebas Neue",sans-serif;font-size:2.6rem;line-height:1;color:var(--blue);letter-spacing:.02em;}
+.stat-label{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-top:.3rem;}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--white);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.table-head{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--line);}
+.table-title{font-family:"EB Garamond",Georgia,serif;font-size:1.1rem;color:var(--navy);}
+.table-search{background:var(--bg);border:1px solid var(--line2);color:var(--text);padding:.5rem .85rem;border-radius:8px;font-size:.82rem;width:220px;outline:none;}
+.table-search:focus{border-color:var(--blue);}
+table{width:100%;border-collapse:collapse;}
+thead th{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);padding:.9rem 1.2rem;text-align:left;border-bottom:1px solid var(--line);background:var(--bg);font-weight:500;}
+tbody td{padding:1rem 1.2rem;font-size:.85rem;border-bottom:1px solid var(--line);color:var(--text);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--bg2);}
+.badge{display:inline-flex;align-items:center;padding:.25rem .65rem;border-radius:100px;font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+.badge-pending{background:var(--warning-bg);color:var(--warning);}
+.badge-done{background:var(--success-bg);color:var(--success);}
+.badge-danger{background:var(--danger-bg);color:var(--danger);}
+.badge-blue{background:var(--blue-soft);color:var(--blue2);}
+.empty-state{text-align:center;padding:3.5rem 2rem;color:var(--muted2);}
+.empty-state svg{opacity:.3;margin-bottom:1rem;}
+.empty-state p{font-size:.88rem;line-height:1.7;}
+
+/* ── CLIENT AREA ── */
+.client-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+@media(max-width:700px){.client-grid{grid-template-columns:1fr;}}
+.client-card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:1.5rem;}
+.client-card-title{font-family:"EB Garamond",Georgia,serif;font-size:1.05rem;color:var(--navy);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--line);}
+.info-row{display:flex;justify-content:space-between;gap:1rem;padding:.6rem 0;border-bottom:1px solid var(--line);font-size:.85rem;}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:var(--muted2);}
+.info-value{color:var(--text);font-weight:500;text-align:right;}
+.order-row{padding:1rem 0;border-bottom:1px solid var(--line);}
+.order-row:last-child{border-bottom:none;}
+.order-row-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.35rem;}
+.order-service{font-size:.88rem;font-weight:500;color:var(--navy);}
+.order-date{font-size:.72rem;color:var(--muted2);}
+.order-val{font-family:"Bebas Neue",sans-serif;font-size:1.4rem;color:var(--blue);}
+
+/* ── SELECT STATUS ── */
+.status-select{background:var(--bg);border:1px solid var(--line2);color:var(--text);padding:.3rem .5rem;border-radius:6px;font-size:.72rem;outline:none;cursor:pointer;}
+.status-select:focus{border-color:var(--blue);}
+
+/* ── LOADING ── */
+.loading{text-align:center;padding:3rem;color:var(--muted2);font-size:.85rem;}
+.spinner{width:28px;height:28px;border:2px solid var(--line2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:2rem;}
+.tab{padding:.75rem 1.2rem;font-size:.78rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;background:none;border:none;color:var(--muted2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:.2s;}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+@media(max-width:600px){
+  .table-head{flex-direction:column;gap:.8rem;align-items:stretch;}
+  .table-search{width:100%;}
+  thead{display:none;}
+  tbody td{display:block;padding:.4rem 1rem;}
+  tbody td:first-child{padding-top:.8rem;}
+  tbody td:last-child{padding-bottom:.8rem;}
+  tbody tr{display:block;border-bottom:1px solid var(--line);}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-logo" href="/">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="#2E7EC6" stroke-width="2" stroke-dasharray="4 2.5"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="#2E7EC6" stroke-width="1"/>
+      <line x1="27" y1="40" x2="73" y2="40" stroke="#2E7EC6" stroke-width="0.9"/>
+      <line x1="27" y1="62" x2="73" y2="62" stroke="#2E7EC6" stroke-width="0.9"/>
+      <text x="50" y="49" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="900" fill="#fff" letter-spacing="1">APOSTILA</text>
+      <text x="50" y="60" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#7CB9E8" letter-spacing="4">SIMPLES</text>
+    </svg>
+    <span class="nav-logo-text">APOSTILA <span>SIMPLES</span></span>
+  </a>
+  <div class="nav-right">
+    <span class="nav-user" id="navUser"></span>
+    <button class="btn-logout" id="btnLogout">Sair</button>
+  </div>
+</nav>
+
+<!-- AUTH -->
+<div class="auth-wrap" id="authWrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="47" fill="none" stroke="#2E7EC6" stroke-width="2" stroke-dasharray="4 2.5"/>
+        <circle cx="50" cy="50" r="38" fill="none" stroke="#2E7EC6" stroke-width="1"/>
+        <line x1="27" y1="40" x2="73" y2="40" stroke="#2E7EC6" stroke-width="0.9"/>
+        <line x1="27" y1="62" x2="73" y2="62" stroke="#2E7EC6" stroke-width="0.9"/>
+        <text x="50" y="49" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="900" fill="#0D1B2A" letter-spacing="1">APOSTILA</text>
+        <text x="50" y="60" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#2E7EC6" letter-spacing="4">SIMPLES</text>
+      </svg>
+      <span class="auth-logo-text">APOSTILA <span>SIMPLES</span></span>
+    </div>
+    <h2 class="auth-title">Acesse sua conta</h2>
+    <p class="auth-sub">Acompanhe seus pedidos ou gerencie o painel.</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="showAuthTab('login')">Entrar</button>
+      <button class="auth-tab" onclick="showAuthTab('register')">Criar conta</button>
+    </div>
+    <div id="authErr" class="auth-err"></div>
+    <div id="loginForm">
+      <div class="field"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com"/></div>
+      <div class="field"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••"/></div>
+      <button class="btn-primary" onclick="doLogin()">ACESSAR PORTAL</button>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="field"><label>Nome completo</label><input type="text" id="regNome" placeholder="Seu nome"/></div>
+      <div class="field"><label>E-mail</label><input type="email" id="regEmail" placeholder="seu@email.com"/></div>
+      <div class="field"><label>WhatsApp</label><input type="tel" id="regWhats" placeholder="(11) 99999-9999"/></div>
+      <div class="field"><label>Senha</label><input type="password" id="regPass" placeholder="Mínimo 6 caracteres"/></div>
+      <button class="btn-primary" onclick="doRegister()">Criar conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appWrap">
+  <div class="container">
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" style="display:none">
+      <div class="page-header">
+        <div class="page-eyebrow">Painel administrativo</div>
+        <h1 class="page-title">Olá, <em>Admin</em>.</h1>
+      </div>
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total de orçamentos</div></div>
+        <div class="stat-card"><div class="stat-num" id="statPending">—</div><div class="stat-label">Aguardando / Follow-up</div></div>
+        <div class="stat-card"><div class="stat-num" id="statDone" style="font-size:1.6rem;">—</div><div class="stat-label">Projetos / Concluídos</div></div>
+        <div class="stat-card"><div class="stat-num" id="statRevenue">—</div><div class="stat-label">Receita total</div></div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('orders')">Pedidos</button>
+        <button class="tab" onclick="showTab('leads')">Leads</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-orders">
+        <div class="table-wrap">
+          <div class="table-head">
+            <span class="table-title">Todos os pedidos</span>
+            <div style="display:flex;gap:.6rem;align-items:center;">
+              <input class="table-search" type="text" placeholder="Buscar..." oninput="filterOrders(this.value)"/>
+              <button onclick="openNewOrcModal()" style="background:#2E7EC6;color:#fff;border:none;padding:.5rem 1rem;border-radius:8px;font-size:.75rem;font-weight:600;letter-spacing:.06em;white-space:nowrap;">+ Novo orçamento</button>
+            </div>
+          </div>
+          <div id="ordersLoading" class="loading"><div class="spinner"></div>Carregando pedidos...</div>
+          <div id="ordersTable" style="display:none">
+            <table>
+              <thead><tr>
+                <th style="width:90px;">Código</th>
+                <th>Cliente</th>
+                <th>Serviço</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th>Recebido</th>
+                <th>Entrega</th>
+              </tr></thead>
+              <tbody id="ordersTbody"></tbody>
+            </table>
+            <div id="ordersEmpty" class="empty-state" style="display:none">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+              <p>Nenhum pedido encontrado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-leads">
+        <div class="table-wrap">
+          <div class="table-head">
+            <span class="table-title">Leads captados</span>
+          </div>
+          <div id="leadsLoading" class="loading"><div class="spinner"></div>Carregando leads...</div>
+          <div id="leadsTable" style="display:none">
+            <table>
+              <thead><tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>WhatsApp</th>
+                <th>Serviço</th>
+                <th>País</th>
+                <th>Data</th>
+              </tr></thead>
+              <tbody id="leadsTbody"></tbody>
+            </table>
+            <div id="leadsEmpty" class="empty-state" style="display:none">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <p>Nenhum lead encontrado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENT AREA -->
+    <div id="clientPanel" style="display:none">
+      <div class="page-header">
+        <div class="page-eyebrow">Área do cliente</div>
+        <h1 class="page-title">Olá, <em id="clientName">—</em>.</h1>
+      </div>
+      <div class="client-grid">
+        <div class="client-card">
+          <div class="client-card-title">Meus dados</div>
+          <div id="clientInfo"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="client-card">
+          <div class="client-card-title">Meus pedidos</div>
+          <div id="clientOrders"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL    = 'https://kclbawvrvmiiyngkzibi.supabase.co';
+const SUPABASE_KEY    = 'sb_publishable_0qmC4DKUTpeafAhcaa9ZQA_2rVHMagY';
+
+const ADMIN_EMAIL  = 'contato@apostilasimples.com.br';
+
+const sb      = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+let allOrders = [];
+
+// ── AUTH TABS ──
+function showAuthTab(tab){
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('loginForm').style.display = tab==='login'?'block':'none';
+  document.getElementById('registerForm').style.display = tab==='register'?'block':'none';
+  document.getElementById('authErr').classList.remove('show');
+}
+
+function showErr(msg){ const el=document.getElementById('authErr'); el.textContent=msg; el.classList.add('show'); }
+
+// ── LOGIN ──
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  if(!email||!pass){ showErr('Preencha e-mail e senha.'); return; }
+  
+  const btn = document.querySelector('#loginForm .btn-primary');
+  btn.textContent = 'Entrando...';
+  btn.disabled = true;
+
+  try {
+    const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
+    if(error){
+      showErr('Erro: ' + error.message);
+      btn.textContent = 'Entrar no portal';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    showErr('Erro de conexão: ' + e.message);
+    btn.textContent = 'Entrar no portal';
+    btn.disabled = false;
+  }
+}
+
+// ── REGISTER ──
+async function doRegister(){
+  const nome  = document.getElementById('regNome').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const whats = document.getElementById('regWhats').value.trim();
+  const pass  = document.getElementById('regPass').value;
+  if(!nome||!email||!pass){ showErr('Preencha todos os campos.'); return; }
+  if(pass.length<6){ showErr('A senha precisa ter pelo menos 6 caracteres.'); return; }
+  const {data, error} = await sb.auth.signUp({email, password:pass, options:{data:{nome, whatsapp:whats}}});
+  if(error){ showErr(error.message); return; }
+  await sb.from('leads').upsert({email, nome, whatsapp:whats, created_at:new Date().toISOString()});
+  showErr('Conta criada! Verifique seu e-mail para confirmar.');
+}
+
+// ── LOGOUT ──
+document.getElementById('btnLogout').onclick = ()=> sb.auth.signOut();
+
+// ── AUTH STATE ──
+sb.auth.onAuthStateChange(async (event, session)=>{
+  if(session?.user){
+    document.getElementById('authWrap').style.display = 'none';
+    document.getElementById('appWrap').classList.add('show');
+    const email = session.user.email;
+    document.getElementById('navUser').textContent = email;
+    if(email === ADMIN_EMAIL){
+      document.getElementById('adminPanel').style.display = 'block';
+      document.getElementById('clientPanel').style.display = 'none';
+      loadAdminData();
+    } else {
+      document.getElementById('adminPanel').style.display = 'none';
+      document.getElementById('clientPanel').style.display = 'block';
+      loadClientData(session.user);
+    }
+  } else {
+    document.getElementById('authWrap').style.display = 'flex';
+    document.getElementById('appWrap').classList.remove('show');
+  }
+});
+
+// ── ADMIN ──
+let allLeads = [];
+
+async function loadAdminData(){
+  const {data:leads} = await sb.from('leads').select('*').order('created_at', {ascending:false});
+  allLeads = leads || [];
+  renderLeads(allLeads);
+
+  const {data:orders} = await sb.from('orders').select('*').order('created_at', {ascending:false});
+  allOrders = (orders || []).map(o=>{
+    const lead = allLeads.find(l=>
+      (l.codigo && o.codigo && l.codigo === o.codigo) ||
+      (l.servico === o.servico && l.created_at && o.created_at && Math.abs(new Date(l.created_at)-new Date(o.created_at)) < 60000)
+    );
+    // Normalize arquivos — Supabase returns text[] as JS array already
+    let arqs = o.arquivos || [];
+    if(typeof arqs === 'string'){ try{ arqs=JSON.parse(arqs); }catch(e){ arqs=[]; } }
+    if(!Array.isArray(arqs)) arqs = [];
+    return {...o, _lead: lead || null, _arquivos: arqs};
+  });
+  renderOrders(allOrders);
+
+  const total = allOrders.length;
+  const pending = allOrders.filter(o=>['aguardando_aprovacao','aguardando_pagamento','followup_1','followup_2','followup_3'].includes(o.status)).length;
+  const approved = allOrders.filter(o=>o.status==='em_andamento').length;
+  const done = allOrders.filter(o=>o.status==='concluido').length;
+  const lost = allOrders.filter(o=>o.status==='perdido').length;
+  const revenue = allOrders.filter(o=>o.status==='concluido').reduce((s,o)=>s+(o.valor||0),0);
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statDone').textContent = approved + ' proj. / ' + done + ' concl.';
+  document.getElementById('statRevenue').textContent = 'R$'+(revenue).toFixed(0);
+}
+
+function renderOrders(orders){
+  document.getElementById('ordersLoading').style.display = 'none';
+  document.getElementById('ordersTable').style.display = 'block';
+  const tbody = document.getElementById('ordersTbody');
+  if(!orders.length){
+    tbody.innerHTML='';
+    document.getElementById('ordersEmpty').style.display='block';
+    return;
+  }
+  document.getElementById('ordersEmpty').style.display='none';
+  tbody.innerHTML = orders.map((o,i)=>{
+    const lead = o._lead;
+    const nome = lead?.nome || '—';
+    const email = lead?.email || '';
+    const whats = lead?.whatsapp || '';
+    return `
+    <tr>
+      <td><span style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:#2E7EC6;background:rgba(46,126,198,.08);padding:.2rem .6rem;border-radius:4px;white-space:nowrap;display:inline-block;">${o.codigo||'—'}</span></td>
+      <td>
+        <button onclick="openModal(${i})" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;">
+          <span style="font-weight:500;color:#0D1B2A;">${nome}</span>
+          ${email?`<br><span style="font-size:.72rem;color:#2E7EC6;">${email}</span>`:''}
+        </button>
+      </td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.servico||'—'}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'—'}</td>
+      <td>
+        <select class="status-select" onchange="updateStatus('${o.id}',this.value)">
+          <option value="aguardando_aprovacao" ${o.status==='aguardando_aprovacao'||o.status==='aguardando_pagamento'?'selected':''}>Aguardando aprovação</option>
+          <option value="followup_1" ${o.status==='followup_1'?'selected':''}>Follow-up 1</option>
+          <option value="followup_2" ${o.status==='followup_2'?'selected':''}>Follow-up 2</option>
+          <option value="followup_3" ${o.status==='followup_3'?'selected':''}>Follow-up 3</option>
+          <option value="em_andamento" ${o.status==='em_andamento'?'selected':''}>Projeto aprovado</option>
+          <option value="concluido" ${o.status==='concluido'?'selected':''}>Concluído</option>
+          <option value="perdido" ${o.status==='perdido'?'selected':''}>Perdido</option>
+        </select>
+      </td>
+      <td style="color:#4A6A82;font-size:.78rem;">${formatDate(o.created_at)}</td>
+      <td style="color:${o.data_entrega ? '#00875A' : '#8899AA'};font-size:.78rem;font-weight:${o.data_entrega?'600':'400'}">${o.data_entrega ? formatDate(o.data_entrega) : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openModal(i){
+  const o = allOrders[i];
+  const lead = o._lead;
+  // _arquivos already normalized in loadAdminData
+  document.getElementById('modalContent').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <h3 style="font-family:'EB Garamond',Georgia,serif;font-size:1.4rem;color:#0D1B2A;">Detalhes do pedido</h3>
+      <button onclick="closeModal()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
+    </div>
+    <div style="margin-bottom:1rem;"><span style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;background:rgba(46,126,198,.08);padding:.3rem .8rem;border-radius:6px;">${o.codigo||'Sem código'}</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem 1.5rem;">
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Nome</div><div style="font-weight:500;">${lead?.nome||'—'}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">WhatsApp</div><div style="font-weight:500;">${lead?.whatsapp||'—'}</div></div>
+      <div style="grid-column:1/3"><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">E-mail</div><div style="color:#2E7EC6;">${lead?.email||'—'}</div></div>
+      <div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;"><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Serviço</div><div style="font-weight:500;">${o.servico||'—'}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">País</div><div>${o.pais||'—'}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Valor</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'A confirmar'}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Prazo</div><div>${o.prazo||'—'}</div></div>
+      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Recebido em</div><div>${formatDate(o.created_at)}</div></div>
+      <div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;">
+        <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;">Data de entrega</div>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <input type="date" id="dataEntrega-${o.id}" value="${o.data_entrega||''}" style="padding:.5rem .75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;color:#0D1B2A;outline:none;"/>
+          <button onclick="salvarDataEntrega('${o.id}')" style="background:#2E7EC6;color:#fff;border:none;padding:.5rem 1rem;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;">Salvar</button>
+        </div>
+      </div>
+      ${o.obs_admin?`<div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;"><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Observações</div><div style="color:#1E3A52;line-height:1.6;">${o.obs_admin}</div></div>`:''}
+    </div>
+    ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 Chamar no WhatsApp</a>`:''}
+  `;
+  document.getElementById('orderModal').style.display='flex';
+
+  // Load files directly from DB
+  (async () => {
+    const {data: freshOrder} = await sb.from('orders').select('arquivos').eq('id', o.id).single();
+    let arqs = freshOrder?.arquivos || [];
+    if(typeof arqs === 'string'){ try{ arqs=JSON.parse(arqs); }catch(e){ arqs=[]; } }
+    if(!Array.isArray(arqs)) arqs = [];
+
+    if(arqs.length > 0){
+      const modalContent = document.getElementById('modalContent');
+      const wppBtn = modalContent.querySelector('a[href*="wa.me"]');
+
+      const div = document.createElement('div');
+      div.style.cssText = 'border-top:1px solid #eee;padding-top:.75rem;margin-top:.75rem;margin-bottom:.75rem;';
+
+      const label = document.createElement('div');
+      label.style.cssText = 'font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.5rem;';
+      label.textContent = 'Arquivos enviados';
+      div.appendChild(label);
+
+      for(const path of arqs){
+        const {data: urlData} = await sb.storage.from('documentos').createSignedUrl(path, 3600);
+        const nome = path.split('/').pop().replace(/^[0-9]+_/, '');
+        const a = document.createElement('a');
+        a.href = urlData?.signedUrl || '#';
+        a.target = '_blank';
+        a.style.cssText = 'display:inline-flex;align-items:center;gap:.5rem;background:#EBF4FF;border:1px solid rgba(46,126,198,.2);padding:.5rem .9rem;border-radius:6px;font-size:.8rem;color:#2E7EC6;text-decoration:none;margin-bottom:.3rem;margin-right:.3rem;';
+        a.textContent = '📄 ' + nome;
+        div.appendChild(a);
+      }
+
+      if(wppBtn) modalContent.insertBefore(div, wppBtn);
+      else modalContent.appendChild(div);
+    }
+  })();
+}
+
+function closeModal(){
+  document.getElementById('orderModal').style.display='none';
+}
+
+async function salvarDataEntrega(id){
+  const input = document.getElementById('dataEntrega-' + id);
+  if(!input) return;
+  const data = input.value;
+  await sb.from('orders').update({data_entrega: data||null}).eq('id', id);
+  // Update local state
+  const order = allOrders.find(o=>o.id===id);
+  if(order) order.data_entrega = data;
+  renderOrders(allOrders);
+  // Visual feedback
+  input.style.borderColor = '#00875A';
+  setTimeout(()=>input.style.borderColor='rgba(46,126,198,.25)', 1500);
+}
+
+async function downloadArquivo(path){
+  const {data} = await sb.storage.from('documentos').createSignedUrl(path, 60);
+  if(data?.signedUrl) window.open(data.signedUrl, '_blank');
+}
+
+function renderLeads(leads){
+  document.getElementById('leadsLoading').style.display='none';
+  document.getElementById('leadsTable').style.display='block';
+  const tbody=document.getElementById('leadsTbody');
+  if(!leads.length){
+    tbody.innerHTML='';
+    document.getElementById('leadsEmpty').style.display='block';
+    return;
+  }
+  document.getElementById('leadsEmpty').style.display='none';
+  tbody.innerHTML=leads.map(l=>`
+    <tr>
+      <td style="font-weight:500;">${l.nome||'—'}</td>
+      <td style="color:#2E7EC6;">${l.email||'—'}</td>
+      <td>${l.whatsapp||'—'}</td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${l.servico||'—'}</td>
+      <td>${l.pais||'—'}</td>
+      <td style="color:#4A6A82;font-size:.78rem;">${formatDate(l.created_at)}</td>
+    </tr>
+  `).join('');
+}
+
+function filterOrders(q){
+  const filtered = allOrders.filter(o=>
+    (o.servico||'').toLowerCase().includes(q.toLowerCase()) ||
+    (o.pais||'').toLowerCase().includes(q.toLowerCase())
+  );
+  renderOrders(filtered);
+}
+
+async function updateStatus(id, status){
+  let updateData = {status, updated_at: new Date().toISOString()};
+  const order = allOrders.find(o=>o.id===id);
+  const lead = order?._lead;
+
+  // Se aprovado, gera código PRJ
+  if(status === 'em_andamento'){
+    if(order && (!order.codigo || order.codigo.startsWith('ORC-'))){
+      const {data: prjData} = await sb.from('orders').select('codigo').like('codigo', 'PRJ-%').order('codigo', {ascending: false}).limit(1);
+      const ultimoNum = prjData && prjData.length > 0 ? parseInt((prjData[0].codigo || 'PRJ-0000').split('-')[1]) : 0;
+      updateData.codigo = 'PRJ-' + String(ultimoNum + 1).padStart(4, '0');
+      order.codigo = updateData.codigo;
+    }
+  }
+
+  await sb.from('orders').update(updateData).eq('id', id);
+
+  // Follow-up: disparar e-mail + mostrar mensagem WhatsApp
+  if(['followup_1','followup_2','followup_3'].includes(status) && lead?.email){
+    // Dispara e-mail via Edge Function
+    try {
+      await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer sb_publishable_0qmC4DKUTpeafAhcaa9ZQA_2rVHMagY',
+        },
+        body: JSON.stringify({
+          nome: lead.nome,
+          email: lead.email,
+          servico: order.servico,
+          descricao: order.obs_admin || '',
+          codigo: order.codigo,
+          tipo: status,
+          valor: order.valor,
+        }),
+      });
+    } catch(e){ console.warn('email followup error', e); }
+
+    // Mostra botão WhatsApp com mensagem pré-escrita
+    showFollowupWpp(status, lead, order);
+  }
+
+  setTimeout(()=>loadAdminData(), 500);
+}
+
+function showFollowupWpp(tipo, lead, order){
+  const nome = lead?.nome?.split(' ')[0] || 'cliente';
+  const codigo = order?.codigo || '';
+  const servico = order?.servico || 'apostilamento';
+  const whats = (lead?.whatsapp||'').replace(/\D/g,'');
+  const WHATSAPP = '5511999999999';
+
+  const msgs = {
+    followup_1: `Olá, ${nome}! 😊
+
+Passando para verificar se você teve a oportunidade de analisar o orçamento *${codigo}* para o serviço de *${servico}*.
+
+Estamos prontos para atender você com:
+
+📋 Atendimento ágil e profissional
+🔒 Processo seguro e 100% online
+📩 Suporte pelo WhatsApp em cada etapa
+✨ Sem burocracia e sem deslocamento
+
+Qualquer dúvida, é só nos chamar. Será um prazer ajudar! 🙌
+
+Apostila Simples`,
+
+    followup_2: `Olá, ${nome}! 👋
+
+Sabemos que a rotina é corrida, mas o orçamento *${codigo}* ainda está disponível para o seu *${servico}*.
+
+Veja por que nossos clientes escolhem a Apostila Simples:
+
+✅ Processo 100% online — sem sair de casa
+✅ Entrega digital em até 24h
+✅ Sem filas e sem cartório
+✅ Suporte pelo WhatsApp em cada etapa
+✅ Pagamento somente após confirmação
+
+Podemos dar início *hoje mesmo*. O que acha? 🚀
+
+Apostila Simples`,
+
+    followup_3: `${nome}, última chance! 🎯
+
+Queremos muito te ajudar com o *${servico}* e preparamos uma condição especial exclusiva para você:
+
+🎁 *15% de desconto* no orçamento ${codigo}
+⏰ Válido por apenas *24 horas*
+
+Para garantir seu desconto:
+
+👉 Responda esta mensagem com *QUERO*
+👉 Ou clique aqui para confirmar agora
+
+Não perca essa oportunidade! 🙌
+
+Apostila Simples`,
+  };
+
+  const msg = encodeURIComponent(msgs[tipo] || '');
+  const num = whats || WHATSAPP;
+  const url = \`https://wa.me/55\${num}?text=\${msg}\`;
+
+  // Show modal with WPP link
+  const existing = document.getElementById('wppFollowupBar');
+  if(existing) existing.remove();
+
+  const bar = document.createElement('div');
+  bar.id = 'wppFollowupBar';
+  bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:200;background:#0D1B2A;border-top:1px solid rgba(46,126,198,.3);padding:1rem 4vw;display:flex;align-items:center;justify-content:space-between;gap:1rem;';
+  bar.innerHTML = \`
+    <span style="color:#fff;font-size:.85rem;">✉️ E-mail de follow-up enviado! Envie também pelo WhatsApp:</span>
+    <div style="display:flex;gap:.75rem;align-items:center;">
+      <a href="\${url}" target="_blank" style="background:#25D366;color:#000;font-weight:700;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;padding:.65rem 1.2rem;border-radius:8px;text-decoration:none;white-space:nowrap;">💬 Abrir WhatsApp</a>
+      <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);padding:.5rem .75rem;border-radius:6px;font-size:.75rem;cursor:pointer;">Fechar</button>
+    </div>
+  \`;
+  document.body.appendChild(bar);
+}
+
+// ── CLIENT ──
+async function loadClientData(user){
+  const meta = user.user_metadata || {};
+  const nome = meta.nome || user.email;
+  document.getElementById('clientName').textContent = nome.split(' ')[0];
+
+  // Info
+  document.getElementById('clientInfo').innerHTML = `
+    <div class="info-row"><span class="info-label">Nome</span><span class="info-value">${nome}</span></div>
+    <div class="info-row"><span class="info-label">E-mail</span><span class="info-value">${user.email}</span></div>
+    <div class="info-row"><span class="info-label">WhatsApp</span><span class="info-value">${meta.whatsapp||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Membro desde</span><span class="info-value">${formatDate(user.created_at)}</span></div>
+  `;
+
+  // Orders
+  const {data:orders} = await sb.from('orders').select('*').eq('user_id', user.id).order('created_at',{ascending:false});
+  if(!orders||!orders.length){
+    document.getElementById('clientOrders').innerHTML = `
+      <div class="empty-state">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+        <p>Nenhum pedido encontrado.<br>Faça seu primeiro pedido no site!</p>
+      </div>`;
+    return;
+  }
+  document.getElementById('clientOrders').innerHTML = orders.map(o=>`
+    <div class="order-row">
+      <div class="order-row-top">
+        <span class="order-service">${o.servico||'Serviço'}</span>
+        ${statusBadge(o.status)}
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="order-date">${formatDate(o.created_at)}</span>
+        <span class="order-val">${o.valor?'R$'+Number(o.valor).toFixed(2):'A confirmar'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function statusBadge(s){
+  const map={
+    'aguardando_pagamento':'<span class="badge badge-pending">Aguardando</span>',
+    'aguardando_aprovacao':'<span class="badge badge-pending">Aguardando aprovação</span>',
+    'followup_1':'<span class="badge badge-blue">Follow-up 1</span>',
+    'followup_2':'<span class="badge badge-blue">Follow-up 2</span>',
+    'followup_3':'<span class="badge badge-blue">Follow-up 3</span>',
+    'em_andamento':'<span class="badge badge-done">Projeto aprovado</span>',
+    'concluido':'<span class="badge badge-done">Concluído</span>',
+    'perdido':'<span class="badge badge-danger">Perdido</span>',
+    'cancelado':'<span class="badge badge-danger">Cancelado</span>',
+  };
+  return map[s]||'<span class="badge badge-pending">Aguardando</span>';
+}
+
+// ── TABS ──
+function showTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&name==='orders')||(i===1&&name==='leads')));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ── UTILS ──
+function formatDate(d){
+  if(!d) return '—';
+  return new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+</script>
+
+<!-- ORDER MODAL -->
+<div id="orderModal" onclick="if(event.target===this)closeModal()" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
+  <div id="modalContent" style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(13,27,42,.2);"></div>
+</div>
+
+
+<!-- NEW ORC MODAL -->
+<div id="newOrcModal" onclick="if(event.target===this)closeNewOrcModal()" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(13,27,42,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <h3 style="font-family:'EB Garamond',Georgia,serif;font-size:1.4rem;color:#0D1B2A;">Novo orçamento</h3>
+      <button onclick="closeNewOrcModal()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
+    </div>
+    <div style="display:grid;gap:.85rem;">
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Nome do cliente</label><input id="newNome" type="text" placeholder="Nome completo" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">WhatsApp</label><input id="newWhats" type="tel" placeholder="(11) 99999-9999" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">E-mail</label><input id="newEmail" type="email" placeholder="cliente@email.com" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Serviço</label>
+        <select id="newServico" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;">
+          <option>Apenas Apostila de Haia</option>
+          <option>Apenas Tradução Juramentada</option>
+          <option>Tradução Juramentada + Apostila de Haia</option>
+          <option>Tradução Juramentada + Apostilamento da Tradução</option>
+          <option>Apostilamento + Tradução + Apostilamento da Tradução</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+        <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">País</label><input id="newPais" type="text" placeholder="Portugal..." style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
+        <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Valor (R$)</label><input id="newValor" type="number" placeholder="109.90" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
+      </div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Observações</label><textarea id="newObs" placeholder="Contexto do atendimento..." style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;min-height:80px;resize:vertical;"></textarea></div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Documentos (opcional)</label><input id="newFiles" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx" style="width:100%;padding:.6rem;border:1.5px dashed rgba(46,126,198,.4);border-radius:8px;font-size:.82rem;background:rgba(46,126,198,.03);cursor:pointer;"/></div>
+    </div>
+    <button onclick="criarOrcamentoManual()" style="width:100%;margin-top:1.2rem;background:linear-gradient(135deg,#2E7EC6,#1A5FA0);color:#fff;border:none;padding:.9rem;font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:10px;cursor:pointer;">Criar orçamento</button>
+  </div>
+</div>
+<script>
+function openNewOrcModal(){ document.getElementById('newOrcModal').style.display='flex'; }
+function closeNewOrcModal(){ document.getElementById('newOrcModal').style.display='none'; }
+
+async function criarOrcamentoManual(){
+  const nome    = document.getElementById('newNome').value.trim();
+  const whats   = document.getElementById('newWhats').value.trim();
+  const email   = document.getElementById('newEmail').value.trim();
+  const servico = document.getElementById('newServico').value;
+  const pais    = document.getElementById('newPais').value.trim();
+  const valor   = parseFloat(document.getElementById('newValor').value) || null;
+  const obs     = document.getElementById('newObs').value.trim();
+
+  if(!nome){ alert('Informe o nome do cliente.'); return; }
+
+  // Gerar código ORC
+  const {data: orcData} = await sb.from('orders').select('codigo').like('codigo', 'ORC-%').order('codigo', {ascending: false}).limit(1);
+  const ultimoNum = orcData && orcData.length > 0 ? parseInt((orcData[0].codigo || 'ORC-0000').split('-')[1]) : 0;
+  const codigo = 'ORC-' + String(ultimoNum + 1).padStart(4, '0');
+
+  // Upload arquivos se houver
+  const arquivosUrls = [];
+  const newFilesInput = document.getElementById('newFiles');
+  if(newFilesInput && newFilesInput.files.length > 0){
+    for(const file of Array.from(newFilesInput.files)){
+      const filePath = codigo + '/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const {data: uploadData, error: uploadError} = await sb.storage.from('documentos').upload(filePath, file);
+      if(!uploadError && uploadData) arquivosUrls.push(filePath);
+    }
+  }
+
+  await sb.from('leads').upsert({ nome, whatsapp: whats, email, servico, pais, codigo, created_at: new Date().toISOString() });
+  await sb.from('orders').insert({ servico, valor, pais, status: 'aguardando_pagamento', prazo: 'A confirmar', obs_admin: obs||null, codigo, arquivos: arquivosUrls.length > 0 ? arquivosUrls : null });
+
+  closeNewOrcModal();
+  // Reset fields
+  ['newNome','newWhats','newEmail','newPais','newValor','newObs'].forEach(id=>document.getElementById(id).value='');
+  loadAdminData();
+  alert('Orçamento ' + codigo + ' criado com sucesso!');
+}
+</script>
+</body>
+</html>
