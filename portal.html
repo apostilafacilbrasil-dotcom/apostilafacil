@@ -755,18 +755,80 @@ function pagBgColor(s){ return {pagamento_confirmado:'rgba(0,135,90,.1)',pagamen
 function pagTextColor(s){ return {pagamento_confirmado:'#00875A',pagamento_parcial:'#B45309',pagamento_em_analise:'#7C3AED',aguardando_pagamento:'#C0392B'}[s]||'#4A6A82'; }
 
 // ── MODAL ──
+function getSubstatusProducao(servico){
+  const s = (servico||'').toLowerCase();
+  if(s.includes('apostilamento') && s.includes('tradução') && s.includes('apostilamento da tradução') || s.includes('completo')){
+    return [{key:'apostilamento_original',label:'Apostilamento do original'},{key:'traducao',label:'Tradução'},{key:'apostilamento_traducao',label:'Apostilamento da tradução'}];
+  }
+  if((s.includes('tradução') || s.includes('traducao')) && s.includes('apostila')){
+    return [{key:'traducao',label:'Tradução'},{key:'apostilamento_traducao',label:'Apostilamento da tradução'}];
+  }
+  if(s.includes('tradução') || s.includes('traducao')){
+    return [{key:'traducao',label:'Tradução'}];
+  }
+  return [{key:'apostilamento_original',label:'Apostilamento do original'}];
+}
+
+function renderTimeline(status, perdido){
+  const fases=[
+    {key:'lead',     label:'Lead',      icon:'👤'},
+    {key:'orcamento',label:'Orçamento', icon:'📋'},
+    {key:'aprovado', label:'Aprovado',  icon:'✅'},
+    {key:'pagamento',label:'Pagamento', icon:'💳'},
+    {key:'producao', label:'Produção',  icon:'⚙️'},
+    {key:'entregue', label:'Entregue',  icon:'🎉'},
+  ];
+  const faseAtual = getFase(status);
+  const ordemFases = ['lead','orcamento','aprovado','pagamento','producao','entregue'];
+  const idxAtual = ordemFases.indexOf(faseAtual);
+
+  return `<div style="margin-bottom:1.5rem;overflow-x:auto;padding-bottom:.5rem;">
+    <div style="display:flex;align-items:center;min-width:420px;gap:0;">
+      ${fases.map((f,i)=>{
+        const idx = ordemFases.indexOf(f.key);
+        const concluido = !perdido && idx < idxAtual;
+        const atual = !perdido && idx === idxAtual;
+        const isPerdido = perdido && idx === idxAtual;
+        const cor = isPerdido?'#C0392B': concluido?'#00875A': atual?'#2E7EC6':'#CBD5E1';
+        const bgCor = isPerdido?'rgba(192,57,43,.08)': concluido?'rgba(0,135,90,.08)': atual?'rgba(46,126,198,.1)':'transparent';
+        const textCor = isPerdido?'#C0392B': concluido?'#00875A': atual?'#2E7EC6':'#94A3B8';
+        return `
+          <div style="display:flex;align-items:center;flex:1;min-width:0;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem;flex:1;">
+              <div style="width:36px;height:36px;border-radius:50%;background:${bgCor};border:2px solid ${cor};display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:.3s;">${concluido?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+cor+'" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':f.icon}</div>
+              <span style="font-size:.62rem;font-weight:${atual||concluido?'600':'400'};color:${textCor};text-align:center;letter-spacing:.02em;white-space:nowrap;">${f.label}</span>
+            </div>
+            ${i<fases.length-1?`<div style="height:2px;flex:1;background:${concluido?'#00875A':'#E2E8F0'};margin-bottom:1.1rem;transition:.3s;"></div>`:''}
+          </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
 function openModal(i){
   const o=allOrders[i], lead=o._lead;
+  const perdido = o.status==='perdido';
+  const subsProd = getSubstatusProducao(o.servico);
+  const subsProdSalvos = Array.isArray(o.substatus_producao) ? o.substatus_producao : [];
+  const fase = getFase(o.status);
+  const mostrarProducao = ['em_producao','entregue'].includes(o.status) || fase==='entregue';
+
   document.getElementById('modalContent').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <div>
+      <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
         <span style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;background:rgba(46,126,198,.08);padding:.3rem .8rem;border-radius:6px;">${o.codigo||'Sem código'}</span>
+        ${perdido?'<span style="background:rgba(192,57,43,.1);color:#C0392B;font-size:.68rem;font-weight:700;padding:.2rem .6rem;border-radius:4px;">PERDIDO</span>':''}
       </div>
       <button onclick="closeModal()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
     </div>
+
+    <!-- TIMELINE -->
+    ${renderTimeline(o.status, perdido)}
+
     <!-- ABAS DO MODAL -->
-    <div style="display:flex;border-bottom:1px solid #eee;margin-bottom:1.25rem;gap:0;">
+    <div style="display:flex;border-bottom:1px solid #eee;margin-bottom:1.25rem;gap:0;overflow-x:auto;">
       <button class="modal-tab active" onclick="switchModalTab('detalhes',this)">Detalhes</button>
+      ${mostrarProducao?'<button class="modal-tab" onclick="switchModalTab(\'producao\',this)">Produção</button>':''}
       <button class="modal-tab" onclick="switchModalTab('obs',this)">Observações</button>
       <button class="modal-tab" onclick="switchModalTab('notas',this)">Anotações</button>
       <button class="modal-tab" onclick="switchModalTab('historico',this)">Histórico</button>
@@ -810,7 +872,32 @@ function openModal(i){
       </div>
     </div>
 
-    <!-- ABA OBSERVAÇÕES (editável) -->
+    <!-- ABA PRODUÇÃO -->
+    ${mostrarProducao?`
+    <div id="mtab-producao" style="display:none;">
+      <div class="mlabel" style="margin-bottom:.75rem;">Etapas de produção</div>
+      <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem;">
+        ${subsProd.map(s=>`
+          <label style="display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border:1.5px solid ${subsProdSalvos.includes(s.key)?'#00875A':'var(--line2)'};border-radius:8px;cursor:pointer;background:${subsProdSalvos.includes(s.key)?'rgba(0,135,90,.04)':'#fff'};transition:.2s;" id="prodLabel-${o.id}-${s.key}">
+            <input type="checkbox" ${subsProdSalvos.includes(s.key)?'checked':''} onchange="toggleSubProd('${o.id}','${s.key}',this.checked)" style="width:16px;height:16px;accent-color:#00875A;cursor:pointer;"/>
+            <span style="font-size:.88rem;font-weight:500;color:${subsProdSalvos.includes(s.key)?'#00875A':'#1E3A52'};">${s.label}</span>
+            ${subsProdSalvos.includes(s.key)?'<span style="margin-left:auto;font-size:.7rem;color:#00875A;">✓ Concluído</span>':''}
+          </label>`).join('')}
+      </div>
+      <div class="mlabel" style="margin-bottom:.5rem;">Etapa de entrega</div>
+      <div style="display:flex;flex-direction:column;gap:.4rem;">
+        ${['pronto_envio','enviado','finalizado'].map(e=>{
+          const labels={pronto_envio:'📦 Pronto para envio',enviado:'🚚 Enviado',finalizado:'🎉 Finalizado'};
+          const ativo = o.substatus_entrega===e;
+          return `<label style="display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;border:1.5px solid ${ativo?'#2E7EC6':'var(--line2)'};border-radius:8px;cursor:pointer;background:${ativo?'rgba(46,126,198,.05)':'#fff'};">
+            <input type="radio" name="entrega-${o.id}" value="${e}" ${ativo?'checked':''} onchange="salvarSubEntrega('${o.id}','${e}')" style="accent-color:#2E7EC6;cursor:pointer;"/>
+            <span style="font-size:.88rem;font-weight:${ativo?'600':'400'};color:${ativo?'#2E7EC6':'#1E3A52'};">${labels[e]}</span>
+          </label>`;
+        }).join('')}
+      </div>
+    </div>`:''}
+
+    <!-- ABA OBSERVAÇÕES -->
     <div id="mtab-obs" style="display:none;">
       <div class="mlabel" style="margin-bottom:.5rem;">Observações do atendimento</div>
       <textarea id="obsEditor" rows="7" style="width:100%;padding:.75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;color:#1E3A52;outline:none;resize:vertical;line-height:1.6;">${o.obs_admin||''}</textarea>
@@ -818,7 +905,7 @@ function openModal(i){
       <span id="obsFeedback" style="font-size:.78rem;color:#00875A;margin-left:.75rem;display:none;">✓ Salvo!</span>
     </div>
 
-    <!-- ABA ANOTAÇÕES INTERNAS -->
+    <!-- ABA ANOTAÇÕES -->
     <div id="mtab-notas" style="display:none;">
       <div class="mlabel" style="margin-bottom:.5rem;">Anotações internas <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#8899AA;">(não visível para o cliente)</span></div>
       <textarea id="notasEditor" rows="7" style="width:100%;padding:.75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;color:#1E3A52;outline:none;resize:vertical;line-height:1.6;">${o.notas||''}</textarea>
@@ -870,11 +957,49 @@ function closeModal(){ document.getElementById('orderModal').style.display='none
 function switchModalTab(name, btn){
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  ['detalhes','obs','notas','historico'].forEach(t=>{
+  ['detalhes','producao','obs','notas','historico'].forEach(t=>{
     const el=document.getElementById('mtab-'+t);
     if(el) el.style.display = t===name ? 'block' : 'none';
   });
   if(name==='historico') carregarHistorico();
+}
+
+async function toggleSubProd(orderId, key, checked){
+  const order = allOrders.find(o=>o.id===orderId);
+  if(!order) return;
+  let subs = Array.isArray(order.substatus_producao) ? [...order.substatus_producao] : [];
+  if(checked && !subs.includes(key)) subs.push(key);
+  if(!checked) subs = subs.filter(k=>k!==key);
+  await sb.from('orders').update({substatus_producao: subs, updated_at: new Date().toISOString()}).eq('id', orderId);
+  order.substatus_producao = subs;
+  // Atualizar visual do label
+  const label = document.getElementById(`prodLabel-${orderId}-${key}`);
+  if(label){
+    label.style.borderColor = checked ? '#00875A' : 'var(--line2)';
+    label.style.background  = checked ? 'rgba(0,135,90,.04)' : '#fff';
+    const span = label.querySelector('span:first-of-type');
+    if(span) span.style.color = checked ? '#00875A' : '#1E3A52';
+    // Atualizar ou remover badge concluído
+    let badge = label.querySelector('.sub-done-badge');
+    if(checked && !badge){
+      badge = document.createElement('span');
+      badge.className = 'sub-done-badge';
+      badge.style.cssText = 'margin-left:auto;font-size:.7rem;color:#00875A;';
+      badge.textContent = '✓ Concluído';
+      label.appendChild(badge);
+    } else if(!checked && badge){ badge.remove(); }
+  }
+}
+
+async function salvarSubEntrega(orderId, valor){
+  const order = allOrders.find(o=>o.id===orderId);
+  if(!order) return;
+  await sb.from('orders').update({substatus_entrega: valor, updated_at: new Date().toISOString()}).eq('id', orderId);
+  order.substatus_entrega = valor;
+  // Se finalizado, sugerir mudar status para entregue
+  if(valor==='finalizado' && order.status!=='entregue'){
+    showNotifBar('🎉 Etapa finalizada! Lembre de atualizar o status para "Entregue / Finalizado".','#00875A');
+  }
 }
 
 async function salvarObs(id){
