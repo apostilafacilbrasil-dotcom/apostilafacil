@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Acompanhar Pedido — Apostila Simples</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0D1B2A;--blue:#2E7EC6;--blue2:#1A5FA0;
+  --bg:#F0F7FF;--white:#fff;--text:#0D1B2A;
+  --muted:#4A6A82;--line:rgba(13,27,42,.1);--line2:rgba(13,27,42,.18);
+  --success:#00875A;--danger:#C0392B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Inter,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem;-webkit-font-smoothing:antialiased;}
+.card{background:var(--white);border:1px solid var(--line2);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:440px;box-shadow:0 8px 40px rgba(13,27,42,.08);}
+.logo{display:flex;align-items:center;gap:.6rem;justify-content:center;margin-bottom:2rem;}
+.logo img{width:48px;height:48px;border-radius:50%;}
+.logo-text{font-family:"Bebas Neue",sans-serif;font-size:1.2rem;letter-spacing:.1em;color:var(--navy);}
+.logo-text span{color:var(--blue);}
+h1{font-family:"EB Garamond",Georgia,serif;font-size:1.6rem;color:var(--navy);text-align:center;margin-bottom:.4rem;}
+.sub{font-size:.85rem;color:var(--muted);text-align:center;margin-bottom:1.8rem;line-height:1.6;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem;font-weight:500;}
+.field input{width:100%;background:var(--bg);border:1.5px solid var(--line2);color:var(--text);padding:.75rem .9rem;border-radius:10px;font-size:.95rem;outline:none;transition:.2s;text-transform:uppercase;letter-spacing:.05em;}
+.field input:focus{border-color:var(--blue);}
+.field input::placeholder{text-transform:none;letter-spacing:0;color:#8899AA;}
+.btn{width:100%;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border:none;padding:.9rem;font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 16px rgba(46,126,198,.3);transition:.2s;cursor:pointer;margin-top:.5rem;}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.btn-ghost{width:100%;background:none;border:1px solid var(--line2);color:var(--muted);padding:.75rem;font-size:.78rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;border-radius:10px;cursor:pointer;margin-top:.6rem;transition:.2s;}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
+.alert{padding:.75rem 1rem;border-radius:8px;font-size:.82rem;margin-bottom:1rem;display:none;}
+.alert.show{display:block;}
+.alert-err{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.2);color:var(--danger);}
+.alert-ok{background:rgba(0,135,90,.08);border:1px solid rgba(0,135,90,.2);color:var(--success);}
+.step{display:none;}
+.step.active{display:block;}
+.email-hint{background:rgba(46,126,198,.06);border:1px solid rgba(46,126,198,.15);border-radius:10px;padding:1rem;text-align:center;margin-bottom:1.2rem;}
+.email-hint p{font-size:.82rem;color:var(--muted);line-height:1.6;}
+.email-hint strong{color:var(--navy);}
+.codigo-input{text-align:center;font-size:1.8rem;font-weight:700;letter-spacing:.3em;padding:.9rem;font-family:"Bebas Neue",sans-serif;}
+
+/* RESULTADO */
+.result-header{text-align:center;margin-bottom:1.5rem;}
+.result-codigo{font-family:"Bebas Neue",sans-serif;font-size:1.1rem;color:var(--blue);background:rgba(46,126,198,.08);padding:.3rem .9rem;border-radius:6px;display:inline-block;margin-bottom:.5rem;}
+.result-nome{font-size:.85rem;color:var(--muted);}
+
+/* TIMELINE */
+.timeline{display:flex;align-items:flex-start;justify-content:center;gap:0;margin:1.5rem 0;overflow-x:auto;padding-bottom:.5rem;}
+.tl-item{display:flex;flex-direction:column;align-items:center;gap:.35rem;flex:1;min-width:52px;}
+.tl-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;border:2px solid #CBD5E1;background:transparent;transition:.3s;flex-shrink:0;}
+.tl-dot.done{background:rgba(0,135,90,.08);border-color:#00875A;}
+.tl-dot.active{background:rgba(46,126,198,.1);border-color:#2E7EC6;}
+.tl-dot.lost{background:rgba(192,57,43,.08);border-color:#C0392B;}
+.tl-label{font-size:.58rem;font-weight:500;color:#94A3B8;text-align:center;letter-spacing:.02em;white-space:nowrap;}
+.tl-label.done{color:#00875A;font-weight:600;}
+.tl-label.active{color:#2E7EC6;font-weight:600;}
+.tl-label.lost{color:#C0392B;}
+.tl-line{height:2px;flex:1;background:#E2E8F0;margin-top:18px;transition:.3s;min-width:8px;}
+.tl-line.done{background:#00875A;}
+.tl-connector{display:flex;align-items:flex-start;flex:1;}
+
+/* INFO CARDS */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem;}
+.info-card{background:var(--bg);border-radius:10px;padding:.85rem 1rem;}
+.info-card-label{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:.25rem;}
+.info-card-value{font-size:.88rem;font-weight:600;color:var(--text);}
+.status-badge{display:inline-flex;align-items:center;padding:.3rem .75rem;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.04em;}
+.badge-blue{background:rgba(46,126,198,.1);color:#2E7EC6;}
+.badge-green{background:rgba(0,135,90,.1);color:#00875A;}
+.badge-orange{background:rgba(180,83,9,.1);color:#B45309;}
+.badge-red{background:rgba(192,57,43,.1);color:#C0392B;}
+
+.footer-link{text-align:center;margin-top:1.5rem;}
+.footer-link a{font-size:.78rem;color:var(--blue);text-decoration:none;}
+.footer-link a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <img src="logo.png" alt="Apostila Simples"/>
+    <span class="logo-text">APOSTILA <span>SIMPLES</span></span>
+  </div>
+
+  <!-- STEP 1: Código do pedido -->
+  <div class="step active" id="step1">
+    <h1>Acompanhe seu pedido</h1>
+    <p class="sub">Digite o código do seu projeto para receber um código de verificação no seu e-mail.</p>
+    <div id="alertStep1" class="alert alert-err"></div>
+    <div class="field">
+      <label>Código do projeto</label>
+      <input type="text" id="inputCodigo" placeholder="Ex: PRJ-1399" maxlength="12" oninput="this.value=this.value.toUpperCase()"/>
+    </div>
+    <button class="btn" onclick="solicitarCodigo()" id="btnSolicitar">Enviar código de verificação</button>
+    <div class="footer-link"><a href="/">← Voltar ao site</a></div>
+  </div>
+
+  <!-- STEP 2: Verificação -->
+  <div class="step" id="step2">
+    <h1>Verifique seu e-mail</h1>
+    <div id="alertStep2" class="alert alert-err"></div>
+    <div class="email-hint">
+      <p>Enviamos um código de 6 dígitos para<br/><strong id="emailHint"></strong><br/><span style="font-size:.75rem;color:#8899AA;">Válido por 10 minutos</span></p>
+    </div>
+    <div class="field">
+      <label>Código de verificação</label>
+      <input type="text" id="inputVerif" class="codigo-input" placeholder="000000" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'')"/>
+    </div>
+    <button class="btn" onclick="verificarCodigo()" id="btnVerificar">Confirmar</button>
+    <button class="btn-ghost" onclick="voltarStep1()">← Usar outro código</button>
+    <div style="text-align:center;margin-top:1rem;">
+      <button onclick="reenviarCodigo()" style="background:none;border:none;color:var(--blue);font-size:.78rem;cursor:pointer;text-decoration:underline;" id="btnReenviar">Reenviar código</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Resultado -->
+  <div class="step" id="step3">
+    <div class="result-header">
+      <div class="result-codigo" id="resultCodigo"></div>
+      <div class="result-nome" id="resultNome"></div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline" id="timeline"></div>
+
+    <!-- SUBSTATUS ENTREGA -->
+    <div id="substatusEntregaBox" style="display:none;text-align:center;margin-bottom:1rem;">
+      <span id="substatusEntregaBadge" class="status-badge"></span>
+    </div>
+
+    <!-- INFO CARDS -->
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-label">Serviço</div>
+        <div class="info-card-value" id="resultServico" style="font-size:.78rem;"></div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">País</div>
+        <div class="info-card-value" id="resultPais"></div>
+      </div>
+      <div class="info-card" style="grid-column:1/3;">
+        <div class="info-card-label">Previsão de entrega</div>
+        <div class="info-card-value" id="resultEntrega" style="color:var(--blue);"></div>
+      </div>
+    </div>
+
+    <button class="btn-ghost" onclick="voltarStep1()">Consultar outro pedido</button>
+    <div class="footer-link"><a href="/">← Voltar ao site</a></div>
+  </div>
+</div>
+
+<script>
+const EDGE = 'https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/verificar-pedido';
+const KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w';
+
+let tokenId    = null;
+let codigoPedido = null;
+
+function showAlert(stepId, msg, tipo='err'){
+  const el = document.getElementById('alert'+stepId);
+  el.textContent = msg;
+  el.className = 'alert alert-'+(tipo==='ok'?'ok':'err')+' show';
+}
+function hideAlert(stepId){ document.getElementById('alert'+stepId).classList.remove('show'); }
+
+function showStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+}
+
+async function solicitarCodigo(){
+  const codigo = document.getElementById('inputCodigo').value.trim();
+  if(!codigo){ showAlert('Step1','Digite o código do projeto.'); return; }
+  hideAlert('Step1');
+  const btn = document.getElementById('btnSolicitar');
+  btn.textContent='Enviando...'; btn.disabled=true;
+  try {
+    const res = await fetch(EDGE, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
+      body: JSON.stringify({acao:'solicitar', codigo_pedido: codigo})
+    });
+    const data = await res.json();
+    if(!res.ok||data.error){ showAlert('Step1', data.error||'Erro ao enviar código.'); return; }
+    tokenId = data.token_id;
+    codigoPedido = codigo;
+    document.getElementById('emailHint').textContent = data.email_mascarado;
+    showStep(2);
+  } catch(e){
+    showAlert('Step1','Erro de conexão. Tente novamente.');
+  } finally {
+    btn.textContent='Enviar código de verificação'; btn.disabled=false;
+  }
+}
+
+async function verificarCodigo(){
+  const codigo = document.getElementById('inputVerif').value.trim();
+  if(codigo.length!==6){ showAlert('Step2','Digite os 6 dígitos do código.'); return; }
+  hideAlert('Step2');
+  const btn = document.getElementById('btnVerificar');
+  btn.textContent='Verificando...'; btn.disabled=true;
+  try {
+    const res = await fetch(EDGE, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
+      body: JSON.stringify({acao:'verificar', token: tokenId, codigo_verificacao: codigo})
+    });
+    const data = await res.json();
+    if(!res.ok||data.error){ showAlert('Step2', data.error||'Código inválido.'); return; }
+    renderResultado(data.pedido);
+    showStep(3);
+  } catch(e){
+    showAlert('Step2','Erro de conexão. Tente novamente.');
+  } finally {
+    btn.textContent='Confirmar'; btn.disabled=false;
+  }
+}
+
+async function reenviarCodigo(){
+  document.getElementById('btnReenviar').textContent='Enviando...';
+  document.getElementById('inputVerif').value='';
+  hideAlert('Step2');
+  // Volta pro step1 e reenvia
+  const res = await fetch(EDGE, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+KEY},
+    body: JSON.stringify({acao:'solicitar', codigo_pedido: codigoPedido})
+  });
+  const data = await res.json();
+  if(data.token_id){
+    tokenId = data.token_id;
+    showAlert('Step2','Novo código enviado para '+data.email_mascarado+'.','ok');
+  }
+  document.getElementById('btnReenviar').textContent='Reenviar código';
+}
+
+function voltarStep1(){
+  tokenId=null; codigoPedido=null;
+  document.getElementById('inputCodigo').value='';
+  document.getElementById('inputVerif').value='';
+  hideAlert('Step1'); hideAlert('Step2');
+  showStep(1);
+}
+
+function getFase(status){
+  if(['orcamento_criado','orcamento_enviado','followup_1','followup_2','followup_3','aguardando_retorno','negociacao','revisando_valor'].includes(status)) return 'orcamento';
+  if(status==='pedido_aprovado') return 'aprovado';
+  if(['aguardando_pagamento','pagamento_parcial','pagamento_em_analise','pagamento_confirmado'].includes(status)) return 'pagamento';
+  if(status==='em_producao') return 'producao';
+  if(['entregue','pronto_envio','enviado','finalizado'].includes(status)) return 'entregue';
+  if(status==='perdido') return 'perdido';
+  return 'orcamento';
+}
+
+function statusLabel(s){
+  const m={
+    orcamento_criado:'Orçamento criado', orcamento_enviado:'Orçamento enviado',
+    followup_1:'Em análise', followup_2:'Em análise', followup_3:'Em análise',
+    aguardando_retorno:'Em análise', negociacao:'Em análise', revisando_valor:'Em análise',
+    pedido_aprovado:'Pedido aprovado',
+    aguardando_pagamento:'Aguardando pagamento', pagamento_parcial:'Pagamento parcial',
+    pagamento_em_analise:'Pagamento em análise', pagamento_confirmado:'Pagamento confirmado',
+    em_producao:'Em produção',
+    entregue:'Entregue', perdido:'Cancelado',
+  };
+  return m[s]||s;
+}
+
+function renderResultado(p){
+  document.getElementById('resultCodigo').textContent = p.codigo;
+  document.getElementById('resultNome').textContent   = p.nome ? 'Olá, '+p.nome.split(' ')[0]+'!' : '';
+  document.getElementById('resultServico').textContent = p.servico||'—';
+  document.getElementById('resultPais').textContent    = p.pais||'—';
+  document.getElementById('resultEntrega').textContent = p.data_entrega
+    ? new Date(p.data_entrega).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})
+    : 'A confirmar';
+
+  // Substatus entrega
+  const subBox = document.getElementById('substatusEntregaBox');
+  const subBadge = document.getElementById('substatusEntregaBadge');
+  if(p.substatus_entrega){
+    const subMap = {pronto_envio:'📦 Pronto para envio', enviado:'🚚 A caminho', finalizado:'🎉 Finalizado'};
+    subBadge.textContent = subMap[p.substatus_entrega]||p.substatus_entrega;
+    subBadge.className = 'status-badge '+(p.substatus_entrega==='finalizado'?'badge-green':'badge-blue');
+    subBox.style.display='block';
+  } else {
+    subBox.style.display='none';
+  }
+
+  // Timeline
+  const fases = [
+    {key:'lead',      label:'Lead',      icon:'👤'},
+    {key:'orcamento', label:'Orçamento', icon:'📋'},
+    {key:'aprovado',  label:'Aprovado',  icon:'✅'},
+    {key:'pagamento', label:'Pagamento', icon:'💳'},
+    {key:'producao',  label:'Produção',  icon:'⚙️'},
+    {key:'entregue',  label:'Entregue',  icon:'🎉'},
+  ];
+  const ordem = ['lead','orcamento','aprovado','pagamento','producao','entregue'];
+  const faseAtual = getFase(p.status);
+  const perdido = p.status==='perdido';
+  const idxAtual = ordem.indexOf(faseAtual);
+
+  const tl = document.getElementById('timeline');
+  tl.innerHTML='';
+  fases.forEach((f,i)=>{
+    const idx = ordem.indexOf(f.key);
+    const concluido = !perdido && idx < idxAtual;
+    const atual = !perdido && idx === idxAtual;
+    const isPerdido = perdido && idx===idxAtual;
+
+    const item = document.createElement('div');
+    item.className='tl-item';
+
+    const dot = document.createElement('div');
+    dot.className='tl-dot'+(concluido?' done':atual?' active':isPerdido?' lost':'');
+    dot.innerHTML = concluido
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00875A" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+      : f.icon;
+
+    const label = document.createElement('div');
+    label.className='tl-label'+(concluido?' done':atual?' active':isPerdido?' lost':'');
+    label.textContent=f.label;
+
+    item.appendChild(dot);
+    item.appendChild(label);
+    tl.appendChild(item);
+
+    if(i<fases.length-1){
+      const conn = document.createElement('div');
+      conn.className='tl-connector';
+      const line = document.createElement('div');
+      line.className='tl-line'+(concluido?' done':'');
+      conn.appendChild(line);
+      tl.appendChild(conn);
+    }
+  });
+}
+
+// Auto-foco no campo de verificação
+document.getElementById('inputVerif').addEventListener('input', function(){
+  if(this.value.length===6) document.getElementById('btnVerificar').focus();
+});
+
+// Enter nos inputs
+document.getElementById('inputCodigo').addEventListener('keydown', e=>{ if(e.key==='Enter') solicitarCodigo(); });
+document.getElementById('inputVerif').addEventListener('keydown',  e=>{ if(e.key==='Enter') verificarCodigo(); });
+</script>
+</body>
+</html>
