@@ -285,8 +285,8 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
         </div>
         <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.5rem;">
           <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total de orçamentos</div></div>
-          <div class="stat-card"><div class="stat-num" id="statPending">—</div><div class="stat-label">Aguardando / Follow-up</div></div>
-          <div class="stat-card"><div class="stat-num" id="statDone" style="font-size:1.5rem;">—</div><div class="stat-label">Proj. / Concluídos</div></div>
+          <div class="stat-card"><div class="stat-num" id="statPending">—</div><div class="stat-label">Em orçamento</div></div>
+          <div class="stat-card"><div class="stat-num" id="statDone" style="font-size:1.5rem;">—</div><div class="stat-label">Aprovados / Entregues</div></div>
         </div>
         <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:2rem;">
           <div class="stat-card"><div class="stat-num" id="statRevenue">—</div><div class="stat-label">Receita total (concluídos)</div></div>
@@ -545,12 +545,12 @@ async function loadAdminData(){
   buildFilterBar();
   applyFilters();
   const total=allOrders.length;
-  const pending=allOrders.filter(o=>['aguardando_aprovacao','aguardando_pagamento','followup_1','followup_2','followup_3'].includes(o.status)).length;
-  const approved=allOrders.filter(o=>o.status==='em_andamento').length;
-  const done=allOrders.filter(o=>o.status==='concluido').length;
+  const pending=allOrders.filter(o=>['orcamento_criado','orcamento_enviado','followup_1','followup_2','followup_3','aguardando_retorno','negociacao','revisando_valor'].includes(o.status)).length;
+  const approved=allOrders.filter(o=>o.status==='pedido_aprovado').length;
+  const done=allOrders.filter(o=>o.status==='entregue').length;
   const comValor=allOrders.filter(o=>o.valor>0);
-  const revenue=allOrders.filter(o=>o.status==='concluido').reduce((s,o)=>s+(o.valor||0),0);
-  const pago=allOrders.filter(o=>o.pago).reduce((s,o)=>s+(o.valor||0),0);
+  const revenue=allOrders.filter(o=>o.status==='entregue').reduce((s,o)=>s+(o.valor||0),0);
+  const pago=allOrders.filter(o=>o.status_pagamento==='pagamento_confirmado').reduce((s,o)=>s+(o.valor||0),0);
   const ticket=comValor.length>0?(comValor.reduce((s,o)=>s+(o.valor||0),0)/comValor.length):0;
   document.getElementById('statTotal').textContent=total;
   document.getElementById('statPending').textContent=pending;
@@ -613,10 +613,11 @@ function isNew(dateStr){ if(!dateStr) return false; return (Date.now()-new Date(
 function buildFilterBar(){
   const grupos = [
     {key:'todos', label:'Todos'},
-    {key:'aguardando', label:'Aguardando', statuses:['aguardando_aprovacao','aguardando_pagamento']},
-    {key:'followup', label:'Follow-up', statuses:['followup_1','followup_2','followup_3']},
-    {key:'em_andamento', label:'Em andamento', statuses:['em_andamento']},
-    {key:'concluido', label:'Concluído', statuses:['concluido']},
+    {key:'orcamento', label:'Orçamento', statuses:['orcamento_criado','orcamento_enviado','followup_1','followup_2','followup_3','aguardando_retorno','negociacao','revisando_valor']},
+    {key:'aprovado', label:'Aprovado', statuses:['pedido_aprovado']},
+    {key:'pagamento', label:'Pagamento', statuses:['aguardando_pagamento','pagamento_parcial','pagamento_em_analise','pagamento_confirmado']},
+    {key:'producao', label:'Produção', statuses:['em_producao']},
+    {key:'entregue', label:'Entregue', statuses:['entregue']},
     {key:'perdido', label:'Perdido', statuses:['perdido']},
   ];
   const bar = document.getElementById('filterBar');
@@ -635,10 +636,11 @@ function setFilter(key){
 function applyFilters(){
   const q = (document.querySelector('.table-search')||{}).value||'';
   const statusMap = {
-    aguardando:['aguardando_aprovacao','aguardando_pagamento'],
-    followup:['followup_1','followup_2','followup_3'],
-    em_andamento:['em_andamento'],
-    concluido:['concluido'],
+    orcamento:['orcamento_criado','orcamento_enviado','followup_1','followup_2','followup_3','aguardando_retorno','negociacao','revisando_valor'],
+    aprovado:['pedido_aprovado'],
+    pagamento:['aguardando_pagamento','pagamento_parcial','pagamento_em_analise','pagamento_confirmado'],
+    producao:['em_producao'],
+    entregue:['entregue'],
     perdido:['perdido'],
   };
   let result = allOrders;
@@ -690,25 +692,67 @@ function renderOrders(orders){
     const lead=o._lead, nome=lead?.nome||'—', email=lead?.email||'';
     const idx=allOrders.indexOf(o);
     const novoBadge=isNew(o.created_at)?'<span class="badge-new">novo</span>':'';
+    const fase=getFase(o.status);
+    const faseColor={orcamento:'#B45309',aprovado:'#2E7EC6',pagamento:'#7C3AED',producao:'#0891B2',entregue:'#00875A',perdido:'#C0392B'}[fase]||'#4A6A82';
+    const pagBadge = o.status_pagamento && o.status_pagamento!=='nenhum' ? `<br><span style="font-size:.6rem;background:${pagBgColor(o.status_pagamento)};color:${pagTextColor(o.status_pagamento)};padding:.1rem .4rem;border-radius:4px;font-weight:600;letter-spacing:.04em;">${pagLabel(o.status_pagamento)}</span>` : '';
     return `<tr>
-      <td><span style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:#2E7EC6;background:rgba(46,126,198,.08);padding:.2rem .6rem;border-radius:4px;white-space:nowrap;display:inline-block;">${o.codigo||'—'}</span>${novoBadge}</td>
+      <td>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:#2E7EC6;background:rgba(46,126,198,.08);padding:.2rem .6rem;border-radius:4px;white-space:nowrap;display:inline-block;">${o.codigo||'—'}</span>
+        ${novoBadge}
+        <br><span style="font-size:.6rem;color:${faseColor};font-weight:600;letter-spacing:.06em;text-transform:uppercase;">${fase}</span>
+      </td>
       <td><button onclick="openModal(${idx})" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;"><span style="font-weight:500;color:#0D1B2A;">${nome}</span>${email?`<br><span style="font-size:.72rem;color:#2E7EC6;">${email}</span>`:''}</button></td>
-      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.servico||'—'}</td>
-      <td style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'—'}${o.pago?'<br><span style="font-size:.58rem;background:rgba(0,135,90,.1);color:#00875A;padding:.1rem .4rem;border-radius:4px;font-family:Inter,sans-serif;font-weight:600;letter-spacing:.06em;">PAGO</span>':''}</td>
-      <td><select class="status-select" onchange="updateStatus('${o.id}',this.value)">
-        <option value="aguardando_aprovacao" ${o.status==='aguardando_aprovacao'||o.status==='aguardando_pagamento'?'selected':''}>Aguardando aprovação</option>
-        <option value="followup_1" ${o.status==='followup_1'?'selected':''}>Follow-up 1</option>
-        <option value="followup_2" ${o.status==='followup_2'?'selected':''}>Follow-up 2</option>
-        <option value="followup_3" ${o.status==='followup_3'?'selected':''}>Follow-up 3</option>
-        <option value="em_andamento" ${o.status==='em_andamento'?'selected':''}>Projeto aprovado</option>
-        <option value="concluido" ${o.status==='concluido'?'selected':''}>Concluído</option>
-        <option value="perdido" ${o.status==='perdido'?'selected':''}>Perdido</option>
-      </select></td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.servico||'—'}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'—'}${pagBadge}</td>
+      <td>
+        <select class="status-select" onchange="updateStatus('${o.id}',this.value,this)">
+          <optgroup label="── Orçamento ──">
+            <option value="orcamento_criado" ${o.status==='orcamento_criado'?'selected':''}>Orçamento criado</option>
+            <option value="orcamento_enviado" ${o.status==='orcamento_enviado'?'selected':''}>Orçamento enviado</option>
+            <option value="followup_1" ${o.status==='followup_1'?'selected':''}>1º Follow-up</option>
+            <option value="followup_2" ${o.status==='followup_2'?'selected':''}>2º Follow-up</option>
+            <option value="followup_3" ${o.status==='followup_3'?'selected':''}>3º Follow-up</option>
+            <option value="aguardando_retorno" ${o.status==='aguardando_retorno'?'selected':''}>Aguardando retorno</option>
+            <option value="negociacao" ${o.status==='negociacao'?'selected':''}>Negociação</option>
+            <option value="revisando_valor" ${o.status==='revisando_valor'?'selected':''}>Revisando valor</option>
+          </optgroup>
+          <optgroup label="── Aprovação ──">
+            <option value="pedido_aprovado" ${o.status==='pedido_aprovado'?'selected':''}>Pedido aprovado</option>
+          </optgroup>
+          <optgroup label="── Pagamento ──">
+            <option value="aguardando_pagamento" ${o.status==='aguardando_pagamento'?'selected':''}>Aguardando pagamento</option>
+            <option value="pagamento_parcial" ${o.status==='pagamento_parcial'?'selected':''}>Pagamento parcial</option>
+            <option value="pagamento_em_analise" ${o.status==='pagamento_em_analise'?'selected':''}>Pagamento em análise</option>
+            <option value="pagamento_confirmado" ${o.status==='pagamento_confirmado'?'selected':''}>Pagamento confirmado</option>
+          </optgroup>
+          <optgroup label="── Produção ──">
+            <option value="em_producao" ${o.status==='em_producao'?'selected':''}>Em produção</option>
+          </optgroup>
+          <optgroup label="── Finalização ──">
+            <option value="entregue" ${o.status==='entregue'?'selected':''}>Entregue / Finalizado</option>
+            <option value="perdido" ${o.status==='perdido'?'selected':''}>Perdido</option>
+          </optgroup>
+        </select>
+      </td>
       <td style="color:#4A6A82;font-size:.78rem;">${formatDate(o.created_at)}</td>
       <td style="color:${o.data_entrega?'#00875A':'#8899AA'};font-size:.78rem;font-weight:${o.data_entrega?'600':'400'}">${o.data_entrega?formatDate(o.data_entrega):'—'}</td>
     </tr>`;
   }).join('');
 }
+
+function getFase(status){
+  if(['orcamento_criado','orcamento_enviado','followup_1','followup_2','followup_3','aguardando_retorno','negociacao','revisando_valor'].includes(status)) return 'orcamento';
+  if(status==='pedido_aprovado') return 'aprovado';
+  if(['aguardando_pagamento','pagamento_parcial','pagamento_em_analise','pagamento_confirmado'].includes(status)) return 'pagamento';
+  if(status==='em_producao') return 'producao';
+  if(status==='entregue') return 'entregue';
+  if(status==='perdido') return 'perdido';
+  return 'orcamento';
+}
+
+function pagLabel(s){ return {aguardando_pagamento:'Ag. pagamento',pagamento_parcial:'Parcial',pagamento_em_analise:'Em análise',pagamento_confirmado:'✓ Pago',nenhum:''}[s]||s; }
+function pagBgColor(s){ return {pagamento_confirmado:'rgba(0,135,90,.1)',pagamento_parcial:'rgba(180,83,9,.1)',pagamento_em_analise:'rgba(124,58,237,.1)',aguardando_pagamento:'rgba(192,57,43,.08)'}[s]||'transparent'; }
+function pagTextColor(s){ return {pagamento_confirmado:'#00875A',pagamento_parcial:'#B45309',pagamento_em_analise:'#7C3AED',aguardando_pagamento:'#C0392B'}[s]||'#4A6A82'; }
 
 // ── MODAL ──
 function openModal(i){
@@ -972,23 +1016,57 @@ function renderLeads(leads){
 
 function filterOrders(){ applyFilters(); }
 
-async function updateStatus(id, status){
-  let updateData={status,updated_at:new Date().toISOString()};
+async function updateStatus(id, status, selectEl){
   const order=allOrders.find(o=>o.id===id), lead=order?._lead;
-  if(status==='em_andamento'){
-    if(order&&(!order.codigo||order.codigo.startsWith('ORC-'))){
+  const statusAnterior = order?.status;
+
+  // ── BLOQUEIO: Produção só com pagamento confirmado ──
+  if(status==='em_producao'){
+    const pago = order?.status_pagamento;
+    if(pago !== 'pagamento_confirmado'){
+      const motivo = {
+        aguardando_pagamento: 'pagamento ainda não foi realizado',
+        pagamento_parcial: 'pagamento está parcial',
+        pagamento_em_analise: 'pagamento ainda está em análise',
+        nenhum: 'nenhum status de pagamento foi definido',
+      }[pago] || 'pagamento não confirmado';
+      showAlertBar(`⚠️ Não é possível iniciar a produção: o ${motivo}. Confirme o pagamento primeiro.`, '#B45309');
+      // Reverter o select visualmente
+      if(selectEl) selectEl.value = statusAnterior;
+      return;
+    }
+  }
+
+  let updateData={status, updated_at:new Date().toISOString()};
+
+  // ── Gerar código PRJ ao aprovar ──
+  if(status==='pedido_aprovado'){
+    if(order && (!order.codigo || order.codigo.startsWith('ORC-'))){
       const {data:prjData}=await sb.from('orders').select('codigo').like('codigo','PRJ-%').order('codigo',{ascending:false}).limit(1);
       const ultimoNum=prjData&&prjData.length>0?parseInt((prjData[0].codigo||'PRJ-0000').split('-')[1]):0;
       updateData.codigo='PRJ-'+String(ultimoNum+1).padStart(4,'0');
       order.codigo=updateData.codigo;
     }
+    // Definir pagamento como aguardando ao aprovar
+    if(!order?.status_pagamento || order?.status_pagamento==='nenhum'){
+      updateData.status_pagamento='aguardando_pagamento';
+    }
   }
-  await sb.from('orders').update(updateData).eq('id',id);
-  // Gravar histórico
-  await sb.from('order_history').insert({order_id:id, status_anterior:order?.status, status_novo:status});
 
-  // E-mail de aprovação (PRJ)
-  if(status==='em_andamento' && lead?.email){
+  // ── Atualizar status_pagamento quando status for de pagamento ──
+  if(['aguardando_pagamento','pagamento_parcial','pagamento_em_analise','pagamento_confirmado'].includes(status)){
+    updateData.status_pagamento = status;
+    // Não mudar o status principal — manter na fase pagamento
+  }
+
+  await sb.from('orders').update(updateData).eq('id',id);
+  await sb.from('order_history').insert({order_id:id, status_anterior:statusAnterior, status_novo:status});
+
+  // Atualizar local
+  if(order){ Object.assign(order, updateData); }
+
+  // ── E-mail de aprovação ──
+  if(status==='pedido_aprovado' && lead?.email){
     try {
       await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido',{
         method:'POST',
@@ -996,11 +1074,11 @@ async function updateStatus(id, status){
         body:JSON.stringify({nome:lead.nome,email:lead.email,servico:order.servico,descricao:order.obs_admin||'',codigo:updateData.codigo||order.codigo,tipo:'aprovado',valor:order.valor}),
       });
     } catch(e){ console.warn('email aprovação error',e); }
-    showNotifBar('✅ Projeto aprovado! E-mail de confirmação enviado para '+lead.email,'#00875A');
+    showNotifBar('✅ Projeto '+( updateData.codigo||order.codigo)+' aprovado! E-mail enviado para '+lead.email,'#00875A');
   }
 
-  // E-mails de follow-up
-  if(['followup_1','followup_2','followup_3'].includes(status)&&lead?.email){
+  // ── E-mails de follow-up ──
+  if(['followup_1','followup_2','followup_3'].includes(status) && lead?.email){
     try {
       await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido',{
         method:'POST',
@@ -1010,7 +1088,19 @@ async function updateStatus(id, status){
     } catch(e){ console.warn('email followup error',e); }
     showFollowupWpp(status,lead,order);
   }
-  setTimeout(()=>loadAdminData(),500);
+
+  setTimeout(()=>loadAdminData(),400);
+}
+
+function showAlertBar(msg, cor='#B45309'){
+  const existing=document.getElementById('alertBar');
+  if(existing) existing.remove();
+  const bar=document.createElement('div');
+  bar.id='alertBar';
+  bar.style.cssText=`position:fixed;bottom:0;left:220px;right:0;z-index:300;background:${cor};padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;`;
+  bar.innerHTML=`<span style="color:#fff;font-size:.85rem;font-weight:500;">${msg}</span><button onclick="this.parentElement.remove()" style="background:none;border:1px solid rgba(255,255,255,.3);color:#fff;padding:.4rem .8rem;border-radius:6px;font-size:.75rem;cursor:pointer;">OK</button>`;
+  document.body.appendChild(bar);
+  setTimeout(()=>bar?.remove(), 8000);
 }
 
 function showNotifBar(msg, cor='#2E7EC6'){
@@ -1063,8 +1153,25 @@ async function loadClientData(user){
 }
 
 function statusBadge(s){
-  const map={'aguardando_pagamento':'<span class="badge badge-pending">Aguardando</span>','aguardando_aprovacao':'<span class="badge badge-pending">Aguardando aprovação</span>','followup_1':'<span class="badge badge-blue">Follow-up 1</span>','followup_2':'<span class="badge badge-blue">Follow-up 2</span>','followup_3':'<span class="badge badge-blue">Follow-up 3</span>','em_andamento':'<span class="badge badge-done">Projeto aprovado</span>','concluido':'<span class="badge badge-done">Concluído</span>','perdido':'<span class="badge badge-danger">Perdido</span>','cancelado':'<span class="badge badge-danger">Cancelado</span>'};
-  return map[s]||'<span class="badge badge-pending">Aguardando</span>';
+  const map={
+    'orcamento_criado':'<span class="badge badge-pending">Orçamento criado</span>',
+    'orcamento_enviado':'<span class="badge badge-blue">Orçamento enviado</span>',
+    'followup_1':'<span class="badge badge-blue">1º Follow-up</span>',
+    'followup_2':'<span class="badge badge-blue">2º Follow-up</span>',
+    'followup_3':'<span class="badge badge-blue">3º Follow-up</span>',
+    'aguardando_retorno':'<span class="badge badge-pending">Ag. retorno</span>',
+    'negociacao':'<span class="badge badge-pending">Negociação</span>',
+    'revisando_valor':'<span class="badge badge-pending">Revisando valor</span>',
+    'pedido_aprovado':'<span class="badge badge-done">Pedido aprovado</span>',
+    'aguardando_pagamento':'<span class="badge badge-pending">Ag. pagamento</span>',
+    'pagamento_parcial':'<span class="badge badge-pending">Pag. parcial</span>',
+    'pagamento_em_analise':'<span class="badge badge-blue">Pag. em análise</span>',
+    'pagamento_confirmado':'<span class="badge badge-done">Pago ✓</span>',
+    'em_producao':'<span class="badge badge-blue">Em produção</span>',
+    'entregue':'<span class="badge badge-done">Entregue</span>',
+    'perdido':'<span class="badge badge-danger">Perdido</span>',
+  };
+  return map[s]||'<span class="badge badge-pending">—</span>';
 }
 
 function showTab(name){
