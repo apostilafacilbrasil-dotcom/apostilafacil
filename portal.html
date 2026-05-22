@@ -350,11 +350,15 @@ async function doLogin(){
     const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
     if(error){
       showErr('Erro: ' + error.message);
+      alert('ERRO LOGIN: ' + error.message + ' | Status: ' + error.status);
       btn.textContent = 'Entrar no portal';
       btn.disabled = false;
+    } else {
+      alert('LOGIN OK: ' + JSON.stringify(data?.user?.email));
     }
   } catch(e) {
     showErr('Erro de conexão: ' + e.message);
+    alert('ERRO CATCH: ' + e.message);
     btn.textContent = 'Entrar no portal';
     btn.disabled = false;
   }
