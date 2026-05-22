@@ -105,6 +105,17 @@ tbody tr:hover td{background:var(--bg2);}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue);}
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
+/* ── ABAS DO MODAL ── */
+.modal-tab{background:none;border:none;padding:.6rem 1rem;font-size:.75rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#4A6A82;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.2s;cursor:pointer;}
+.modal-tab:hover{color:#2E7EC6;}
+.modal-tab.active{color:#2E7EC6;border-bottom-color:#2E7EC6;}
+.mlabel{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;}
+/* ── HISTÓRICO ── */
+.hist-item{display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 0;border-bottom:1px solid #f0f0f0;}
+.hist-item:last-child{border-bottom:none;}
+.hist-dot{width:8px;height:8px;border-radius:50%;background:#2E7EC6;margin-top:5px;flex-shrink:0;}
+.hist-text{font-size:.82rem;color:#1E3A52;line-height:1.5;}
+.hist-date{font-size:.72rem;color:#8899AA;margin-top:.1rem;}
 /* ── FILTROS RÁPIDOS ── */
 .filter-bar{display:flex;gap:.4rem;flex-wrap:wrap;padding:.9rem 1.5rem;border-bottom:1px solid var(--line);background:var(--bg);}
 .filter-btn{background:none;border:1px solid var(--line2);color:var(--muted2);padding:.35rem .85rem;border-radius:100px;font-size:.72rem;font-weight:500;letter-spacing:.04em;transition:.2s;white-space:nowrap;}
@@ -539,48 +550,83 @@ function renderOrders(orders){
 function openModal(i){
   const o=allOrders[i], lead=o._lead;
   document.getElementById('modalContent').innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-      <h3 style="font-family:'EB Garamond',Georgia,serif;font-size:1.4rem;color:#0D1B2A;">Detalhes do pedido</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <div>
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;background:rgba(46,126,198,.08);padding:.3rem .8rem;border-radius:6px;">${o.codigo||'Sem código'}</span>
+      </div>
       <button onclick="closeModal()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
     </div>
-    <div style="margin-bottom:1rem;"><span style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;background:rgba(46,126,198,.08);padding:.3rem .8rem;border-radius:6px;">${o.codigo||'Sem código'}</span></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem 1.5rem;">
-      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Nome</div><div style="font-weight:500;">${lead?.nome||'—'}</div></div>
-      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">WhatsApp</div><div style="font-weight:500;">${lead?.whatsapp||'—'}</div></div>
-      <div style="grid-column:1/3"><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">E-mail</div><div style="color:#2E7EC6;">${lead?.email||'—'}</div></div>
-      <div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;"><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Serviço</div><div style="font-weight:500;">${o.servico||'—'}</div></div>
-      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">País</div><div>${o.pais||'—'}</div></div>
-      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Valor</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'A confirmar'}</div></div>
-      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Prazo</div><div>${o.prazo||'—'}</div></div>
-      <div><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Recebido em</div><div>${formatDate(o.created_at)}</div></div>
-      <div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;">
-        <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;">Data de entrega</div>
-        <div style="display:flex;align-items:center;gap:.75rem;">
-          <input type="date" id="dataEntrega-${o.id}" value="${o.data_entrega||''}" style="padding:.5rem .75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;color:#0D1B2A;outline:none;"/>
-          <button onclick="salvarDataEntrega('${o.id}')" style="background:#2E7EC6;color:#fff;border:none;padding:.5rem 1rem;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;">Salvar</button>
+    <!-- ABAS DO MODAL -->
+    <div style="display:flex;border-bottom:1px solid #eee;margin-bottom:1.25rem;gap:0;">
+      <button class="modal-tab active" onclick="switchModalTab('detalhes',this)">Detalhes</button>
+      <button class="modal-tab" onclick="switchModalTab('obs',this)">Observações</button>
+      <button class="modal-tab" onclick="switchModalTab('notas',this)">Anotações</button>
+      <button class="modal-tab" onclick="switchModalTab('historico',this)">Histórico</button>
+    </div>
+
+    <!-- ABA DETALHES -->
+    <div id="mtab-detalhes">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem 1.5rem;">
+        <div><div class="mlabel">Nome</div><div style="font-weight:500;">${lead?.nome||'—'}</div></div>
+        <div><div class="mlabel">WhatsApp</div><div style="font-weight:500;">${lead?.whatsapp||'—'}</div></div>
+        <div style="grid-column:1/3"><div class="mlabel">E-mail</div><div style="color:#2E7EC6;">${lead?.email||'—'}</div></div>
+        <div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;"><div class="mlabel">Serviço</div><div style="font-weight:500;">${o.servico||'—'}</div></div>
+        <div><div class="mlabel">País</div><div>${o.pais||'—'}</div></div>
+        <div><div class="mlabel">Valor</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'A confirmar'}</div></div>
+        <div><div class="mlabel">Prazo</div><div>${o.prazo||'—'}</div></div>
+        <div><div class="mlabel">Recebido em</div><div>${formatDate(o.created_at)}</div></div>
+        <div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;">
+          <div class="mlabel" style="margin-bottom:.4rem;">Data de entrega</div>
+          <div style="display:flex;align-items:center;gap:.75rem;">
+            <input type="date" id="dataEntrega-${o.id}" value="${o.data_entrega||''}" style="padding:.5rem .75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;color:#0D1B2A;outline:none;"/>
+            <button onclick="salvarDataEntrega('${o.id}')" style="background:#2E7EC6;color:#fff;border:none;padding:.5rem 1rem;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;">Salvar</button>
+          </div>
         </div>
       </div>
-      ${o.obs_admin?`<div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;"><div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.2rem;">Observações</div><div style="color:#1E3A52;line-height:1.6;">${o.obs_admin}</div></div>`:''}
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #eee;flex-wrap:wrap;gap:.75rem;">
+        ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 Chamar no WhatsApp</a>`:'<span></span>'}
+        <button class="btn-delete" onclick="confirmDelete('${o.id}','${o.codigo||''}','${lead?.email||''}')">🗑️ Excluir</button>
+      </div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #eee;flex-wrap:wrap;gap:.75rem;">
-      ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 Chamar no WhatsApp</a>`:'<span></span>'}
-      <button class="btn-delete" onclick="confirmDelete('${o.id}','${o.codigo||''}','${lead?.email||''}')">🗑️ Excluir registro</button>
+
+    <!-- ABA OBSERVAÇÕES (editável) -->
+    <div id="mtab-obs" style="display:none;">
+      <div class="mlabel" style="margin-bottom:.5rem;">Observações do atendimento</div>
+      <textarea id="obsEditor" rows="7" style="width:100%;padding:.75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;color:#1E3A52;outline:none;resize:vertical;line-height:1.6;">${o.obs_admin||''}</textarea>
+      <button onclick="salvarObs('${o.id}')" style="margin-top:.75rem;background:#2E7EC6;color:#fff;border:none;padding:.6rem 1.2rem;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;letter-spacing:.06em;">Salvar observações</button>
+      <span id="obsFeedback" style="font-size:.78rem;color:#00875A;margin-left:.75rem;display:none;">✓ Salvo!</span>
+    </div>
+
+    <!-- ABA ANOTAÇÕES INTERNAS -->
+    <div id="mtab-notas" style="display:none;">
+      <div class="mlabel" style="margin-bottom:.5rem;">Anotações internas <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#8899AA;">(não visível para o cliente)</span></div>
+      <textarea id="notasEditor" rows="7" style="width:100%;padding:.75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;color:#1E3A52;outline:none;resize:vertical;line-height:1.6;">${o.notas||''}</textarea>
+      <button onclick="salvarNotas('${o.id}')" style="margin-top:.75rem;background:#2E7EC6;color:#fff;border:none;padding:.6rem 1.2rem;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;letter-spacing:.06em;">Salvar anotações</button>
+      <span id="notasFeedback" style="font-size:.78rem;color:#00875A;margin-left:.75rem;display:none;">✓ Salvo!</span>
+    </div>
+
+    <!-- ABA HISTÓRICO -->
+    <div id="mtab-historico" style="display:none;">
+      <div id="historicoList"><div class="loading" style="padding:1.5rem;"><div class="spinner"></div></div></div>
     </div>
   `;
   document.getElementById('orderModal').style.display='flex';
 
   (async()=>{
-    const {data:freshOrder}=await sb.from('orders').select('arquivos').eq('id',o.id).single();
+    const {data:freshOrder}=await sb.from('orders').select('arquivos,notas').eq('id',o.id).single();
     let arqs=freshOrder?.arquivos||[];
     if(typeof arqs==='string'){try{arqs=JSON.parse(arqs);}catch(e){arqs=[];}}
     if(!Array.isArray(arqs)) arqs=[];
+    // Atualizar notas no editor se já estiver aberto
+    const notasEd=document.getElementById('notasEditor');
+    if(notasEd && freshOrder?.notas) notasEd.value=freshOrder.notas;
     if(arqs.length>0){
-      const modalContent=document.getElementById('modalContent');
-      const bottomBar=modalContent.querySelector('[style*="justify-content:space-between"]');
+      const detalhesTab=document.getElementById('mtab-detalhes');
+      const bottomBar=detalhesTab?.querySelector('[style*="justify-content:space-between"]');
       const div=document.createElement('div');
       div.style.cssText='border-top:1px solid #eee;padding-top:.75rem;margin-top:.75rem;margin-bottom:.75rem;';
       const label=document.createElement('div');
-      label.style.cssText='font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.5rem;';
+      label.className='mlabel'; label.style.marginBottom='.5rem';
       label.textContent='Arquivos enviados';
       div.appendChild(label);
       for(const path of arqs){
@@ -592,13 +638,75 @@ function openModal(i){
         a.textContent='📄 '+nome;
         div.appendChild(a);
       }
-      if(bottomBar) modalContent.insertBefore(div,bottomBar);
-      else modalContent.appendChild(div);
+      if(bottomBar) detalhesTab.insertBefore(div,bottomBar);
+      else detalhesTab?.appendChild(div);
     }
   })();
 }
 
 function closeModal(){ document.getElementById('orderModal').style.display='none'; }
+
+function switchModalTab(name, btn){
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  ['detalhes','obs','notas','historico'].forEach(t=>{
+    const el=document.getElementById('mtab-'+t);
+    if(el) el.style.display = t===name ? 'block' : 'none';
+  });
+  if(name==='historico') carregarHistorico();
+}
+
+async function salvarObs(id){
+  const val = document.getElementById('obsEditor')?.value || '';
+  await sb.from('orders').update({obs_admin: val}).eq('id', id);
+  const order = allOrders.find(o=>o.id===id);
+  if(order) order.obs_admin = val;
+  const fb = document.getElementById('obsFeedback');
+  if(fb){ fb.style.display='inline'; setTimeout(()=>fb.style.display='none', 2000); }
+}
+
+async function salvarNotas(id){
+  const val = document.getElementById('notasEditor')?.value || '';
+  await sb.from('orders').update({notas: val}).eq('id', id);
+  const order = allOrders.find(o=>o.id===id);
+  if(order) order.notas = val;
+  const fb = document.getElementById('notasFeedback');
+  if(fb){ fb.style.display='inline'; setTimeout(()=>fb.style.display='none', 2000); }
+}
+
+async function carregarHistorico(){
+  const modal = document.getElementById('modalContent');
+  if(!modal) return;
+  // Pegar order_id do modal via allOrders — busca pelo código visível
+  const codeEl = modal.querySelector('[style*="Bebas Neue"]');
+  const codigo = codeEl?.textContent?.trim();
+  const order = allOrders.find(o=>o.codigo===codigo);
+  if(!order){ document.getElementById('historicoList').innerHTML='<p style="color:#8899AA;font-size:.85rem;">Sem histórico.</p>'; return; }
+
+  const {data:hist} = await sb.from('order_history').select('*').eq('order_id', order.id).order('created_at',{ascending:false});
+  const el = document.getElementById('historicoList');
+  if(!hist||!hist.length){
+    el.innerHTML='<p style="color:#8899AA;font-size:.85rem;padding:.5rem 0;">Nenhuma mudança de status registrada ainda.</p>';
+    return;
+  }
+  const labelMap = {
+    aguardando_aprovacao:'Aguardando aprovação', aguardando_pagamento:'Aguardando pagamento',
+    followup_1:'Follow-up 1', followup_2:'Follow-up 2', followup_3:'Follow-up 3',
+    em_andamento:'Projeto aprovado', concluido:'Concluído', perdido:'Perdido',
+  };
+  el.innerHTML = hist.map(h=>`
+    <div class="hist-item">
+      <div class="hist-dot"></div>
+      <div>
+        <div class="hist-text">
+          <span style="color:#8899AA;">${labelMap[h.status_anterior]||h.status_anterior||'—'}</span>
+          <span style="margin:0 .4rem;">→</span>
+          <strong>${labelMap[h.status_novo]||h.status_novo}</strong>
+        </div>
+        <div class="hist-date">${formatDate(h.created_at)} às ${new Date(h.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+    </div>`).join('');
+}
 
 // ── DELETE ──
 function confirmDelete(orderId, codigo, leadEmail){
@@ -684,6 +792,8 @@ async function updateStatus(id, status){
     }
   }
   await sb.from('orders').update(updateData).eq('id',id);
+  // Gravar histórico
+  await sb.from('order_history').insert({order_id:id, status_anterior:order?.status, status_novo:status});
   if(['followup_1','followup_2','followup_3'].includes(status)&&lead?.email){
     try {
       await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido',{
