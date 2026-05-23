@@ -713,10 +713,35 @@ function closeWhatsModal(){document.getElementById('whatsModal').style.display='
 
 (function(){const els=document.querySelectorAll('.fade-up');const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.12});els.forEach(el=>obs.observe(el));})();
 
-function animateCounter(id,target,duration,decimals){const el=document.getElementById(id);if(!el)return;const start=performance.now();function update(now){const p=Math.min((now-start)/duration,1);const ease=1-Math.pow(1-p,3);const val=target*ease;el.textContent=decimals?val.toFixed(1):Math.floor(val).toLocaleString('pt-BR');if(p<1)requestAnimationFrame(update);}requestAnimationFrame(update);}
-function getClientesCount(){const BASE=1200;const LAUNCH=new Date('2026-05-18T00:00:00').getTime();const now=Date.now();const h=Math.max(0,(now-LAUNCH)/(1000*60*60));return BASE+Math.floor(h/4);}
+function animateCounter(id,target,duration,decimals){const el=document.getElementById(id);if(!el)return;const current=parseFloat(el.textContent.replace(/\./g,'').replace(',','.'));const start=performance.now();function update(now){const p=Math.min((now-start)/duration,1);const ease=1-Math.pow(1-p,3);const val=current+(target-current)*ease;el.textContent=decimals?val.toFixed(1):Math.floor(val).toLocaleString('pt-BR');if(p<1)requestAnimationFrame(update);}requestAnimationFrame(update);}
+
+async function carregarContadores(){
+  try{
+    const sb=window._sbClient||(window._sbClient=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY));
+    const {count}=await sb.from('orders').select('*',{count:'exact',head:true}).in('status',['pedido_aprovado','em_producao','entregue','pagamento_confirmado','pagamento_em_analise','aguardando_pagamento','pagamento_parcial']);
+    const total = Math.max(count||0, 1200);
+    animateCounter('cnt1',total,1500,false);
+  } catch(e){
+    const BASE=1200;const h=Math.max(0,(Date.now()-new Date('2026-05-18T00:00:00').getTime())/(1000*60*60));
+    animateCounter('cnt1',BASE+Math.floor(h/4),1500,false);
+  }
+  animateCounter('cnt2',24,1200,false);
+  animateCounter('cnt3',4.9,1500,true);
+  animateCounter('cnt4',120,1800,false);
+}
+
 const counterSection=document.querySelector('.counters-section');
-if(counterSection){let fired=false;const obs=new IntersectionObserver(entries=>{if(entries[0].isIntersecting&&!fired){fired=true;animateCounter('cnt1',getClientesCount(),2000,false);animateCounter('cnt2',24,1200,false);animateCounter('cnt3',4.9,1500,true);animateCounter('cnt4',120,1800,false);}},{threshold:0.3});obs.observe(counterSection);}
+if(counterSection){
+  let fired=false;
+  const obs=new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting&&!fired){
+      fired=true;
+      carregarContadores();
+      setInterval(carregarContadores, 60000);
+    }
+  },{threshold:0.3});
+  obs.observe(counterSection);
+}
 
 function money(v){return 'R$'+v.toFixed(2).replace('.',',');}
 function unitPrice(qty){if(qty<=1)return 109.90;if(qty<=4)return 104.90;return 99.90;}
