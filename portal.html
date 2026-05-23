@@ -525,6 +525,7 @@ sb.auth.onAuthStateChange(async (event, session)=>{
       document.getElementById('clientPanel').style.display='none';
       document.getElementById('sidebarNav').style.display='flex';
       loadAdminData();
+      iniciarPolling();
     } else {
       document.getElementById('adminPanel').style.display='none';
       document.getElementById('clientPanel').style.display='block';
@@ -552,6 +553,90 @@ function navTo(page){
 
 function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ── POLLING & NOTIFICAÇÕES ──
+let pollingInterval = null;
+let ultimosPedidosIds = new Set();
+let pollingIniciado = false;
+
+function iniciarPolling(){
+  if(pollingIniciado) return;
+  pollingIniciado = true;
+  // Registra os IDs atuais como "já vistos"
+  allOrders.forEach(o => ultimosPedidosIds.add(o.id));
+  // Verifica a cada 30 segundos
+  pollingInterval = setInterval(async ()=>{
+    const {data:orders} = await sb.from('orders').select('id,created_at,codigo,servico').order('created_at',{ascending:false}).limit(50);
+    if(!orders) return;
+    const novos = orders.filter(o => !ultimosPedidosIds.has(o.id));
+    if(novos.length > 0){
+      novos.forEach(o => ultimosPedidosIds.add(o.id));
+      tocarSomNotificacao();
+      mostrarToastNovoPedido(novos);
+      atualizarBadgeAba(novos.length);
+      loadAdminData();
+    }
+  }, 30000);
+}
+
+function tocarSomNotificacao(){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch(e){ console.warn('som notif error',e); }
+}
+
+function mostrarToastNovoPedido(novos){
+  const existing = document.getElementById('toastNovoPedido');
+  if(existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'toastNovoPedido';
+  toast.style.cssText = `position:fixed;top:80px;right:1.5rem;z-index:500;background:#0D1B2A;border:1px solid rgba(46,126,198,.4);border-radius:12px;padding:1rem 1.25rem;box-shadow:0 8px 32px rgba(13,27,42,.3);max-width:320px;animation:slideInRight .3s ease;`;
+  toast.innerHTML = `
+    <style>@keyframes slideInRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}</style>
+    <div style="display:flex;align-items:flex-start;gap:.75rem;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#2E7EC6;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">🔔</div>
+      <div style="flex:1;">
+        <div style="font-size:.82rem;font-weight:600;color:#fff;margin-bottom:.25rem;">${novos.length === 1 ? 'Novo pedido recebido!' : novos.length+' novos pedidos!'}</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.6);line-height:1.5;">${novos.map(o=>(o.codigo||'Sem código')+' — '+(o.servico||'').slice(0,25)).join('<br/>')}</div>
+        <button onclick="navTo('pedidos');document.getElementById('toastNovoPedido')?.remove();" style="margin-top:.6rem;background:#2E7EC6;border:none;color:#fff;font-size:.72rem;padding:.35rem .75rem;border-radius:6px;cursor:pointer;font-weight:600;">Ver pedidos</button>
+      </div>
+      <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:1rem;padding:0;line-height:1;">✕</button>
+    </div>`;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast?.remove(), 8000);
+}
+
+let badgeCount = 0;
+let badgeInterval = null;
+const tituloOriginal = document.title;
+
+function atualizarBadgeAba(qtd){
+  badgeCount += qtd;
+  if(badgeInterval) clearInterval(badgeInterval);
+  let visible = true;
+  badgeInterval = setInterval(()=>{
+    document.title = visible ? `(${badgeCount}) Novo pedido! — Portal` : tituloOriginal;
+    visible = !visible;
+  }, 1000);
+  // Para de piscar quando usuário foca na aba
+  window.addEventListener('focus', ()=>{
+    if(badgeInterval) clearInterval(badgeInterval);
+    document.title = tituloOriginal;
+    badgeCount = 0;
+  }, {once:true});
 }
 
 // ── ADMIN DATA ──
