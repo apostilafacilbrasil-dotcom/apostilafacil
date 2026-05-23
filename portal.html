@@ -1168,19 +1168,46 @@ async function salvarAfiliado(){
   const email = document.getElementById('afiliadoEmail').value.trim();
   const whatsapp = document.getElementById('afiliadoWhatsapp').value.trim();
   const fb = document.getElementById('afiliadoFeedback');
-  if(!nome||!codigo){ fb.style.display='block'; fb.style.cssText='display:block;padding:.65rem 1rem;background:rgba(192,57,43,.08);color:#C0392B;border:1px solid rgba(192,57,43,.2);border-radius:8px;font-size:.82rem;margin-bottom:.75rem;'; fb.textContent='⚠️ Preencha nome e código.'; return; }
+  const mostrarErro = msg => { fb.style.cssText='display:block;padding:.65rem 1rem;background:rgba(192,57,43,.08);color:#C0392B;border:1px solid rgba(192,57,43,.2);border-radius:8px;font-size:.82rem;margin-bottom:.75rem;'; fb.textContent=msg; };
+  if(!nome||!codigo){ mostrarErro('⚠️ Preencha nome e código.'); return; }
+  if(!email){ mostrarErro('⚠️ E-mail é obrigatório para criar o acesso do afiliado.'); return; }
   const btn = document.querySelector('#modalNovoAfiliado button[onclick="salvarAfiliado()"]');
-  if(btn){ btn.disabled=true; btn.textContent='Salvando...'; }
-  const {error} = await sb.from('afiliados').insert({nome,codigo,email:email||null,whatsapp:whatsapp||null});
+  if(btn){ btn.disabled=true; btn.textContent='Criando...'; }
+
+  // 1. Gerar senha temporária
+  const senhaTemp = codigo + '@' + Math.floor(1000+Math.random()*9000);
+
+  // 2. Criar conta no Supabase Auth
+  const {data:authData, error:authError} = await sb.auth.admin?.createUser?.({
+    email, password: senhaTemp, email_confirm: true,
+    user_metadata: { nome, codigo_afiliado: codigo }
+  }) || await sb.auth.signUp({ email, password: senhaTemp });
+
+  // 3. Salvar na tabela afiliados
+  const {error} = await sb.from('afiliados').insert({nome, codigo, email, whatsapp:whatsapp||null});
   if(btn){ btn.disabled=false; btn.textContent='Criar afiliado'; }
   if(error){
-    fb.style.display='block';
-    fb.style.cssText='display:block;padding:.65rem 1rem;background:rgba(192,57,43,.08);color:#C0392B;border:1px solid rgba(192,57,43,.2);border-radius:8px;font-size:.82rem;margin-bottom:.75rem;';
-    fb.textContent='❌ '+(error.message.includes('unique')?'Código já existe. Use outro.':error.message);
+    mostrarErro('❌ '+(error.message.includes('unique')?'Código ou e-mail já existe. Use outro.':error.message));
     return;
   }
+
+  // 4. Enviar e-mail de boas-vindas com as credenciais via Edge Function
+  try{
+    await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w'},
+      body:JSON.stringify({
+        nome, email, codigo,
+        tipo:'boas_vindas_afiliado',
+        senha_temp: senhaTemp,
+        servico:'Programa de afiliados',
+        descricao:'',
+      }),
+    });
+  } catch(e){ console.warn('email afiliado error',e); }
+
   fecharModalNovoAfiliado();
-  showNotifBar('✅ Afiliado criado! Link: apostilasimples.com.br/?ref='+codigo,'#00875A');
+  showNotifBar(`✅ Afiliado criado! E-mail enviado para ${email} com as instruções de acesso.`,'#00875A');
   carregarAfiliados();
 }
 
