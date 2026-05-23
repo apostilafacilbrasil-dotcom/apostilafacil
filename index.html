@@ -265,9 +265,20 @@ textarea{min-height:110px;resize:vertical;}
 .privacy-body h3{font-size:.75rem;font-weight:600;color:#2E7EC6;margin:1.5rem 0 .5rem;letter-spacing:.04em;text-transform:uppercase;}
 .privacy-body p{font-size:.84rem;color:#4A6A82;line-height:1.75;margin-bottom:.75rem;}
 .privacy-footer{padding:1.25rem 1.75rem;border-top:1px solid rgba(13,27,42,.1);flex-shrink:0;display:flex;justify-content:flex-end;}
-.whats{position:fixed;right:1.3rem;bottom:1.3rem;z-index:60;background:#25D366;color:#fff;width:58px;height:58px;border-radius:999px;display:grid;place-items:center;box-shadow:0 0 0 0 rgba(37,211,102,.45);animation:whatsPulse 1.8s infinite;}
-.whats:hover{transform:scale(1.07);animation-play-state:paused;}
-.whats svg{width:29px;height:29px;fill:#fff;display:block;}
+.whats-widget{position:fixed;right:1.3rem;bottom:1.3rem;z-index:60;display:flex;flex-direction:column;align-items:flex-end;gap:.75rem;}
+.whats-btn{background:#25D366;color:#fff;width:58px;height:58px;border-radius:999px;display:grid;place-items:center;box-shadow:0 0 0 0 rgba(37,211,102,.45);animation:whatsPulse 1.8s infinite;cursor:pointer;border:none;transition:transform .2s;}
+.whats-btn:hover{transform:scale(1.07);animation-play-state:paused;}
+.whats-btn svg{width:29px;height:29px;fill:#fff;display:block;}
+.whats-bubble{background:#fff;border-radius:12px 12px 0 12px;padding:.85rem 1rem;box-shadow:0 4px 20px rgba(13,27,42,.15);max-width:240px;animation:bubbleIn .3s ease;transform-origin:bottom right;}
+@keyframes bubbleIn{from{opacity:0;transform:scale(.85) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.whats-bubble-header{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;padding-bottom:.5rem;border-bottom:1px solid rgba(13,27,42,.06);}
+.whats-avatar{width:34px;height:34px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.8rem;font-weight:700;color:#fff;}
+.whats-bubble-name{font-size:.82rem;font-weight:600;color:#0D1B2A;line-height:1.2;}
+.whats-bubble-status{font-size:.68rem;color:#25D366;}
+.whats-bubble-msg{font-size:.82rem;color:#1E3A52;line-height:1.55;margin-bottom:.65rem;}
+.whats-bubble-cta{display:block;background:#25D366;color:#fff;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.55rem .9rem;border-radius:6px;text-decoration:none;text-align:center;}
+.whats-bubble-cta:hover{background:#1DAA58;}
+.whats-close{position:absolute;top:.5rem;right:.5rem;background:none;border:none;color:#8899AA;cursor:pointer;font-size:.8rem;line-height:1;padding:.2rem;}
 @keyframes whatsPulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,.48);}70%{box-shadow:0 0 0 15px rgba(37,211,102,0);}100%{box-shadow:0 0 0 0 rgba(37,211,102,0);}}
 .fade-up{opacity:0;transform:translateY(28px);transition:opacity .3s ease,transform .3s ease;}
 .fade-up.visible{opacity:1;transform:translateY(0);}
@@ -676,9 +687,23 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
   </div>
 </div>
 
-<a class="whats" href="https://wa.me/5511999999999" target="_blank" aria-label="WhatsApp">
-  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.556 4.122 1.526 5.855L.057 24l6.305-1.654A11.954 11.954 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.814 9.814 0 0 1-5.006-1.368l-.358-.214-3.724.977 1.001-3.648-.234-.374A9.818 9.818 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z"/></svg>
-</a>
+<div class="whats-widget" id="whatsWidget">
+  <div class="whats-bubble" id="whatsBubble" style="position:relative;display:none;">
+    <button class="whats-close" onclick="fecharBubble()" aria-label="Fechar">✕</button>
+    <div class="whats-bubble-header">
+      <div class="whats-avatar">AS</div>
+      <div>
+        <div class="whats-bubble-name">Apostila Simples</div>
+        <div class="whats-bubble-status">● Online agora</div>
+      </div>
+    </div>
+    <div class="whats-bubble-msg" id="whatsBubbleMsg">Olá! 👋 Posso te ajudar com apostilamento ou tradução juramentada?</div>
+    <a id="whatsBubbleLink" href="https://wa.me/5511999999999" target="_blank" class="whats-bubble-cta">💬 Falar agora</a>
+  </div>
+  <button class="whats-btn" onclick="toggleBubble()" aria-label="WhatsApp">
+    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.556 4.122 1.526 5.855L.057 24l6.305-1.654A11.954 11.954 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.814 9.814 0 0 1-5.006-1.368l-.358-.214-3.724.977 1.001-3.648-.234-.374A9.818 9.818 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z"/></svg>
+  </button>
+</div>
 
 <div id="cookieBanner" style="position:fixed;bottom:0;left:0;right:0;z-index:500;background:#111;border-top:1px solid rgba(13,27,42,.1);padding:1rem 4vw;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
   <p style="font-size:.78rem;color:#ccc;margin:0;max-width:600px">Usamos cookies essenciais. <a href="#" onclick="openPrivacy();return false;" style="color:#2E7EC6;text-decoration:none">Política de Privacidade</a>.</p>
@@ -703,6 +728,77 @@ let currentStep=1,selectedFiles=[];
 function toggleMenu(){const m=document.getElementById('mobileMenu');m.classList.toggle('open');document.body.style.overflow=m.classList.contains('open')?'hidden':'';}
 document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){const id=this.getAttribute('href').slice(1);if(!id)return;const t=document.getElementById(id);if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});const m=document.getElementById('mobileMenu');if(m)m.classList.remove('open');}});});
 function acceptCookies(){document.getElementById('cookieBanner').style.display='none';try{localStorage.setItem('cookies_accepted','1');}catch(e){}}
+
+// ── WHATSAPP WIDGET ──
+const wppMensagens = {
+  default: {msg:'Olá! 👋 Posso te ajudar com apostilamento ou tradução juramentada?', text:'Olá! Gostaria de saber mais sobre os serviços.'},
+  processo: {msg:'📋 Quer entender melhor como funciona o processo? Te explico tudo pelo WhatsApp!', text:'Olá! Gostaria de entender melhor o processo de apostilamento.'},
+  documentos: {msg:'📄 Ficou com dúvida sobre qual serviço você precisa? Te ajudo agora!', text:'Olá! Tenho dúvidas sobre qual serviço preciso para meu documento.'},
+  traducoes: {msg:'🌍 Precisa de tradução juramentada? Temos mais de 12 idiomas disponíveis!', text:'Olá! Gostaria de um orçamento para tradução juramentada.'},
+  precos: {msg:'💰 Quer um orçamento personalizado? É rápido e sem compromisso!', text:'Olá! Gostaria de receber um orçamento.'},
+  orcamento: {msg:'✅ Prefere fazer o orçamento pelo WhatsApp? Sem problema!', text:'Olá! Gostaria de fazer um orçamento pelo WhatsApp.'},
+};
+
+let bubbleAberta = false;
+let bubbleTimer = null;
+
+function getSecaoAtual(){
+  const secoes = ['processo','documentos','traducoes','precos','orcamento'];
+  let atual = 'default';
+  let menorDist = Infinity;
+  secoes.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    const dist = Math.abs(el.getBoundingClientRect().top);
+    if(dist < menorDist){ menorDist = dist; atual = dist < 400 ? id : atual; }
+  });
+  return atual;
+}
+
+function atualizarMensagemBubble(){
+  const secao = getSecaoAtual();
+  const dados = wppMensagens[secao] || wppMensagens.default;
+  const msgEl = document.getElementById('whatsBubbleMsg');
+  const linkEl = document.getElementById('whatsBubbleLink');
+  if(msgEl) msgEl.textContent = dados.msg;
+  if(linkEl) linkEl.href = `https://wa.me/5511999999999?text=${encodeURIComponent(dados.text)}`;
+}
+
+function toggleBubble(){
+  const bubble = document.getElementById('whatsBubble');
+  if(!bubble) return;
+  bubbleAberta = !bubbleAberta;
+  if(bubbleAberta){
+    atualizarMensagemBubble();
+    bubble.style.display = 'block';
+    try{ localStorage.setItem('wpp_bubble_seen','1'); }catch(e){}
+  } else {
+    bubble.style.display = 'none';
+  }
+}
+
+function fecharBubble(){
+  const bubble = document.getElementById('whatsBubble');
+  if(bubble) bubble.style.display = 'none';
+  bubbleAberta = false;
+  try{ localStorage.setItem('wpp_bubble_seen','1'); }catch(e){}
+}
+
+// Abrir bubble automaticamente após 8s se o usuário ainda não fechou
+(function(){
+  try{ if(localStorage.getItem('wpp_bubble_seen')) return; }catch(e){}
+  bubbleTimer = setTimeout(()=>{
+    const bubble = document.getElementById('whatsBubble');
+    if(bubble && !bubbleAberta){
+      atualizarMensagemBubble();
+      bubble.style.display = 'block';
+      bubbleAberta = true;
+    }
+  }, 8000);
+})();
+
+// Atualizar mensagem ao scrollar
+window.addEventListener('scroll', ()=>{ if(bubbleAberta) atualizarMensagemBubble(); }, {passive:true});
 (function(){try{if(localStorage.getItem('cookies_accepted'))document.getElementById('cookieBanner').style.display='none';}catch(e){}})();
 function openPrivacy(){document.getElementById('privacyModal').classList.add('open');document.body.style.overflow='hidden';}
 function closePrivacy(){document.getElementById('privacyModal').classList.remove('open');document.body.style.overflow='';}
