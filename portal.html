@@ -279,9 +279,15 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
 
       <!-- PAGE: DASHBOARD -->
       <div class="page" id="page-dashboard">
-        <div class="page-header">
-          <div class="page-eyebrow">Visão geral</div>
-          <h1 class="page-title">Dashboard</h1>
+        <div class="page-header" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+          <div>
+            <div class="page-eyebrow">Visão geral</div>
+            <h1 class="page-title">Dashboard</h1>
+          </div>
+          <button onclick="gerarRelatorioMensal()" id="btnRelatorio" style="display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--line2);color:var(--muted);padding:.55rem 1rem;border-radius:8px;font-size:.75rem;font-weight:500;letter-spacing:.04em;transition:.2s;" onmouseover="this.style.borderColor='#2E7EC6';this.style.color='#2E7EC6'" onmouseout="this.style.borderColor='var(--line2)';this.style.color='var(--muted)'">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Enviar relatório por e-mail
+          </button>
         </div>
         <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.5rem;">
           <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total de orçamentos</div></div>
@@ -1694,6 +1700,122 @@ function copiarLink(orderId){
   navigator.clipboard.writeText(input.value).then(()=>{
     showNotifBar('✓ Link copiado para a área de transferência!', '#00875A');
   });
+}
+
+async function gerarRelatorioMensal(){
+  const btn = document.getElementById('btnRelatorio');
+  if(btn){ btn.disabled=true; btn.textContent='Gerando...'; }
+  try{
+    const now = new Date();
+    const mesAtual = now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+    const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const fimMes = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59).toISOString();
+
+    const pedidosMes = allOrders.filter(o=> o.created_at >= inicioMes && o.created_at <= fimMes);
+    const entreguesMes = pedidosMes.filter(o=>o.status==='entregue');
+    const pagosMes = pedidosMes.filter(o=>o.status_pagamento==='pagamento_confirmado');
+    const receitaMes = entreguesMes.reduce((s,o)=>s+(o.valor||0),0);
+    const recebidoMes = pagosMes.reduce((s,o)=>s+(o.valor||0),0);
+    const ticketMes = entreguesMes.length>0?(receitaMes/entreguesMes.length):0;
+    const conversao = pedidosMes.length>0?Math.round((entreguesMes.length/pedidosMes.length)*100):0;
+
+    // Montar lista dos pedidos do mês
+    const listaPedidos = pedidosMes.slice(0,20).map(o=>{
+      const lead=o._lead;
+      return `<tr style="border-bottom:1px solid rgba(46,126,198,.1);">
+        <td style="padding:8px 12px;font-size:13px;color:#2E7EC6;font-weight:600;">${o.codigo||'—'}</td>
+        <td style="padding:8px 12px;font-size:13px;color:#0D1B2A;">${lead?.nome||'—'}</td>
+        <td style="padding:8px 12px;font-size:13px;color:#4A6A82;">${o.servico||'—'}</td>
+        <td style="padding:8px 12px;font-size:13px;color:#0D1B2A;font-weight:600;">${o.valor?'R$'+Number(o.valor).toFixed(2):'—'}</td>
+        <td style="padding:8px 12px;font-size:13px;">${o.status||'—'}</td>
+      </tr>`;
+    }).join('');
+
+    const fmt = v => 'R$'+v.toFixed(2).replace('.',',');
+
+    const htmlRelatorio = `
+      <h2 style="margin:0 0 8px;font-size:22px;color:#0D1B2A;">Relatório mensal — ${mesAtual}</h2>
+      <p style="margin:0 0 16px;font-size:15px;color:#1E3A52;line-height:1.7;">Resumo de desempenho do mês atual.</p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:1.5rem;">
+        <tr>
+          <td width="33%" style="padding:0 6px 12px 0;">
+            <div style="background:#EBF4FF;border:1px solid rgba(46,126,198,.2);border-radius:10px;padding:1rem;text-align:center;">
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#2E7EC6;font-weight:700;margin-bottom:.3rem;">Novos pedidos</div>
+              <div style="font-size:28px;font-weight:900;color:#0D1B2A;">${pedidosMes.length}</div>
+            </div>
+          </td>
+          <td width="33%" style="padding:0 6px 12px;">
+            <div style="background:#F0FDF4;border:1px solid rgba(0,135,90,.2);border-radius:10px;padding:1rem;text-align:center;">
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#00875A;font-weight:700;margin-bottom:.3rem;">Receita</div>
+              <div style="font-size:22px;font-weight:900;color:#00875A;">${fmt(receitaMes)}</div>
+            </div>
+          </td>
+          <td width="33%" style="padding:0 0 12px 6px;">
+            <div style="background:#F0FDF4;border:1px solid rgba(0,135,90,.2);border-radius:10px;padding:1rem;text-align:center;">
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#00875A;font-weight:700;margin-bottom:.3rem;">Recebido</div>
+              <div style="font-size:22px;font-weight:900;color:#00875A;">${fmt(recebidoMes)}</div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 6px 0 0;">
+            <div style="background:#F8F0FF;border:1px solid rgba(124,58,237,.15);border-radius:10px;padding:1rem;text-align:center;">
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7C3AED;font-weight:700;margin-bottom:.3rem;">Entregues</div>
+              <div style="font-size:28px;font-weight:900;color:#7C3AED;">${entreguesMes.length}</div>
+            </div>
+          </td>
+          <td style="padding:0 6px;">
+            <div style="background:#EBF4FF;border:1px solid rgba(46,126,198,.2);border-radius:10px;padding:1rem;text-align:center;">
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#2E7EC6;font-weight:700;margin-bottom:.3rem;">Ticket médio</div>
+              <div style="font-size:22px;font-weight:900;color:#2E7EC6;">${fmt(ticketMes)}</div>
+            </div>
+          </td>
+          <td style="padding:0 0 0 6px;">
+            <div style="background:#EBF4FF;border:1px solid rgba(46,126,198,.2);border-radius:10px;padding:1rem;text-align:center;">
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#2E7EC6;font-weight:700;margin-bottom:.3rem;">Conversão</div>
+              <div style="font-size:28px;font-weight:900;color:#2E7EC6;">${conversao}%</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      ${pedidosMes.length>0?`
+      <div style="margin-bottom:1rem;">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#4A6A82;font-weight:700;margin-bottom:.75rem;">Pedidos do mês</div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#EBF4FF;border:1px solid rgba(46,126,198,.15);border-radius:10px;overflow:hidden;">
+          <thead><tr style="background:#0D1B2A;">
+            <th style="padding:8px 12px;font-size:11px;color:rgba(255,255,255,.7);text-align:left;font-weight:600;letter-spacing:1px;">CÓDIGO</th>
+            <th style="padding:8px 12px;font-size:11px;color:rgba(255,255,255,.7);text-align:left;font-weight:600;letter-spacing:1px;">CLIENTE</th>
+            <th style="padding:8px 12px;font-size:11px;color:rgba(255,255,255,.7);text-align:left;font-weight:600;letter-spacing:1px;">SERVIÇO</th>
+            <th style="padding:8px 12px;font-size:11px;color:rgba(255,255,255,.7);text-align:left;font-weight:600;letter-spacing:1px;">VALOR</th>
+            <th style="padding:8px 12px;font-size:11px;color:rgba(255,255,255,.7);text-align:left;font-weight:600;letter-spacing:1px;">STATUS</th>
+          </tr></thead>
+          <tbody style="background:#fff;">${listaPedidos}</tbody>
+        </table>
+        ${pedidosMes.length>20?`<p style="font-size:12px;color:#4A6A82;margin-top:.5rem;">+ ${pedidosMes.length-20} pedidos não exibidos. Exporte o CSV para a lista completa.</p>`:''}
+      </div>`:'<p style="font-size:14px;color:#4A6A82;margin-bottom:1rem;">Nenhum pedido este mês ainda.</p>'}`;
+
+    // Enviar via Edge Function
+    await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w'},
+      body:JSON.stringify({
+        nome:'Admin',
+        email: ADMIN_EMAIL,
+        servico:'Relatório',
+        codigo:'',
+        tipo:'relatorio_mensal',
+        descricao: htmlRelatorio,
+        mes: mesAtual,
+      }),
+    });
+    showNotifBar('📊 Relatório enviado para '+ADMIN_EMAIL,'#00875A');
+  } catch(e){
+    showNotifBar('❌ Erro ao gerar relatório: '+e.message,'#C0392B');
+  } finally {
+    if(btn){ btn.disabled=false; btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Enviar relatório por e-mail'; }
+  }
 }
 
 function exportarCSV(){
