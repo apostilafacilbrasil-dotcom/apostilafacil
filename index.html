@@ -857,6 +857,7 @@ if(counterSection){
 }
 
 function money(v){return 'R$'+v.toFixed(2).replace('.',',');}
+function unitPrice(qty){if(qty<=1)return 109.90;if(qty<=4)return 104.90;return 99.90;}
 function calcularTotalPedido(){
   const qty=getQty();
   const tipoServico=(document.getElementById('tipoServico')||{}).value||'Apenas Apostila de Haia';
