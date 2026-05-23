@@ -257,6 +257,10 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         <span>Afiliados</span>
       </button>
+      <button class="snav-item" onclick="navTo('configuracoes')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Configurações</span>
+      </button>
       <div class="snav-divider"></div>
       <button class="snav-item snav-new" onclick="openNewOrcModal()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
@@ -298,10 +302,11 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
           <div class="stat-card"><div class="stat-num" id="statPending">—</div><div class="stat-label">Em orçamento</div></div>
           <div class="stat-card"><div class="stat-num" id="statDone" style="font-size:1.5rem;">—</div><div class="stat-label">Aprovados / Entregues</div></div>
         </div>
-        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:2rem;">
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:2rem;">
           <div class="stat-card"><div class="stat-num" id="statRevenue">—</div><div class="stat-label">Receita total (concluídos)</div></div>
           <div class="stat-card"><div class="stat-num" id="statPago" style="color:#00875A;">—</div><div class="stat-label">Recebido (pago)</div></div>
           <div class="stat-card"><div class="stat-num" id="statTicket">—</div><div class="stat-label">Ticket médio</div></div>
+          <div class="stat-card" style="border-left:3px solid #00875A;"><div class="stat-num" id="statLucro" style="color:#00875A;">—</div><div class="stat-label">Lucro líquido</div><div style="font-size:.62rem;color:#4A6A82;margin-top:.2rem;" id="statMargem"></div></div>
         </div>
         <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:.75rem;">
@@ -413,6 +418,103 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
             <div id="leadsEmpty" class="empty-state" style="display:none">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <p>Nenhum lead encontrado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PÁGINA CONFIGURAÇÕES -->
+      <div class="page" id="page-configuracoes" style="display:none">
+        <div class="page-header">
+          <div class="page-eyebrow">Financeiro</div>
+          <h1 class="page-title">Configurações de custo</h1>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:860px;">
+
+          <!-- Apostilamento -->
+          <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;">
+            <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.3rem;">Apostilamento</div>
+            <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.2rem;color:#0D1B2A;margin-bottom:1.25rem;">Custo por documento</div>
+            <div class="field">
+              <label>Custo unitário (R$)</label>
+              <input id="cfg_apostilamento" type="number" step="0.01" min="0" placeholder="Ex: 45.00"/>
+            </div>
+            <p style="font-size:.75rem;color:#4A6A82;line-height:1.5;margin-top:.25rem;">Valor pago ao cartório por cada documento apostilado.</p>
+          </div>
+
+          <!-- Tradução Inglês -->
+          <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;">
+            <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.3rem;">Tradução — Inglês</div>
+            <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.2rem;color:#0D1B2A;margin-bottom:1.25rem;">Custo por lauda (180 palavras)</div>
+            <div class="field">
+              <label>Custo por lauda (R$)</label>
+              <input id="cfg_ingles" type="number" step="0.01" min="0" placeholder="Ex: 25.00"/>
+            </div>
+          </div>
+
+          <!-- Tradução Espanhol -->
+          <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;">
+            <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.3rem;">Tradução — Espanhol</div>
+            <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.2rem;color:#0D1B2A;margin-bottom:1.25rem;">Custo por lauda (180 palavras)</div>
+            <div class="field">
+              <label>Custo por lauda (R$)</label>
+              <input id="cfg_espanhol" type="number" step="0.01" min="0" placeholder="Ex: 25.00"/>
+            </div>
+          </div>
+
+          <!-- Tradução Francês -->
+          <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;">
+            <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.3rem;">Tradução — Francês</div>
+            <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.2rem;color:#0D1B2A;margin-bottom:1.25rem;">Custo por lauda (180 palavras)</div>
+            <div class="field">
+              <label>Custo por lauda (R$)</label>
+              <input id="cfg_frances" type="number" step="0.01" min="0" placeholder="Ex: 35.00"/>
+            </div>
+          </div>
+
+          <!-- Tradução Italiano -->
+          <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;">
+            <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.3rem;">Tradução — Italiano</div>
+            <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.2rem;color:#0D1B2A;margin-bottom:1.25rem;">Custo por lauda (180 palavras)</div>
+            <div class="field">
+              <label>Custo por lauda (R$)</label>
+              <input id="cfg_italiano" type="number" step="0.01" min="0" placeholder="Ex: 35.00"/>
+            </div>
+          </div>
+
+          <!-- Outros idiomas -->
+          <div style="background:#EBF4FF;border:1px solid rgba(46,126,198,.2);border-radius:12px;padding:1.5rem;">
+            <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.3rem;">Outros idiomas</div>
+            <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.2rem;color:#0D1B2A;margin-bottom:.75rem;">Custo variável</div>
+            <p style="font-size:.82rem;color:#4A6A82;line-height:1.6;">Alemão, Holandês, Russo, Japonês, Mandarim e demais idiomas são cobrados por página pelo tradutor externo. O custo deve ser lançado manualmente em cada pedido.</p>
+          </div>
+
+        </div>
+
+        <div style="margin-top:1.5rem;max-width:860px;display:flex;align-items:center;gap:1rem;">
+          <button onclick="salvarConfiguracoes()" style="background:#2E7EC6;color:#fff;border:none;padding:.75rem 1.75rem;border-radius:8px;font-size:.82rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;">Salvar configurações</button>
+          <span id="cfgFeedback" style="display:none;font-size:.82rem;color:#00875A;">✓ Configurações salvas!</span>
+        </div>
+
+        <!-- Preview de lucro -->
+        <div style="margin-top:2rem;max-width:860px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;">
+          <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.3rem;">Simulador de margem</div>
+          <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.2rem;color:#0D1B2A;margin-bottom:1.25rem;">Veja quanto você lucra em cada cenário</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+            <div style="background:#F0FDF4;border:1px solid rgba(0,135,90,.15);border-radius:8px;padding:1rem;text-align:center;">
+              <div style="font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#00875A;margin-bottom:.4rem;">Apostila simples</div>
+              <div id="sim_apostila" style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#00875A;line-height:1;">—</div>
+              <div style="font-size:.68rem;color:#4A6A82;margin-top:.2rem;">lucro por documento</div>
+            </div>
+            <div style="background:#EBF4FF;border:1px solid rgba(46,126,198,.15);border-radius:8px;padding:1rem;text-align:center;">
+              <div style="font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#2E7EC6;margin-bottom:.4rem;">Apostila com afiliado</div>
+              <div id="sim_afiliado" style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#2E7EC6;line-height:1;">—</div>
+              <div style="font-size:.68rem;color:#4A6A82;margin-top:.2rem;">após desconto + comissão</div>
+            </div>
+            <div style="background:#FFF8E1;border:1px solid rgba(180,83,9,.15);border-radius:8px;padding:1rem;text-align:center;">
+              <div style="font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#B45309;margin-bottom:.4rem;">Tradução EN (1 lauda)</div>
+              <div id="sim_traducao" style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#B45309;line-height:1;">—</div>
+              <div style="font-size:.68rem;color:#4A6A82;margin-top:.2rem;">lucro por lauda</div>
             </div>
           </div>
         </div>
@@ -684,6 +786,7 @@ function navTo(page){
   if(page==='dashboard') setTimeout(renderRevenueChart, 50);
   if(page==='leads') carregarLeads();
   if(page==='afiliados') carregarAfiliados();
+  if(page==='configuracoes') carregarConfiguracoes();
 }
 
 function toggleSidebar(){
@@ -809,6 +912,8 @@ async function loadAdminData(){
   if(badge){ badge.textContent=novos||''; badge.style.display=novos?'inline':'none'; }
   renderRevenueChart();
   carregarSaquesPendentes();
+  await carregarConfiguracoes();
+  calcularLucroDashboard();
 }
 
 let revenueChartInstance = null;
@@ -1217,6 +1322,106 @@ async function excluirAfiliado(id, nome){
   carregarAfiliados();
 }
 
+// ── CONFIGURAÇÕES DE CUSTO ──
+let cfgGlobal = {custo_apostilamento:0, custo_traducao_ingles:0, custo_traducao_espanhol:0, custo_traducao_frances:0, custo_traducao_italiano:0};
+
+async function carregarConfiguracoes(){
+  const {data} = await sb.from('configuracoes').select('*').eq('id','global').single();
+  if(data){
+    cfgGlobal = data;
+    document.getElementById('cfg_apostilamento').value = data.custo_apostilamento||'';
+    document.getElementById('cfg_ingles').value = data.custo_traducao_ingles||'';
+    document.getElementById('cfg_espanhol').value = data.custo_traducao_espanhol||'';
+    document.getElementById('cfg_frances').value = data.custo_traducao_frances||'';
+    document.getElementById('cfg_italiano').value = data.custo_traducao_italiano||'';
+    atualizarSimuladorMargem(data);
+  }
+}
+
+async function salvarConfiguracoes(){
+  const dados = {
+    custo_apostilamento: parseFloat(document.getElementById('cfg_apostilamento').value)||0,
+    custo_traducao_ingles: parseFloat(document.getElementById('cfg_ingles').value)||0,
+    custo_traducao_espanhol: parseFloat(document.getElementById('cfg_espanhol').value)||0,
+    custo_traducao_frances: parseFloat(document.getElementById('cfg_frances').value)||0,
+    custo_traducao_italiano: parseFloat(document.getElementById('cfg_italiano').value)||0,
+    updated_at: new Date().toISOString(),
+  };
+  await sb.from('configuracoes').upsert({id:'global',...dados});
+  cfgGlobal = {...cfgGlobal,...dados};
+  const fb = document.getElementById('cfgFeedback');
+  if(fb){ fb.style.display='inline'; setTimeout(()=>fb.style.display='none',3000); }
+  atualizarSimuladorMargem(dados);
+  calcularLucroDashboard();
+}
+
+function atualizarSimuladorMargem(cfg){
+  const fmt = v => v>=0 ? 'R$'+v.toFixed(2).replace('.',',') : '-R$'+Math.abs(v).toFixed(2).replace('.',',');
+  // Apostila simples: preço R$109,90 - custo
+  const lucroApostila = 109.90 - (cfg.custo_apostilamento||0);
+  // Apostila com afiliado: R$109,90 * 0.95 (desconto 5%) - custo - comissão 10%
+  const valorAfiliado = 109.90 * 0.95;
+  const lucroAfiliado = valorAfiliado - (cfg.custo_apostilamento||0) - (109.90*0.10);
+  // Tradução EN: R$109,90 (1ª lauda) - custo por lauda
+  const lucroTrad = 109.90 - (cfg.custo_traducao_ingles||0);
+  document.getElementById('sim_apostila').textContent = fmt(lucroApostila);
+  document.getElementById('sim_apostila').style.color = lucroApostila>=0?'#00875A':'#C0392B';
+  document.getElementById('sim_afiliado').textContent = fmt(lucroAfiliado);
+  document.getElementById('sim_afiliado').style.color = lucroAfiliado>=0?'#2E7EC6':'#C0392B';
+  document.getElementById('sim_traducao').textContent = fmt(lucroTrad);
+  document.getElementById('sim_traducao').style.color = lucroTrad>=0?'#B45309':'#C0392B';
+}
+
+function calcularCustoPedido(order){
+  if(!cfgGlobal.custo_apostilamento) return null;
+  const servico = (order.servico||'').toLowerCase();
+  const temApost = servico.includes('apostil') && !servico.includes('apenas tradução');
+  const temTrad = servico.includes('tradu');
+  const idioma = order.idioma_traducao||'';
+  const palavras = order.palavras_traducao||0;
+  const laudas = palavras>0 ? Math.ceil(palavras/180) : 1;
+  let custoApost = temApost ? (cfgGlobal.custo_apostilamento||0) : 0;
+  // Custo duplo se apostila original + apostila da tradução
+  if(servico.includes('apostilamento da tradução')&&servico.includes('apostilamento')) custoApost *= 2;
+  let custoTrad = 0;
+  if(temTrad){
+    if(idioma==='Inglês') custoTrad = (cfgGlobal.custo_traducao_ingles||0)*laudas;
+    else if(idioma==='Espanhol') custoTrad = (cfgGlobal.custo_traducao_espanhol||0)*laudas;
+    else if(idioma==='Francês') custoTrad = (cfgGlobal.custo_traducao_frances||0)*laudas;
+    else if(idioma==='Italiano') custoTrad = (cfgGlobal.custo_traducao_italiano||0)*laudas;
+    else custoTrad = order.custo_tradutor_externo||0;
+  }
+  const custoAfiliado = order.indicado_por ? (order.valor||0)*0.10 : 0;
+  const descontoAfiliado = order.indicado_por ? (order.valor||0)*0.05 : 0; // já embutido no valor
+  const custoTotal = custoApost + custoTrad + custoAfiliado;
+  const lucro = (order.valor||0) - custoTotal;
+  return {custoApost, custoTrad, custoAfiliado, custoTotal, lucro};
+}
+
+function calcularLucroDashboard(){
+  const entregues = allOrders.filter(o=>o.status==='entregue');
+  let lucroTotal = 0;
+  let comCusto = 0;
+  entregues.forEach(o=>{
+    const c = calcularCustoPedido(o);
+    if(c){ lucroTotal+=c.lucro; comCusto++; }
+  });
+  const el = document.getElementById('statLucro');
+  const elMargem = document.getElementById('statMargem');
+  if(el){
+    if(comCusto>0){
+      el.textContent = 'R$'+lucroTotal.toFixed(0);
+      el.style.color = lucroTotal>=0?'#00875A':'#C0392B';
+      const revenue = entregues.reduce((s,o)=>s+(o.valor||0),0);
+      const margem = revenue>0?Math.round((lucroTotal/revenue)*100):0;
+      if(elMargem) elMargem.textContent = 'margem '+margem+'%';
+    } else {
+      el.textContent = '—';
+      if(elMargem) elMargem.textContent = 'configure os custos';
+    }
+  }
+}
+
 function limparFiltroData(){
   const di=document.getElementById('filtroDataInicio');
   const df=document.getElementById('filtroDataFim');
@@ -1459,6 +1664,44 @@ function openModal(i){
         <div><div class="mlabel">Valor</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'A confirmar'}</div></div>
         <div><div class="mlabel">Prazo</div><div>${o.prazo||'—'}</div></div>
         <div><div class="mlabel">Recebido em</div><div>${formatDate(o.created_at)}</div></div>
+        ${(()=>{
+          const c = calcularCustoPedido(o);
+          if(!c||!o.valor) return '';
+          const fmt = v => 'R$'+Math.abs(v).toFixed(2).replace('.',',');
+          const cor = c.lucro>=0?'#00875A':'#C0392B';
+          return `<div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;">
+            <div class="mlabel" style="margin-bottom:.6rem;">Breakdown financeiro</div>
+            <div style="background:#F8FAFC;border:1px solid rgba(13,27,42,.08);border-radius:8px;padding:.85rem 1rem;font-size:.82rem;">
+              <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid rgba(13,27,42,.06);">
+                <span style="color:#4A6A82;">Valor cobrado</span><span style="font-weight:500;">R$${Number(o.valor).toFixed(2)}</span>
+              </div>
+              ${c.custoApost>0?`<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid rgba(13,27,42,.06);">
+                <span style="color:#4A6A82;">(-) Custo apostilamento</span><span style="color:#C0392B;">-${fmt(c.custoApost)}</span>
+              </div>`:''}
+              ${c.custoTrad>0?`<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid rgba(13,27,42,.06);">
+                <span style="color:#4A6A82;">(-) Custo tradução</span><span style="color:#C0392B;">-${fmt(c.custoTrad)}</span>
+              </div>`:''}
+              ${c.custoAfiliado>0?`<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid rgba(13,27,42,.06);">
+                <span style="color:#4A6A82;">(-) Comissão afiliado (10%)</span><span style="color:#C0392B;">-${fmt(c.custoAfiliado)}</span>
+              </div>`:''}
+              ${o.indicado_por?`<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid rgba(13,27,42,.06);">
+                <span style="color:#4A6A82;">(-) Desconto indicação (5%)</span><span style="color:#B45309;">já embutido no valor</span>
+              </div>`:''}
+              <div style="display:flex;justify-content:space-between;padding:.5rem 0 0;margin-top:.3rem;">
+                <span style="font-weight:600;color:#0D1B2A;">Lucro líquido</span>
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:${cor};">${c.lucro>=0?'':'-'}${fmt(c.lucro)}</span>
+              </div>
+            </div>
+            ${o.servico?.toLowerCase().includes('tradu')&&!['Inglês','Espanhol','Francês','Italiano'].includes(o.idioma_traducao||'')?`
+            <div style="margin-top:.75rem;">
+              <label style="font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.4rem;font-weight:600;">Custo do tradutor externo (R$)</label>
+              <div style="display:flex;gap:.5rem;">
+                <input id="custoExterno-${o.id}" type="number" step="0.01" min="0" value="${o.custo_tradutor_externo||''}" placeholder="Ex: 150.00" style="flex:1;padding:.55rem .75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;outline:none;"/>
+                <button onclick="salvarCustoExterno('${o.id}')" style="background:#2E7EC6;color:#fff;border:none;padding:.55rem 1rem;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;">Salvar</button>
+              </div>
+            </div>`:''}
+          </div>`;
+        })()}
         <div style="grid-column:1/3;border-top:1px solid #eee;padding-top:.75rem;">
           <div class="mlabel" style="margin-bottom:.4rem;">Data de entrega</div>
           <div style="display:flex;align-items:center;gap:.75rem;">
@@ -1777,6 +2020,15 @@ async function salvarSubEntrega(orderId, valor){
   if(valor==='finalizado' && order.status!=='entregue'){
     showNotifBar('🎉 Etapa finalizada! Lembre de atualizar o status para "Entregue / Finalizado".','#00875A');
   }
+}
+
+async function salvarCustoExterno(id){
+  const val = parseFloat(document.getElementById(`custoExterno-${id}`)?.value||0)||0;
+  await sb.from('orders').update({custo_tradutor_externo:val}).eq('id',id);
+  const order = allOrders.find(o=>o.id===id);
+  if(order){ order.custo_tradutor_externo=val; }
+  showNotifBar('✅ Custo do tradutor salvo!','#00875A');
+  calcularLucroDashboard();
 }
 
 async function salvarIndicadoPor(id){
