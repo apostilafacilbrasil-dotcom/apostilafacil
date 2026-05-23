@@ -59,6 +59,26 @@ input,select,textarea{font-family:inherit}
 .sidebar-logo{display:flex;align-items:center;gap:.6rem;padding:1.4rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.07);}
 .sidebar-logo-text{font-family:"Bebas Neue",sans-serif;font-size:.95rem;letter-spacing:.1em;color:#fff;white-space:nowrap;}
 .sidebar-logo-text span{color:#2E7EC6;}
+.notif-btn{position:relative;background:none;border:none;cursor:pointer;padding:.4rem;color:rgba(255,255,255,.5);transition:color .2s;flex-shrink:0;}
+.notif-btn:hover{color:#fff;}
+.notif-badge{position:absolute;top:2px;right:2px;background:#C0392B;color:#fff;font-size:.55rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;display:none;}
+.notif-dropdown{position:absolute;top:calc(100% + 8px);right:0;z-index:300;background:#0D1B2A;border:1px solid rgba(255,255,255,.1);border-radius:12px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.4);overflow:hidden;display:none;}
+.notif-dropdown.open{display:block;animation:fadeIn .15s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.notif-header{padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;}
+.notif-header-title{font-size:.75rem;font-weight:600;color:#fff;letter-spacing:.06em;text-transform:uppercase;}
+.notif-clear{background:none;border:none;color:rgba(255,255,255,.4);font-size:.7rem;cursor:pointer;transition:color .2s;}
+.notif-clear:hover{color:#fff;}
+.notif-list{max-height:360px;overflow-y:auto;}
+.notif-item{display:flex;align-items:flex-start;gap:.75rem;padding:.85rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .15s;}
+.notif-item:hover{background:rgba(255,255,255,.04);}
+.notif-item.unread{background:rgba(46,126,198,.08);}
+.notif-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.notif-text{flex:1;}
+.notif-title{font-size:.78rem;font-weight:500;color:#fff;line-height:1.4;margin-bottom:.15rem;}
+.notif-time{font-size:.68rem;color:rgba(255,255,255,.35);}
+.notif-empty{padding:2rem 1rem;text-align:center;font-size:.78rem;color:rgba(255,255,255,.35);}
+.notif-wrap{position:relative;margin-left:auto;}
 .sidebar-nav{flex:1;padding:.75rem .6rem;display:flex;flex-direction:column;gap:.2rem;}
 .snav-item{display:flex;align-items:center;gap:.7rem;padding:.7rem .9rem;border-radius:8px;background:none;border:none;color:rgba(255,255,255,.55);font-size:.8rem;font-weight:500;letter-spacing:.02em;text-align:left;transition:.15s;cursor:pointer;width:100%;position:relative;}
 .snav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);}
@@ -254,6 +274,21 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
         <text x="50" y="60" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#7CB9E8" letter-spacing="4">SIM</text>
       </svg>
       <span class="sidebar-logo-text">APOSTILA <span>SIMPLES</span></span>
+      <div class="notif-wrap">
+        <button class="notif-btn" onclick="toggleNotifDropdown()" id="notifBtn" title="Notificações">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge" id="notifBadge"></span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-header">
+            <span class="notif-header-title">Notificações</span>
+            <button class="notif-clear" onclick="limparNotificacoes()">Marcar todas como lidas</button>
+          </div>
+          <div class="notif-list" id="notifList">
+            <div class="notif-empty">Nenhuma notificação</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <nav class="sidebar-nav" id="sidebarNav">
@@ -863,6 +898,7 @@ sb.auth.onAuthStateChange(async (event, session)=>{
       document.getElementById('sidebarNav').style.display='flex';
       loadAdminData();
       iniciarPolling();
+      carregarNotificacoesStorage();
     } else {
       // Verificar se é afiliado
       const {data:afiliado} = await sb.from('afiliados').select('*').eq('email', email).single();
@@ -904,6 +940,97 @@ function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('open');
 }
 
+// ── SISTEMA DE NOTIFICAÇÕES ──
+let notificacoes = [];
+
+function carregarNotificacoesStorage(){
+  try{ notificacoes = JSON.parse(localStorage.getItem('portal_notifs')||'[]'); }catch(e){ notificacoes=[]; }
+  renderNotificacoes();
+}
+
+function salvarNotificacoesStorage(){
+  try{ localStorage.setItem('portal_notifs', JSON.stringify(notificacoes.slice(0,50))); }catch(e){}
+}
+
+function adicionarNotificacao(tipo, titulo, tempo){
+  const icons = {pedido:'🛎️', saque:'💰', pagamento:'✅', entrega:'📦', afiliado:'🔗'};
+  const cores = {pedido:'rgba(46,126,198,.3)', saque:'rgba(180,83,9,.3)', pagamento:'rgba(0,135,90,.3)', entrega:'rgba(0,135,90,.3)', afiliado:'rgba(46,126,198,.3)'};
+  notificacoes.unshift({
+    id: Date.now(),
+    tipo, titulo,
+    icon: icons[tipo]||'🔔',
+    cor: cores[tipo]||'rgba(46,126,198,.3)',
+    tempo: tempo || new Date().toISOString(),
+    lida: false,
+  });
+  salvarNotificacoesStorage();
+  renderNotificacoes();
+}
+
+function renderNotificacoes(){
+  const list = document.getElementById('notifList');
+  const badge = document.getElementById('notifBadge');
+  if(!list||!badge) return;
+  const naoLidas = notificacoes.filter(n=>!n.lida).length;
+  if(naoLidas>0){
+    badge.style.display='flex';
+    badge.textContent = naoLidas>9?'9+':naoLidas;
+  } else {
+    badge.style.display='none';
+  }
+  if(!notificacoes.length){
+    list.innerHTML='<div class="notif-empty">Nenhuma notificação ainda</div>';
+    return;
+  }
+  list.innerHTML = notificacoes.slice(0,20).map(n=>{
+    const tempo = tempoRelativo(n.tempo);
+    return `<div class="notif-item${n.lida?'':' unread'}" onclick="marcarLida(${n.id})">
+      <div class="notif-icon" style="background:${n.cor};">${n.icon}</div>
+      <div class="notif-text">
+        <div class="notif-title">${n.titulo}</div>
+        <div class="notif-time">${tempo}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function tempoRelativo(iso){
+  const diff = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diff/60000);
+  if(min<1) return 'agora mesmo';
+  if(min<60) return min+'min atrás';
+  const h = Math.floor(min/60);
+  if(h<24) return h+'h atrás';
+  return Math.floor(h/24)+'d atrás';
+}
+
+function marcarLida(id){
+  notificacoes = notificacoes.map(n=>n.id===id?{...n,lida:true}:n);
+  salvarNotificacoesStorage();
+  renderNotificacoes();
+}
+
+function limparNotificacoes(){
+  notificacoes = notificacoes.map(n=>({...n,lida:true}));
+  salvarNotificacoesStorage();
+  renderNotificacoes();
+}
+
+function toggleNotifDropdown(){
+  const dd = document.getElementById('notifDropdown');
+  if(!dd) return;
+  dd.classList.toggle('open');
+  if(dd.classList.contains('open')) renderNotificacoes();
+}
+
+// Fechar dropdown ao clicar fora
+document.addEventListener('click', e=>{
+  const wrap = document.querySelector('.notif-wrap');
+  if(wrap && !wrap.contains(e.target)){
+    document.getElementById('notifDropdown')?.classList.remove('open');
+  }
+});
+
 // ── POLLING & NOTIFICAÇÕES ──
 let pollingInterval = null;
 let ultimosPedidosIds = new Set();
@@ -920,7 +1047,10 @@ function iniciarPolling(){
     if(!orders) return;
     const novos = orders.filter(o => !ultimosPedidosIds.has(o.id));
     if(novos.length > 0){
-      novos.forEach(o => ultimosPedidosIds.add(o.id));
+      novos.forEach(o => {
+        ultimosPedidosIds.add(o.id);
+        adicionarNotificacao('pedido', `Novo pedido: ${o.codigo||'sem código'} — ${(o.servico||'').slice(0,30)}`, o.created_at);
+      });
       tocarSomNotificacao();
       mostrarToastNovoPedido(novos);
       atualizarBadgeAba(novos.length);
@@ -1275,6 +1405,7 @@ async function liberarSaque(saqueId, codigoAfiliado, valor){
   const {data:af} = await sb.from('afiliados').select('total_sacado').eq('codigo',codigoAfiliado).single();
   await sb.from('afiliados').update({total_sacado:(Number(af?.total_sacado||0)+Number(valor))}).eq('codigo',codigoAfiliado);
   showNotifBar('✅ Saque de R$'+Number(valor).toFixed(2)+' liberado!','#00875A');
+  adicionarNotificacao('saque', `Saque de R$${Number(valor).toFixed(2)} liberado para ${codigoAfiliado}`);
   carregarSaquesPendentes();
 }
 
@@ -2492,6 +2623,7 @@ async function updateStatus(id, status, selectEl){
       });
     } catch(e){ console.warn('email pagamento error',e); }
     showNotifBar('💰 Pagamento confirmado! E-mail enviado para '+lead.email,'#00875A');
+    adicionarNotificacao('pagamento', `Pagamento confirmado — ${order.codigo||''} (${lead.nome||''})`);
     showWppStatusBar('pagamento_confirmado', lead, order);
     await registrarComissao(order);
     carregarSaquesPendentes();
@@ -2520,6 +2652,7 @@ async function updateStatus(id, status, selectEl){
       });
     } catch(e){ console.warn('email entrega error',e); }
     showNotifBar('📦 Entrega notificada! E-mail enviado para '+lead.email,'#00875A');
+    adicionarNotificacao('entrega', `Documento entregue — ${order.codigo||''} para ${lead.nome||''}`);
     showWppStatusBar('entregue', lead, order);
   }
 
