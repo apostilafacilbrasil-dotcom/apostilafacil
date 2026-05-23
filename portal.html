@@ -982,6 +982,7 @@ function openModal(i){
     <div style="display:flex;border-bottom:1px solid #eee;margin-bottom:1.25rem;gap:0;overflow-x:auto;">
       <button class="modal-tab active" onclick="switchModalTab('detalhes',this)">Detalhes</button>
       ${mostrarProducao?'<button class="modal-tab" onclick="switchModalTab(\'producao\',this)">Produção</button>':''}
+      <button class="modal-tab" onclick="switchModalTab('entrega',this)">📦 Entrega</button>
       <button class="modal-tab" onclick="switchModalTab('obs',this)">Observações</button>
       <button class="modal-tab" onclick="switchModalTab('notas',this)">Anotações</button>
       <button class="modal-tab" onclick="switchModalTab('historico',this)">Histórico</button>
@@ -1050,6 +1051,41 @@ function openModal(i){
       </div>
     </div>`:''}
 
+    <!-- ABA ENTREGA -->
+    <div id="mtab-entrega" style="display:none;">
+      <div class="mlabel" style="margin-bottom:.5rem;">Documento finalizado</div>
+      <p style="font-size:.82rem;color:#4A6A82;line-height:1.6;margin-bottom:1rem;">Anexe o documento finalizado aqui. Você poderá enviá-lo por e-mail diretamente para o cliente.</p>
+      <label style="display:flex;align-items:center;gap:.75rem;padding:1rem 1.2rem;border:1.5px dashed rgba(46,126,198,.4);background:#EBF4FF;border-radius:10px;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='#2E7EC6'" onmouseout="this.style.borderColor='rgba(46,126,198,.4)'">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:.9;color:#2E7EC6;">+</span>
+        <div>
+          <div id="entregaFileName-${o.id}" style="font-size:.85rem;color:#0D1B2A;font-weight:500;">Clique para selecionar o arquivo</div>
+          <div style="font-size:.72rem;color:#4A6A82;margin-top:.1rem;">PDF, DOCX, JPG ou ZIP</div>
+        </div>
+        <input type="file" id="entregaFile-${o.id}" accept=".pdf,.docx,.jpg,.jpeg,.png,.zip" style="display:none" onchange="entregaFileSelected('${o.id}', this)"/>
+      </label>
+      <div id="entregaPreview-${o.id}" style="display:none;margin-top:.75rem;background:#F0FDF4;border:1px solid rgba(0,135,90,.2);border-radius:8px;padding:.75rem 1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;">
+          <span id="entregaPreviewName-${o.id}" style="font-size:.85rem;color:#00875A;font-weight:500;">—</span>
+          <button onclick="limparEntregaFile('${o.id}')" style="background:none;border:none;color:#C0392B;cursor:pointer;font-size:.85rem;">✕</button>
+        </div>
+      </div>
+      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #eee;">
+        <div class="mlabel" style="margin-bottom:.5rem;">Mensagem para o cliente (opcional)</div>
+        <textarea id="entregaMsg-${o.id}" rows="3" placeholder="Ex: Segue o documento apostilado conforme solicitado. Qualquer dúvida estamos à disposição!" style="width:100%;padding:.75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.85rem;color:#1E3A52;outline:none;resize:vertical;line-height:1.6;"></textarea>
+      </div>
+      <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
+        <button onclick="enviarDocumentoFinalizado('${o.id}','${lead?.email||''}','${lead?.nome||''}','${o.codigo||''}','${o.servico||''}')" style="background:#00875A;color:#fff;border:none;padding:.75rem 1.4rem;border-radius:8px;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;">
+          📩 Enviar por e-mail
+        </button>
+        <button onclick="uploadSomenteEntrega('${o.id}')" style="background:#fff;color:#2E7EC6;border:1.5px solid rgba(46,126,198,.3);padding:.75rem 1.4rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;">
+          ☁️ Só salvar no sistema
+        </button>
+      </div>
+      <div id="entregaFeedback-${o.id}" style="display:none;margin-top:.75rem;"></div>
+      <!-- Documentos finalizados já enviados -->
+      <div id="entregaHistorico-${o.id}" style="margin-top:1.25rem;"></div>
+    </div>
+
     <!-- ABA OBSERVAÇÕES -->
     <div id="mtab-obs" style="display:none;">
       <div class="mlabel" style="margin-bottom:.5rem;">Observações do atendimento</div>
@@ -1107,14 +1143,135 @@ function openModal(i){
 
 function closeModal(){ document.getElementById('orderModal').style.display='none'; }
 
+// ── ENTREGA DE DOCUMENTO FINALIZADO ──
+let entregaFiles = {};
+
+function entregaFileSelected(orderId, input){
+  const file = input.files[0];
+  if(!file) return;
+  entregaFiles[orderId] = file;
+  document.getElementById(`entregaFileName-${orderId}`).textContent = file.name;
+  const preview = document.getElementById(`entregaPreview-${orderId}`);
+  const previewName = document.getElementById(`entregaPreviewName-${orderId}`);
+  if(preview) preview.style.display='block';
+  if(previewName) previewName.textContent = `📄 ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+}
+
+function limparEntregaFile(orderId){
+  entregaFiles[orderId] = null;
+  const input = document.getElementById(`entregaFile-${orderId}`);
+  if(input) input.value='';
+  document.getElementById(`entregaFileName-${orderId}`).textContent='Clique para selecionar o arquivo';
+  const preview = document.getElementById(`entregaPreview-${orderId}`);
+  if(preview) preview.style.display='none';
+}
+
+function mostrarFeedbackEntrega(orderId, msg, cor='#00875A'){
+  const fb = document.getElementById(`entregaFeedback-${orderId}`);
+  if(!fb) return;
+  fb.style.display='block';
+  fb.style.cssText=`display:block;margin-top:.75rem;padding:.75rem 1rem;border-radius:8px;font-size:.82rem;font-weight:500;background:${cor==='#00875A'?'rgba(0,135,90,.08)':'rgba(192,57,43,.08)'};color:${cor};border:1px solid ${cor==='#00875A'?'rgba(0,135,90,.2)':'rgba(192,57,43,.2)'};`;
+  fb.textContent=msg;
+  setTimeout(()=>{if(fb) fb.style.display='none';}, 5000);
+}
+
+async function uploadSomenteEntrega(orderId){
+  const file = entregaFiles[orderId];
+  if(!file){ mostrarFeedbackEntrega(orderId,'⚠️ Selecione um arquivo primeiro.','#C0392B'); return; }
+  const btn = document.querySelector(`button[onclick="uploadSomenteEntrega('${orderId}')"]`);
+  if(btn){ btn.disabled=true; btn.textContent='Salvando...'; }
+  try{
+    const filePath = `entregues/${orderId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    const {error} = await sb.storage.from('documentos').upload(filePath, file);
+    if(error) throw error;
+    // Salvar referência no banco
+    const order = allOrders.find(o=>o.id===orderId);
+    const arquivosAtuais = Array.isArray(order?._arquivosEntregues) ? order._arquivosEntregues : [];
+    await sb.from('orders').update({arquivos_entregues: [...arquivosAtuais, filePath]}).eq('id', orderId);
+    mostrarFeedbackEntrega(orderId,'✅ Arquivo salvo no sistema!');
+    limparEntregaFile(orderId);
+    carregarDocumentosEntregues();
+  } catch(e){
+    mostrarFeedbackEntrega(orderId,'❌ Erro ao salvar: '+e.message,'#C0392B');
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='☁️ Só salvar no sistema'; }
+  }
+}
+
+async function enviarDocumentoFinalizado(orderId, emailCliente, nomeCliente, codigo, servico){
+  const file = entregaFiles[orderId];
+  if(!file){ mostrarFeedbackEntrega(orderId,'⚠️ Selecione um arquivo primeiro.','#C0392B'); return; }
+  if(!emailCliente){ mostrarFeedbackEntrega(orderId,'⚠️ Cliente sem e-mail cadastrado.','#C0392B'); return; }
+  const btn = document.querySelector(`button[onclick*="enviarDocumentoFinalizado('${orderId}"]`);
+  if(btn){ btn.disabled=true; btn.textContent='Enviando...'; }
+  try{
+    // 1. Fazer upload no storage
+    const filePath = `entregues/${orderId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    const {error:uploadError} = await sb.storage.from('documentos').upload(filePath, file);
+    if(uploadError) throw uploadError;
+    // 2. Gerar URL assinada (7 dias)
+    const {data:urlData} = await sb.storage.from('documentos').createSignedUrl(filePath, 604800);
+    const signedUrl = urlData?.signedUrl || '';
+    // 3. Salvar referência no banco
+    const order = allOrders.find(o=>o.id===orderId);
+    const arquivosAtuais = order?.arquivos_entregues || [];
+    await sb.from('orders').update({arquivos_entregues: [...arquivosAtuais, filePath]}).eq('id', orderId);
+    // 4. Enviar e-mail via Edge Function
+    const msg = document.getElementById(`entregaMsg-${orderId}`)?.value || '';
+    await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w'},
+      body:JSON.stringify({
+        nome:nomeCliente, email:emailCliente, servico, codigo,
+        tipo:'documento_entregue',
+        descricao: msg || 'Segue o documento finalizado conforme solicitado.',
+        arquivo_url: signedUrl,
+        arquivo_nome: file.name,
+      }),
+    });
+    mostrarFeedbackEntrega(orderId,`✅ Documento enviado para ${emailCliente}!`);
+    limparEntregaFile(orderId);
+    carregarDocumentosEntregues();
+    showNotifBar('📩 Documento enviado para '+emailCliente,'#00875A');
+  } catch(e){
+    mostrarFeedbackEntrega(orderId,'❌ Erro ao enviar: '+e.message,'#C0392B');
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='📩 Enviar por e-mail'; }
+  }
+}
+
+async function carregarDocumentosEntregues(){
+  const modal = document.getElementById('modalContent');
+  if(!modal) return;
+  // Pegar o orderId do modal aberto
+  const orderId = modal.querySelector('[id^="entregaFile-"]')?.id?.replace('entregaFile-','');
+  if(!orderId) return;
+  const hist = document.getElementById(`entregaHistorico-${orderId}`);
+  if(!hist) return;
+  const {data:order} = await sb.from('orders').select('arquivos_entregues').eq('id',orderId).single();
+  const arqs = order?.arquivos_entregues || [];
+  if(!arqs.length){ hist.innerHTML='<p style="font-size:.78rem;color:#8899AA;margin-top:.5rem;">Nenhum documento entregue ainda.</p>'; return; }
+  hist.innerHTML=`<div class="mlabel" style="margin-bottom:.5rem;">Documentos já entregues</div>`;
+  for(const path of arqs){
+    const {data:urlData} = await sb.storage.from('documentos').createSignedUrl(path,3600);
+    const nome = path.split('/').pop().replace(/^[0-9]+_/,'');
+    const a = document.createElement('a');
+    a.href = urlData?.signedUrl||'#'; a.target='_blank';
+    a.style.cssText='display:inline-flex;align-items:center;gap:.5rem;background:#EBF4FF;border:1px solid rgba(46,126,198,.2);padding:.5rem .9rem;border-radius:6px;font-size:.8rem;color:#2E7EC6;text-decoration:none;margin-bottom:.3rem;margin-right:.3rem;';
+    a.textContent='📄 '+nome;
+    hist.appendChild(a);
+  }
+}
+
 function switchModalTab(name, btn){
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  ['detalhes','producao','obs','notas','historico'].forEach(t=>{
+  ['detalhes','producao','entrega','obs','notas','historico'].forEach(t=>{
     const el=document.getElementById('mtab-'+t);
     if(el) el.style.display = t===name ? 'block' : 'none';
   });
   if(name==='historico') carregarHistorico();
+  if(name==='entrega') carregarDocumentosEntregues();
 }
 
 async function toggleSubProd(orderId, key, checked){
