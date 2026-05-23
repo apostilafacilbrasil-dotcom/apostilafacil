@@ -335,6 +335,59 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
             </div>
           </div>
         </div>
+
+        <!-- META MENSAL + COMPARATIVO -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;">
+
+          <!-- Meta mensal -->
+          <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+              <div>
+                <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.2rem;">Meta do mês</div>
+                <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.1rem;color:#0D1B2A;">Progresso de lucro</div>
+              </div>
+              <button onclick="abrirModalMeta()" style="background:none;border:1px solid var(--line2);color:var(--muted2);padding:.35rem .75rem;border-radius:6px;font-size:.72rem;cursor:pointer;">Editar meta</button>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.6rem;">
+              <span id="metaLucroAtual" style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#00875A;line-height:1;">R$ 0</span>
+              <span id="metaLucroAlvo" style="font-size:.82rem;color:#4A6A82;">de R$ 0</span>
+            </div>
+            <div style="background:rgba(13,27,42,.07);border-radius:999px;height:8px;overflow:hidden;">
+              <div id="metaProgressBar" style="height:100%;background:linear-gradient(90deg,#2E7EC6,#00875A);border-radius:999px;transition:width .6s ease;width:0%;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:.4rem;">
+              <span id="metaProgressPct" style="font-size:.72rem;color:#4A6A82;">0%</span>
+              <span id="metaFaltam" style="font-size:.72rem;color:#4A6A82;"></span>
+            </div>
+          </div>
+
+          <!-- Comparativo mês anterior -->
+          <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;">
+            <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.2rem;">Comparativo</div>
+            <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.1rem;color:#0D1B2A;margin-bottom:1rem;">Este mês vs. mês anterior</div>
+            <div id="comparativoContent">
+              <div style="display:flex;flex-direction:column;gap:.75rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem .85rem;background:#F0FDF4;border-radius:8px;">
+                  <span style="font-size:.78rem;color:#4A6A82;">Lucro este mês</span>
+                  <span id="compMesAtual" style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:#00875A;">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem .85rem;background:#F8FAFC;border-radius:8px;">
+                  <span style="font-size:.78rem;color:#4A6A82;">Lucro mês anterior</span>
+                  <span id="compMesAnterior" style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:#4A6A82;">—</span>
+                </div>
+                <div id="compVariacao" style="text-align:center;padding:.5rem;border-radius:8px;font-size:.85rem;font-weight:600;"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RANKING SERVIÇOS -->
+        <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;margin-top:1.5rem;">
+          <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.2rem;">Análise</div>
+          <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.1rem;color:#0D1B2A;margin-bottom:1rem;">Serviços mais lucrativos</div>
+          <div id="rankingServicos" style="display:flex;flex-direction:column;gap:.5rem;"></div>
+        </div>
       </div>
 
       <!-- PAGE: PEDIDOS -->
@@ -368,6 +421,7 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
                 <th>Cliente</th>
                 <th>Serviço</th>
                 <th onclick="sortOrders('valor')">Valor</th>
+                <th>Margem</th>
                 <th>Status</th>
                 <th onclick="sortOrders('created_at')">Recebido</th>
                 <th onclick="sortOrders('data_entrega')">Entrega</th>
@@ -927,8 +981,8 @@ function renderRevenueChart(){
     const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
     months.push({ key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}) });
   }
-  const receitaMap = {}, pagosMap = {}, qtdMap = {}, entreguesMap = {};
-  months.forEach(m=>{ receitaMap[m.key]=0; pagosMap[m.key]=0; qtdMap[m.key]=0; entreguesMap[m.key]=0; });
+  const receitaMap = {}, pagosMap = {}, qtdMap = {}, entreguesMap = {}, lucroMap = {};
+  months.forEach(m=>{ receitaMap[m.key]=0; pagosMap[m.key]=0; qtdMap[m.key]=0; entreguesMap[m.key]=0; lucroMap[m.key]=0; });
   allOrders.forEach(o=>{
     if(!o.created_at) return;
     const k=o.created_at.slice(0,7);
@@ -936,12 +990,17 @@ function renderRevenueChart(){
       receitaMap[k]+=(o.valor||0);
       qtdMap[k]++;
       if(o.pago) pagosMap[k]+=(o.valor||0);
-      if(o.status==='entregue') entreguesMap[k]++;
+      if(o.status==='entregue'){
+        entreguesMap[k]++;
+        const c=calcularCustoPedido(o);
+        if(c) lucroMap[k]+=c.lucro;
+      }
     }
   });
   const labels=months.map(m=>m.label);
   const dataReceita=months.map(m=>receitaMap[m.key]);
   const dataPagos=months.map(m=>pagosMap[m.key]);
+  const dataLucro=months.map(m=>lucroMap[m.key]);
   if(revenueChartInstance) revenueChartInstance.destroy();
   revenueChartInstance = new Chart(ctx,{
     type:'bar',
@@ -950,6 +1009,7 @@ function renderRevenueChart(){
       datasets:[
         {label:'Orçamentos (R$)',data:dataReceita,backgroundColor:'rgba(46,126,198,.15)',borderColor:'rgba(46,126,198,.6)',borderWidth:1.5,borderRadius:4},
         {label:'Recebido (R$)',data:dataPagos,backgroundColor:'rgba(0,135,90,.2)',borderColor:'rgba(0,135,90,.7)',borderWidth:1.5,borderRadius:4},
+        {label:'Lucro líquido (R$)',data:dataLucro,type:'line',borderColor:'#00875A',backgroundColor:'rgba(0,135,90,.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#00875A',tension:0.3,fill:true},
       ]
     },
     options:{
@@ -1322,6 +1382,110 @@ async function excluirAfiliado(id, nome){
   carregarAfiliados();
 }
 
+// ── META MENSAL ──
+function abrirModalMeta(){
+  try{ document.getElementById('metaInput').value = localStorage.getItem('metaMensal')||''; }catch(e){}
+  document.getElementById('modalMeta').style.display='flex';
+}
+function fecharModalMeta(){ document.getElementById('modalMeta').style.display='none'; }
+function salvarMeta(){
+  const val = parseFloat(document.getElementById('metaInput').value)||0;
+  try{ localStorage.setItem('metaMensal', val); }catch(e){}
+  fecharModalMeta();
+  atualizarMetaMensal();
+}
+
+function atualizarMetaMensal(){
+  let meta = 0;
+  try{ meta = parseFloat(localStorage.getItem('metaMensal'))||0; }catch(e){}
+  const now = new Date();
+  const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const fimMes = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59).toISOString();
+  const pedidosMes = allOrders.filter(o=>o.status==='entregue'&&o.created_at>=inicioMes&&o.created_at<=fimMes);
+  let lucroMes = 0;
+  pedidosMes.forEach(o=>{ const c=calcularCustoPedido(o); if(c) lucroMes+=c.lucro; });
+  const fmt = v => 'R$'+Math.max(0,v).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  document.getElementById('metaLucroAtual').textContent = fmt(lucroMes);
+  document.getElementById('metaLucroAlvo').textContent = meta>0?'de '+fmt(meta):'Sem meta definida';
+  const pct = meta>0 ? Math.min(100, Math.round((lucroMes/meta)*100)) : 0;
+  document.getElementById('metaProgressBar').style.width = pct+'%';
+  document.getElementById('metaProgressBar').style.background = pct>=100?'#00875A':pct>=60?'linear-gradient(90deg,#2E7EC6,#00875A)':'linear-gradient(90deg,#B45309,#2E7EC6)';
+  document.getElementById('metaProgressPct').textContent = pct+'%';
+  const faltam = meta>0 ? Math.max(0, meta-lucroMes) : 0;
+  document.getElementById('metaFaltam').textContent = faltam>0?'Faltam '+fmt(faltam):pct>=100?'🎉 Meta atingida!':'';
+}
+
+function atualizarComparativo(){
+  const now = new Date();
+  const inicioAtual = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const fimAtual = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59).toISOString();
+  const inicioAnterior = new Date(now.getFullYear(), now.getMonth()-1, 1).toISOString();
+  const fimAnterior = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString();
+  let lucroAtual=0, lucroAnterior=0;
+  allOrders.filter(o=>o.status==='entregue').forEach(o=>{
+    const c=calcularCustoPedido(o);
+    if(!c) return;
+    if(o.created_at>=inicioAtual&&o.created_at<=fimAtual) lucroAtual+=c.lucro;
+    if(o.created_at>=inicioAnterior&&o.created_at<=fimAnterior) lucroAnterior+=c.lucro;
+  });
+  const fmt = v => 'R$'+v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  document.getElementById('compMesAtual').textContent = fmt(lucroAtual);
+  document.getElementById('compMesAnterior').textContent = fmt(lucroAnterior);
+  const varEl = document.getElementById('compVariacao');
+  if(lucroAnterior>0){
+    const variacao = Math.round(((lucroAtual-lucroAnterior)/lucroAnterior)*100);
+    const positivo = variacao>=0;
+    varEl.style.background = positivo?'rgba(0,135,90,.08)':'rgba(192,57,43,.08)';
+    varEl.style.color = positivo?'#00875A':'#C0392B';
+    varEl.textContent = (positivo?'▲ +':'▼ ')+variacao+'% em relação ao mês anterior';
+  } else if(lucroAtual>0){
+    varEl.style.background='rgba(0,135,90,.08)'; varEl.style.color='#00875A';
+    varEl.textContent='▲ Primeiro mês com lucro registrado!';
+  } else {
+    varEl.style.background='rgba(13,27,42,.04)'; varEl.style.color='#4A6A82';
+    varEl.textContent='Configure os custos para ver o comparativo';
+  }
+}
+
+function atualizarRankingServicos(){
+  const mapa = {};
+  allOrders.filter(o=>o.status==='entregue'&&o.valor).forEach(o=>{
+    const c=calcularCustoPedido(o);
+    if(!c) return;
+    const tipo = o.servico?.includes('Tradução')&&o.servico?.includes('Apostil')?'Apostila + Tradução':
+                 o.servico?.includes('Tradução')?'Tradução Juramentada':'Apostila de Haia';
+    if(!mapa[tipo]) mapa[tipo]={lucro:0,qtd:0,receita:0};
+    mapa[tipo].lucro+=c.lucro;
+    mapa[tipo].qtd++;
+    mapa[tipo].receita+=o.valor;
+  });
+  const itens = Object.entries(mapa).sort((a,b)=>b[1].lucro-a[1].lucro);
+  const el = document.getElementById('rankingServicos');
+  if(!itens.length){ el.innerHTML='<p style="font-size:.82rem;color:#4A6A82;">Configure os custos para ver o ranking.</p>'; return; }
+  const maxLucro = Math.max(...itens.map(i=>i[1].lucro));
+  el.innerHTML = itens.map(([tipo,d],i)=>{
+    const pct = maxLucro>0?Math.round((d.lucro/maxLucro)*100):0;
+    const cor = i===0?'#00875A':i===1?'#2E7EC6':'#B45309';
+    const margem = d.receita>0?Math.round((d.lucro/d.receita)*100):0;
+    return `<div style="padding:.75rem 0;border-bottom:1px solid rgba(13,27,42,.06);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span style="font-size:.8rem;font-weight:600;color:${cor};">#${i+1}</span>
+          <span style="font-size:.85rem;color:#0D1B2A;">${tipo}</span>
+          <span style="font-size:.7rem;color:#4A6A82;">(${d.qtd} pedido${d.qtd!==1?'s':''})</span>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:${cor};">R$${d.lucro.toFixed(0)}</span>
+          <span style="font-size:.7rem;color:#4A6A82;margin-left:.4rem;">${margem}% margem</span>
+        </div>
+      </div>
+      <div style="background:rgba(13,27,42,.07);border-radius:999px;height:5px;overflow:hidden;">
+        <div style="height:100%;background:${cor};border-radius:999px;width:${pct}%;transition:width .5s ease;"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // ── CONFIGURAÇÕES DE CUSTO ──
 let cfgGlobal = {custo_apostilamento:0, custo_traducao_ingles:0, custo_traducao_espanhol:0, custo_traducao_frances:0, custo_traducao_italiano:0};
 
@@ -1420,6 +1584,9 @@ function calcularLucroDashboard(){
       if(elMargem) elMargem.textContent = 'configure os custos';
     }
   }
+  atualizarMetaMensal();
+  atualizarComparativo();
+  atualizarRankingServicos();
 }
 
 function limparFiltroData(){
@@ -1515,6 +1682,15 @@ function renderOrders(orders){
       <td><button onclick="openModal(${idx})" style="background:none;border:none;padding:0;cursor:pointer;text-align:left;"><span style="font-weight:500;color:#0D1B2A;">${nome}</span>${email?`<br><span style="font-size:.72rem;color:#2E7EC6;">${email}</span>`:''}</button></td>
       <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.servico||'—'}</td>
       <td style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:#2E7EC6;">${o.valor?'R$'+Number(o.valor).toFixed(2):'—'}${pagBadge}</td>
+      <td>${(()=>{
+        const c = calcularCustoPedido(o);
+        if(!c||!o.valor) return '<span style="font-size:.7rem;color:#8899AA;">—</span>';
+        const margem = Math.round((c.lucro/o.valor)*100);
+        const cor = margem>=50?'#00875A':margem>=25?'#B45309':'#C0392B';
+        const bg = margem>=50?'rgba(0,135,90,.08)':margem>=25?'rgba(180,83,9,.08)':'rgba(192,57,43,.08)';
+        const alerta = margem<25?'<span title="Margem baixa!" style="margin-left:.3rem;font-size:.75rem;">⚠️</span>':'';
+        return `<span style="background:${bg};color:${cor};font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:4px;white-space:nowrap;">${margem}%</span>${alerta}`;
+      })()}</td>
       <td>
         <select class="status-select" onchange="updateStatus('${o.id}',this.value,this)">
           <optgroup label="── Orçamento ──">
@@ -2675,6 +2851,25 @@ async function criarOrcamentoManual(){
   alert('Orçamento '+codigo+' criado com sucesso!');
 }
 </script>
+<!-- MODAL META MENSAL -->
+<div id="modalMeta" onclick="if(event.target===this)fecharModalMeta()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(13,27,42,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <div>
+        <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.2rem;">Dashboard</div>
+        <div style="font-size:1.1rem;font-weight:600;color:#0D1B2A;">Meta mensal de lucro</div>
+      </div>
+      <button onclick="fecharModalMeta()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
+    </div>
+    <div class="field"><label>Meta de lucro (R$)</label><input id="metaInput" type="number" step="100" min="0" placeholder="Ex: 5000"/></div>
+    <p style="font-size:.75rem;color:#4A6A82;margin-bottom:1.25rem;line-height:1.5;">O progresso será calculado com base no lucro líquido dos pedidos entregues no mês atual.</p>
+    <div style="display:flex;gap:.75rem;">
+      <button onclick="fecharModalMeta()" style="flex:1;background:#fff;border:1px solid var(--line2);color:var(--muted);padding:.75rem;border-radius:8px;font-size:.78rem;cursor:pointer;">Cancelar</button>
+      <button onclick="salvarMeta()" style="flex:2;background:#2E7EC6;color:#fff;border:none;padding:.75rem;border-radius:8px;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;">Salvar meta</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL NOVO AFILIADO -->
 <div id="modalNovoAfiliado" onclick="if(event.target===this)fecharModalNovoAfiliado()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
   <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(13,27,42,.2);">
