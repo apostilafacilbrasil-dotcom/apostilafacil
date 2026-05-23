@@ -253,6 +253,10 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span>Leads</span>
       </button>
+      <button class="snav-item" onclick="navTo('afiliados')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span>Afiliados</span>
+      </button>
       <div class="snav-divider"></div>
       <button class="snav-item snav-new" onclick="openNewOrcModal()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
@@ -375,6 +379,23 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
 
       <!-- PAGE: LEADS -->
       <div class="page" id="page-leads" style="display:none">
+
+      <!-- SAQUES PENDENTES (aparece só quando há saques) -->
+      <div id="saquePendenteSection" style="display:none;margin-bottom:2rem;">
+        <div style="background:#FFF8E1;border:1px solid #F59E0B;border-radius:12px;padding:1.25rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem;">
+            <div style="display:flex;align-items:center;gap:.75rem;">
+              <span style="font-size:1.4rem;">💰</span>
+              <div>
+                <div style="font-size:.82rem;font-weight:600;color:#92400E;">Saques pendentes</div>
+                <div style="font-size:.72rem;color:#B45309;" id="saquesQtdBadge">0 solicitações aguardando liberação</div>
+              </div>
+            </div>
+            <button onclick="navTo('afiliados')" style="background:#B45309;color:#fff;border:none;padding:.5rem 1rem;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;">Ver afiliados →</button>
+          </div>
+          <div id="saquesPendentesLista" style="display:flex;flex-direction:column;gap:.5rem;"></div>
+        </div>
+      </div>
         <div class="page-header">
           <div class="page-eyebrow">Captação</div>
           <h1 class="page-title">Leads</h1>
@@ -397,9 +418,36 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
         </div>
       </div>
 
-    </div>
+      <!-- PÁGINA AFILIADOS -->
+      <div class="page" id="page-afiliados" style="display:none">
+        <div class="page-header" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+          <div>
+            <div class="page-eyebrow">Indicações</div>
+            <h1 class="page-title">Afiliados</h1>
+          </div>
+          <button onclick="abrirModalNovoAfiliado()" style="display:flex;align-items:center;gap:.5rem;background:#2E7EC6;color:#fff;border:none;padding:.6rem 1.1rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;">
+            + Novo afiliado
+          </button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-head"><span class="table-title">Links de afiliados</span></div>
+          <div id="afiliadosLoading" class="loading"><div class="spinner"></div>Carregando...</div>
+          <div id="afiliadosTable" style="display:none">
+            <table>
+              <thead><tr>
+                <th>Nome</th><th>Código</th><th>Link</th><th>Indicações</th><th>Convertidos</th><th>Ações</th>
+              </tr></thead>
+              <tbody id="afiliadosTbody"></tbody>
+            </table>
+            <div id="afiliadosEmpty" class="empty-state" style="display:none">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <p>Nenhum afiliado cadastrado ainda.</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <!-- CLIENT PANEL -->
+    </div>
     <div id="clientPanel" style="display:none">
       <div class="page-header">
         <div class="page-eyebrow">Área do cliente</div>
@@ -413,6 +461,75 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
         <div class="client-card">
           <div class="client-card-title">Meus pedidos</div>
           <div id="clientOrders"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAINEL AFILIADO -->
+    <div id="afiliadoPanel" style="display:none;padding:2rem 4vw;max-width:900px;margin:0 auto;">
+      <div style="margin-bottom:2rem;">
+        <div style="font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;margin-bottom:.3rem;">Área do afiliado</div>
+        <h1 style="font-family:'EB Garamond',Georgia,serif;font-size:2rem;color:#0D1B2A;">Olá, <em id="afiliadoNomePanel">—</em>!</h1>
+      </div>
+
+      <!-- Cards de saldo -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;">
+        <div style="background:#fff;border:1px solid rgba(46,126,198,.15);border-radius:12px;padding:1.25rem;">
+          <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;">Saldo disponível</div>
+          <div id="afiliadoSaldo" style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:#00875A;line-height:1;">R$ 0,00</div>
+          <button id="btnSolicitarSaque" onclick="abrirModalSaque()" style="margin-top:.75rem;background:#00875A;color:#fff;border:none;padding:.5rem 1rem;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;width:100%;">Solicitar saque</button>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(46,126,198,.15);border-radius:12px;padding:1.25rem;">
+          <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;">Total gerado</div>
+          <div id="afiliadoTotalGerado" style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:#2E7EC6;line-height:1;">R$ 0,00</div>
+          <div style="font-size:.72rem;color:#4A6A82;margin-top:.5rem;" id="afiliadoQtdIndicacoes">0 indicações convertidas</div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(46,126,198,.15);border-radius:12px;padding:1.25rem;">
+          <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;">Total sacado</div>
+          <div id="afiliadoTotalSacado" style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:#0D1B2A;line-height:1;">R$ 0,00</div>
+          <div style="font-size:.72rem;color:#4A6A82;margin-top:.5rem;">Transferências realizadas</div>
+        </div>
+      </div>
+
+      <!-- Meu link -->
+      <div style="background:#EBF4FF;border:1px solid rgba(46,126,198,.2);border-radius:12px;padding:1.25rem;margin-bottom:2rem;">
+        <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.5rem;">Meu link de indicação</div>
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+          <div id="afiliadoLinkDisplay" style="flex:1;background:#fff;border:1px solid rgba(46,126,198,.2);border-radius:8px;padding:.65rem 1rem;font-size:.85rem;color:#2E7EC6;font-weight:500;word-break:break-all;"></div>
+          <button onclick="copiarLinkAfiliado()" style="background:#2E7EC6;color:#fff;border:none;padding:.65rem 1.2rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;">📋 Copiar</button>
+          <button onclick="compartilharWhatsAppAfiliado()" style="background:#25D366;color:#fff;border:none;padding:.65rem 1.2rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;">💬 Enviar</button>
+        </div>
+        <p style="font-size:.72rem;color:#4A6A82;margin-top:.5rem;">Quem comprar pelo seu link recebe 5% de desconto, e você ganha 10% de comissão!</p>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:.5rem;margin-bottom:1.25rem;border-bottom:1px solid rgba(13,27,42,.1);padding-bottom:.75rem;">
+        <button id="tabComissoes" onclick="mostrarTabAfiliado('comissoes')" style="background:#0D1B2A;color:#fff;border:none;padding:.5rem 1rem;border-radius:6px;font-size:.78rem;font-weight:500;cursor:pointer;">Comissões</button>
+        <button id="tabSaques" onclick="mostrarTabAfiliado('saques')" style="background:none;border:1px solid rgba(13,27,42,.15);color:#4A6A82;padding:.5rem 1rem;border-radius:6px;font-size:.78rem;font-weight:500;cursor:pointer;">Saques</button>
+        <button id="tabConfigAfiliado" onclick="mostrarTabAfiliado('config')" style="background:none;border:1px solid rgba(13,27,42,.15);color:#4A6A82;padding:.5rem 1rem;border-radius:6px;font-size:.78rem;font-weight:500;cursor:pointer;">Configurações</button>
+      </div>
+
+      <!-- Tab Comissões -->
+      <div id="tabContent-comissoes">
+        <div id="afiliadoComissoesList" style="display:flex;flex-direction:column;gap:.5rem;">
+          <div class="loading"><div class="spinner"></div>Carregando...</div>
+        </div>
+      </div>
+
+      <!-- Tab Saques -->
+      <div id="tabContent-saques" style="display:none;">
+        <div id="afiliadoSaquesList" style="display:flex;flex-direction:column;gap:.5rem;">
+          <div class="loading"><div class="spinner"></div>Carregando...</div>
+        </div>
+      </div>
+
+      <!-- Tab Config -->
+      <div id="tabContent-config" style="display:none;">
+        <div style="background:#fff;border:1px solid rgba(13,27,42,.1);border-radius:12px;padding:1.5rem;max-width:420px;">
+          <div style="font-size:.82rem;font-weight:600;color:#0D1B2A;margin-bottom:1rem;">Chave Pix para recebimento</div>
+          <div class="field"><label>Chave Pix</label><input id="afiliadoChavePix" type="text" placeholder="CPF, e-mail, telefone ou chave aleatória"/></div>
+          <button onclick="salvarChavePix()" style="background:#2E7EC6;color:#fff;border:none;padding:.65rem 1.2rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;">Salvar chave Pix</button>
+          <span id="chaveFeedback" style="display:none;font-size:.78rem;color:#00875A;margin-left:.75rem;">✓ Salvo!</span>
         </div>
       </div>
     </div>
@@ -529,14 +646,26 @@ sb.auth.onAuthStateChange(async (event, session)=>{
     if(session.user.email===ADMIN_EMAIL){
       document.getElementById('adminPanel').style.display='block';
       document.getElementById('clientPanel').style.display='none';
+      document.getElementById('afiliadoPanel').style.display='none';
       document.getElementById('sidebarNav').style.display='flex';
       loadAdminData();
       iniciarPolling();
     } else {
-      document.getElementById('adminPanel').style.display='none';
-      document.getElementById('clientPanel').style.display='block';
-      document.getElementById('sidebarNav').style.display='none';
-      loadClientData(session.user);
+      // Verificar se é afiliado
+      const {data:afiliado} = await sb.from('afiliados').select('*').eq('email', email).single();
+      if(afiliado){
+        document.getElementById('adminPanel').style.display='none';
+        document.getElementById('clientPanel').style.display='none';
+        document.getElementById('afiliadoPanel').style.display='block';
+        document.getElementById('sidebarNav').style.display='none';
+        loadAfiliadoPanel(afiliado);
+      } else {
+        document.getElementById('adminPanel').style.display='none';
+        document.getElementById('clientPanel').style.display='block';
+        document.getElementById('afiliadoPanel').style.display='none';
+        document.getElementById('sidebarNav').style.display='none';
+        loadClientData(session.user);
+      }
     }
   } else {
     document.getElementById('authWrap').style.display='flex';
@@ -551,10 +680,10 @@ function navTo(page){
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
   const pageEl=document.getElementById('page-'+page);
   if(pageEl) pageEl.style.display='block';
-  // Fechar sidebar no mobile
   document.getElementById('sidebar').classList.remove('open');
-  // Renderizar gráfico ao voltar pro dashboard
   if(page==='dashboard') setTimeout(renderRevenueChart, 50);
+  if(page==='leads') carregarLeads();
+  if(page==='afiliados') carregarAfiliados();
 }
 
 function toggleSidebar(){
@@ -679,6 +808,7 @@ async function loadAdminData(){
   const badge=document.getElementById('snavBadgePedidos');
   if(badge){ badge.textContent=novos||''; badge.style.display=novos?'inline':'none'; }
   renderRevenueChart();
+  carregarSaquesPendentes();
 }
 
 let revenueChartInstance = null;
@@ -761,6 +891,303 @@ function setFilter(key){
   activeFilter = key;
   buildFilterBar();
   applyFilters();
+}
+
+// ── PAINEL DO AFILIADO ──
+let afiliadoAtual = null;
+
+async function loadAfiliadoPanel(afiliado){
+  afiliadoAtual = afiliado;
+  document.getElementById('afiliadoNomePanel').textContent = afiliado.nome.split(' ')[0];
+  document.getElementById('afiliadoLinkDisplay').textContent = 'apostilasimples.com.br/?ref='+afiliado.codigo;
+  // Buscar comissões
+  const {data:comissoes} = await sb.from('comissoes').select('*').eq('codigo_afiliado', afiliado.codigo).order('created_at',{ascending:false});
+  const totalGerado = (comissoes||[]).reduce((s,c)=>s+Number(c.valor_comissao||0),0);
+  const qtdConvertidos = (comissoes||[]).length;
+  // Buscar saques
+  const {data:saques} = await sb.from('saques').select('*').eq('codigo_afiliado', afiliado.codigo).order('created_at',{ascending:false});
+  const totalSacado = (saques||[]).filter(s=>s.status==='pago').reduce((s,x)=>s+Number(x.valor||0),0);
+  const saldoDisp = totalGerado - totalSacado - (saques||[]).filter(s=>s.status==='solicitado').reduce((s,x)=>s+Number(x.valor||0),0);
+  const fmt = v => 'R$ '+Number(v).toFixed(2).replace('.',',');
+  document.getElementById('afiliadoSaldo').textContent = fmt(Math.max(0,saldoDisp));
+  document.getElementById('afiliadoTotalGerado').textContent = fmt(totalGerado);
+  document.getElementById('afiliadoTotalSacado').textContent = fmt(totalSacado);
+  document.getElementById('afiliadoQtdIndicacoes').textContent = qtdConvertidos+' indicação'+(qtdConvertidos!==1?'ões':'') +' convertida'+(qtdConvertidos!==1?'s':'');
+  document.getElementById('afiliadoChavePix').value = afiliado.chave_pix||'';
+  // Renderizar comissões
+  const comissoesEl = document.getElementById('afiliadoComissoesList');
+  if(!comissoes||!comissoes.length){
+    comissoesEl.innerHTML='<div style="text-align:center;padding:2rem;color:#4A6A82;font-size:.85rem;">Nenhuma comissão ainda. Compartilhe seu link!</div>';
+  } else {
+    comissoesEl.innerHTML = comissoes.map(c=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid rgba(13,27,42,.08);border-radius:8px;padding:.85rem 1rem;flex-wrap:wrap;gap:.5rem;">
+        <div>
+          <div style="font-size:.82rem;font-weight:500;color:#0D1B2A;">${c.order_codigo||'Pedido'}</div>
+          <div style="font-size:.72rem;color:#4A6A82;">${new Date(c.created_at).toLocaleDateString('pt-BR')}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:.82rem;font-weight:600;color:#00875A;">${fmt(c.valor_comissao)}</div>
+          <div style="font-size:.68rem;color:#4A6A82;">10% de ${fmt(c.valor_pedido)}</div>
+        </div>
+        <span style="font-size:.68rem;font-weight:600;padding:.2rem .6rem;border-radius:4px;${c.status==='pago'?'background:#F0FDF4;color:#00875A;':c.status==='pendente'?'background:#EBF4FF;color:#2E7EC6;':'background:#FFF8E1;color:#B45309;'}">${c.status==='pago'?'Pago':c.status==='pendente'?'Pendente':'Processando'}</span>
+      </div>`).join('');
+  }
+  // Renderizar saques
+  const saquesEl = document.getElementById('afiliadoSaquesList');
+  if(!saques||!saques.length){
+    saquesEl.innerHTML='<div style="text-align:center;padding:2rem;color:#4A6A82;font-size:.85rem;">Nenhum saque solicitado ainda.</div>';
+  } else {
+    saquesEl.innerHTML = saques.map(s=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid rgba(13,27,42,.08);border-radius:8px;padding:.85rem 1rem;flex-wrap:wrap;gap:.5rem;">
+        <div>
+          <div style="font-size:.82rem;font-weight:600;color:#0D1B2A;">${fmt(s.valor)}</div>
+          <div style="font-size:.72rem;color:#4A6A82;">Pix: ${s.chave_pix||'—'} · ${new Date(s.created_at).toLocaleDateString('pt-BR')}</div>
+          ${s.admin_obs?`<div style="font-size:.72rem;color:#B45309;margin-top:.2rem;">Obs: ${s.admin_obs}</div>`:''}
+        </div>
+        <span style="font-size:.68rem;font-weight:600;padding:.3rem .75rem;border-radius:20px;${s.status==='pago'?'background:#F0FDF4;color:#00875A;':s.status==='solicitado'?'background:#FFF8E1;color:#B45309;':s.status==='rejeitado'?'background:#FEE2E2;color:#C0392B;':'background:#EBF4FF;color:#2E7EC6;'}">${s.status==='pago'?'✓ Pago':s.status==='solicitado'?'⏳ Aguardando':s.status==='rejeitado'?'✕ Rejeitado':'Processando'}</span>
+      </div>`).join('');
+  }
+  // Guardar saldo disponível para o modal
+  window._saldoAfiliadoDisp = Math.max(0, saldoDisp);
+}
+
+function mostrarTabAfiliado(tab){
+  ['comissoes','saques','config'].forEach(t=>{
+    const content = document.getElementById('tabContent-'+t);
+    const btn = document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(content) content.style.display = t===tab?'block':'none';
+    if(btn){ btn.style.background = t===tab?'#0D1B2A':'none'; btn.style.color = t===tab?'#fff':'#4A6A82'; btn.style.border = t===tab?'none':'1px solid rgba(13,27,42,.15)'; }
+  });
+}
+
+function copiarLinkAfiliado(){
+  if(!afiliadoAtual) return;
+  const link = 'https://apostilasimples.com.br/?ref='+afiliadoAtual.codigo;
+  navigator.clipboard.writeText(link).then(()=>{
+    showNotifBar('✅ Link copiado!','#00875A');
+  }).catch(()=>{ prompt('Copie seu link:', link); });
+}
+
+function compartilharWhatsAppAfiliado(){
+  if(!afiliadoAtual) return;
+  const link = 'https://apostilasimples.com.br/?ref='+afiliadoAtual.codigo;
+  const msg = encodeURIComponent('Olá! Use meu link para apostilar seus documentos com 5% de desconto: '+link);
+  window.open('https://wa.me/?text='+msg,'_blank');
+}
+
+async function salvarChavePix(){
+  if(!afiliadoAtual) return;
+  const chave = document.getElementById('afiliadoChavePix').value.trim();
+  await sb.from('afiliados').update({chave_pix:chave}).eq('id',afiliadoAtual.id);
+  afiliadoAtual.chave_pix = chave;
+  const fb = document.getElementById('chaveFeedback');
+  if(fb){ fb.style.display='inline'; setTimeout(()=>fb.style.display='none',2000); }
+}
+
+function abrirModalSaque(){
+  const saldo = window._saldoAfiliadoDisp||0;
+  if(saldo < 10){ showNotifBar('⚠️ Saldo mínimo para saque é R$10,00','#B45309'); return; }
+  document.getElementById('modalSaldoDisp').textContent = 'R$ '+saldo.toFixed(2).replace('.',',');
+  document.getElementById('saqueValor').value = saldo.toFixed(2);
+  document.getElementById('saqueChavePix').value = afiliadoAtual?.chave_pix||'';
+  document.getElementById('saqueFeedback').style.display='none';
+  document.getElementById('modalSaque').style.display='flex';
+}
+
+function fecharModalSaque(){
+  document.getElementById('modalSaque').style.display='none';
+}
+
+async function confirmarSaque(){
+  const valor = parseFloat(document.getElementById('saqueValor').value);
+  const chave = document.getElementById('saqueChavePix').value.trim();
+  const fb = document.getElementById('saqueFeedback');
+  const mostrarErro = msg => { fb.style.cssText='display:block;padding:.65rem 1rem;background:rgba(192,57,43,.08);color:#C0392B;border:1px solid rgba(192,57,43,.2);border-radius:8px;font-size:.82rem;'; fb.textContent=msg; };
+  if(!valor||valor<10){ mostrarErro('⚠️ Valor mínimo de saque é R$10,00'); return; }
+  if(valor > (window._saldoAfiliadoDisp||0)){ mostrarErro('⚠️ Valor maior que o saldo disponível'); return; }
+  if(!chave){ mostrarErro('⚠️ Informe a chave Pix'); return; }
+  const btn = document.querySelector('#modalSaque button[onclick="confirmarSaque()"]');
+  if(btn){ btn.disabled=true; btn.textContent='Solicitando...'; }
+  const {error} = await sb.from('saques').insert({
+    afiliado_id: afiliadoAtual.id,
+    codigo_afiliado: afiliadoAtual.codigo,
+    valor, chave_pix: chave, status:'solicitado'
+  });
+  if(btn){ btn.disabled=false; btn.textContent='Solicitar saque'; }
+  if(error){ mostrarErro('❌ Erro: '+error.message); return; }
+  // Salvar chave pix se mudou
+  if(chave !== afiliadoAtual.chave_pix){
+    await sb.from('afiliados').update({chave_pix:chave}).eq('id',afiliadoAtual.id);
+    afiliadoAtual.chave_pix = chave;
+  }
+  fecharModalSaque();
+  showNotifBar('✅ Saque de R$'+valor.toFixed(2)+' solicitado! Aguarde a liberação.','#00875A');
+  loadAfiliadoPanel(afiliadoAtual);
+}
+
+// ── SAQUES PENDENTES NO ADMIN ──
+async function carregarSaquesPendentes(){
+  const {data:saques} = await sb.from('saques').select('*, afiliados(nome,email)').eq('status','solicitado').order('created_at',{ascending:false});
+  const section = document.getElementById('saquePendenteSection');
+  if(!saques||!saques.length){ if(section) section.style.display='none'; return; }
+  if(section) section.style.display='block';
+  document.getElementById('saquesQtdBadge').textContent = saques.length+' solicitaç'+(saques.length===1?'ão':'ões')+' aguardando liberação';
+  const fmt = v => 'R$ '+Number(v).toFixed(2).replace('.',',');
+  document.getElementById('saquesPendentesLista').innerHTML = saques.map(s=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:8px;padding:.85rem 1rem;flex-wrap:wrap;gap:.75rem;">
+      <div>
+        <div style="font-size:.85rem;font-weight:600;color:#0D1B2A;">${s.afiliados?.nome||s.codigo_afiliado} — <span style="color:#00875A;">${fmt(s.valor)}</span></div>
+        <div style="font-size:.72rem;color:#4A6A82;">Pix: ${s.chave_pix||'—'} · ${new Date(s.created_at).toLocaleDateString('pt-BR')}</div>
+      </div>
+      <div style="display:flex;gap:.5rem;">
+        <button onclick="liberarSaque('${s.id}','${s.codigo_afiliado}',${s.valor})" style="background:#00875A;color:#fff;border:none;padding:.45rem .9rem;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;">✓ Liberar</button>
+        <button onclick="rejeitarSaque('${s.id}')" style="background:#C0392B;color:#fff;border:none;padding:.45rem .9rem;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;">✕ Rejeitar</button>
+      </div>
+    </div>`).join('');
+}
+
+async function liberarSaque(saqueId, codigoAfiliado, valor){
+  if(!confirm(`Confirmar liberação de R$${Number(valor).toFixed(2)} para ${codigoAfiliado}?`)) return;
+  await sb.from('saques').update({status:'pago',liberado_at:new Date().toISOString()}).eq('id',saqueId);
+  // Atualizar total_sacado do afiliado
+  const {data:af} = await sb.from('afiliados').select('total_sacado').eq('codigo',codigoAfiliado).single();
+  await sb.from('afiliados').update({total_sacado:(Number(af?.total_sacado||0)+Number(valor))}).eq('codigo',codigoAfiliado);
+  showNotifBar('✅ Saque de R$'+Number(valor).toFixed(2)+' liberado!','#00875A');
+  carregarSaquesPendentes();
+}
+
+async function rejeitarSaque(saqueId){
+  const obs = prompt('Motivo da rejeição (opcional):');
+  if(obs===null) return;
+  await sb.from('saques').update({status:'rejeitado',admin_obs:obs||null}).eq('id',saqueId);
+  showNotifBar('Saque rejeitado.','#C0392B');
+  carregarSaquesPendentes();
+}
+
+// ── COMISSÃO AUTOMÁTICA ao confirmar pagamento ──
+async function registrarComissao(order){
+  if(!order.indicado_por||!order.valor) return;
+  const comissao = Number(order.valor)*0.10;
+  // Verificar se já existe
+  const {data:existe} = await sb.from('comissoes').select('id').eq('order_id',order.id).single();
+  if(existe) return;
+  const {data:afiliado} = await sb.from('afiliados').select('id').eq('codigo',order.indicado_por).single();
+  if(!afiliado) return;
+  await sb.from('comissoes').insert({
+    afiliado_id: afiliado.id,
+    order_id: order.id,
+    order_codigo: order.codigo,
+    codigo_afiliado: order.indicado_por,
+    valor_pedido: Number(order.valor),
+    valor_comissao: comissao,
+    status:'pendente'
+  });
+  // Atualizar saldo do afiliado
+  const {data:af} = await sb.from('afiliados').select('saldo,total_indicacoes,total_convertidos').eq('codigo',order.indicado_por).single();
+  await sb.from('afiliados').update({
+    saldo: (Number(af?.saldo||0)+comissao),
+    total_convertidos: (Number(af?.total_convertidos||0)+1)
+  }).eq('codigo',order.indicado_por);
+}
+
+// ── AFILIADOS ──
+async function carregarAfiliados(){
+  document.getElementById('afiliadosLoading').style.display='flex';
+  document.getElementById('afiliadosTable').style.display='none';
+  const {data:afiliados,error} = await sb.from('afiliados').select('*').order('created_at',{ascending:false});
+  document.getElementById('afiliadosLoading').style.display='none';
+  document.getElementById('afiliadosTable').style.display='block';
+  if(!afiliados||!afiliados.length){
+    document.getElementById('afiliadosEmpty').style.display='flex';
+    return;
+  }
+  document.getElementById('afiliadosEmpty').style.display='none';
+  const BASE_URL = 'https://apostilasimples.com.br/?ref=';
+  document.getElementById('afiliadosTbody').innerHTML = afiliados.map(a=>`
+    <tr>
+      <td><strong style="color:#0D1B2A;">${a.nome}</strong>${a.email?`<br><span style="font-size:.72rem;color:#4A6A82;">${a.email}</span>`:''}</td>
+      <td><span style="background:#EBF4FF;color:#2E7EC6;padding:.2rem .6rem;border-radius:4px;font-size:.78rem;font-weight:700;letter-spacing:.06em;">${a.codigo}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:.4rem;">
+          <span style="font-size:.72rem;color:#4A6A82;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${BASE_URL}${a.codigo}</span>
+          <button onclick="copiarLink('${BASE_URL}${a.codigo}')" title="Copiar link" style="background:none;border:1px solid rgba(46,126,198,.2);color:#2E7EC6;padding:.2rem .5rem;border-radius:4px;font-size:.7rem;cursor:pointer;">📋</button>
+          ${a.whatsapp?`<a href="https://wa.me/55${a.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent('Olá '+a.nome.split(' ')[0]+'! Segue seu link de indicação: '+BASE_URL+a.codigo)}" target="_blank" title="Enviar por WhatsApp" style="background:none;border:1px solid rgba(37,211,102,.3);color:#25D366;padding:.2rem .5rem;border-radius:4px;font-size:.7rem;cursor:pointer;text-decoration:none;">💬</a>`:''}
+        </div>
+      </td>
+      <td style="text-align:center;"><strong style="color:#2E7EC6;">${a.total_indicacoes||0}</strong></td>
+      <td style="text-align:center;"><strong style="color:#00875A;">${a.total_convertidos||0}</strong></td>
+      <td><button onclick="excluirAfiliado('${a.id}','${a.nome}')" style="background:none;border:none;color:#C0392B;cursor:pointer;font-size:.78rem;padding:.2rem .5rem;">Excluir</button></td>
+    </tr>`).join('');
+}
+
+function copiarLink(link){
+  navigator.clipboard.writeText(link).then(()=>{
+    showNotifBar('✅ Link copiado!','#00875A');
+  }).catch(()=>{
+    prompt('Copie o link:', link);
+  });
+}
+
+function abrirModalNovoAfiliado(){
+  document.getElementById('modalNovoAfiliado').style.display='flex';
+  document.getElementById('afiliadoNome').value='';
+  document.getElementById('afiliadoCodigo').value='';
+  document.getElementById('afiliadoEmail').value='';
+  document.getElementById('afiliadoWhatsapp').value='';
+  document.getElementById('previewLink').textContent='';
+  document.getElementById('afiliadoFeedback').style.display='none';
+}
+
+function fecharModalNovoAfiliado(){
+  document.getElementById('modalNovoAfiliado').style.display='none';
+}
+
+function gerarCodigoAleatorio(){
+  const nomeInput = document.getElementById('afiliadoNome').value.trim();
+  let codigo = '';
+  if(nomeInput){
+    codigo = nomeInput.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
+  } else {
+    const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    for(let i=0;i<8;i++) codigo+=chars[Math.floor(Math.random()*chars.length)];
+  }
+  document.getElementById('afiliadoCodigo').value=codigo;
+  atualizarPreviewLink();
+}
+
+function atualizarPreviewLink(){
+  const codigo = document.getElementById('afiliadoCodigo').value;
+  const el = document.getElementById('previewLink');
+  if(codigo) el.textContent='🔗 apostilasimples.com.br/?ref='+codigo;
+  else el.textContent='';
+}
+
+async function salvarAfiliado(){
+  const nome = document.getElementById('afiliadoNome').value.trim();
+  const codigo = document.getElementById('afiliadoCodigo').value.trim().toUpperCase();
+  const email = document.getElementById('afiliadoEmail').value.trim();
+  const whatsapp = document.getElementById('afiliadoWhatsapp').value.trim();
+  const fb = document.getElementById('afiliadoFeedback');
+  if(!nome||!codigo){ fb.style.display='block'; fb.style.cssText='display:block;padding:.65rem 1rem;background:rgba(192,57,43,.08);color:#C0392B;border:1px solid rgba(192,57,43,.2);border-radius:8px;font-size:.82rem;margin-bottom:.75rem;'; fb.textContent='⚠️ Preencha nome e código.'; return; }
+  const btn = document.querySelector('#modalNovoAfiliado button[onclick="salvarAfiliado()"]');
+  if(btn){ btn.disabled=true; btn.textContent='Salvando...'; }
+  const {error} = await sb.from('afiliados').insert({nome,codigo,email:email||null,whatsapp:whatsapp||null});
+  if(btn){ btn.disabled=false; btn.textContent='Criar afiliado'; }
+  if(error){
+    fb.style.display='block';
+    fb.style.cssText='display:block;padding:.65rem 1rem;background:rgba(192,57,43,.08);color:#C0392B;border:1px solid rgba(192,57,43,.2);border-radius:8px;font-size:.82rem;margin-bottom:.75rem;';
+    fb.textContent='❌ '+(error.message.includes('unique')?'Código já existe. Use outro.':error.message);
+    return;
+  }
+  fecharModalNovoAfiliado();
+  showNotifBar('✅ Afiliado criado! Link: apostilasimples.com.br/?ref='+codigo,'#00875A');
+  carregarAfiliados();
+}
+
+async function excluirAfiliado(id, nome){
+  if(!confirm(`Excluir afiliado "${nome}"?`)) return;
+  await sb.from('afiliados').delete().eq('id',id);
+  carregarAfiliados();
 }
 
 function limparFiltroData(){
@@ -1094,8 +1521,15 @@ function openModal(i){
 
     <!-- ABA OBSERVAÇÕES -->
     <div id="mtab-obs" style="display:none;">
+      <div class="mlabel" style="margin-bottom:.5rem;">Indicação</div>
+      <div style="display:flex;gap:.75rem;align-items:center;margin-bottom:1rem;">
+        <input id="indicadoPorEditor" type="text" placeholder="Código do afiliado (ex: JOAOSILVA)" value="${o.indicado_por||''}" style="flex:1;padding:.65rem .85rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;outline:none;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"/>
+        <button onclick="salvarIndicadoPor('${o.id}')" style="background:#EBF4FF;color:#2E7EC6;border:1px solid rgba(46,126,198,.2);padding:.65rem 1rem;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;">Salvar</button>
+        <span id="indicadoPorFeedback" style="font-size:.78rem;color:#00875A;display:none;">✓</span>
+      </div>
+      ${o.indicado_por?`<div style="background:#F0FDF4;border:1px solid rgba(0,135,90,.2);border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;font-size:.82rem;color:#00875A;">🎁 Pedido via indicação de <strong>${o.indicado_por}</strong> — desconto de 5% aplicado</div>`:''}
       <div class="mlabel" style="margin-bottom:.5rem;">Observações do atendimento</div>
-      <textarea id="obsEditor" rows="7" style="width:100%;padding:.75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;color:#1E3A52;outline:none;resize:vertical;line-height:1.6;">${o.obs_admin||''}</textarea>
+      <textarea id="obsEditor" rows="6" style="width:100%;padding:.75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.88rem;color:#1E3A52;outline:none;resize:vertical;line-height:1.6;">${o.obs_admin||''}</textarea>
       <button onclick="salvarObs('${o.id}')" style="margin-top:.75rem;background:#2E7EC6;color:#fff;border:none;padding:.6rem 1.2rem;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;letter-spacing:.06em;">Salvar observações</button>
       <span id="obsFeedback" style="font-size:.78rem;color:#00875A;margin-left:.75rem;display:none;">✓ Salvo!</span>
     </div>
@@ -1318,6 +1752,16 @@ async function salvarSubEntrega(orderId, valor){
   }
 }
 
+async function salvarIndicadoPor(id){
+  const val = (document.getElementById('indicadoPorEditor')?.value||'').trim().toUpperCase();
+  await sb.from('orders').update({indicado_por: val||null}).eq('id', id);
+  await sb.from('leads').update({indicado_por: val||null}).eq('codigo', allOrders.find(o=>o.id===id)?.codigo||'__none__');
+  const fb = document.getElementById('indicadoPorFeedback');
+  if(fb){ fb.style.display='inline'; setTimeout(()=>fb.style.display='none',2000); }
+  const order = allOrders.find(o=>o.id===id);
+  if(order) order.indicado_por = val||null;
+}
+
 async function salvarObs(id){
   const val = document.getElementById('obsEditor')?.value || '';
   await sb.from('orders').update({obs_admin: val}).eq('id', id);
@@ -1534,6 +1978,9 @@ async function updateStatus(id, status, selectEl){
       });
     } catch(e){ console.warn('email pagamento error',e); }
     showNotifBar('💰 Pagamento confirmado! E-mail enviado para '+lead.email,'#00875A');
+    // Registrar comissão do afiliado se houver indicação
+    await registrarComissao(order);
+    carregarSaquesPendentes();
   }
 
   // ── E-mail em produção ──
@@ -1949,6 +2396,60 @@ async function criarOrcamentoManual(){
   alert('Orçamento '+codigo+' criado com sucesso!');
 }
 </script>
+<!-- MODAL NOVO AFILIADO -->
+<div id="modalNovoAfiliado" onclick="if(event.target===this)fecharModalNovoAfiliado()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(13,27,42,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <div>
+        <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.2rem;">Indicações</div>
+        <div style="font-size:1.1rem;font-weight:600;color:#0D1B2A;">Novo afiliado</div>
+      </div>
+      <button onclick="fecharModalNovoAfiliado()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.85rem;margin-bottom:1.25rem;">
+      <div><label style="display:block;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;font-weight:600;">Nome completo</label><input id="afiliadoNome" type="text" placeholder="João Silva" style="width:100%;padding:.65rem .85rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.9rem;outline:none;"/></div>
+      <div><label style="display:block;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;font-weight:600;">Código do link <span style="color:#4A6A82;font-weight:400;">(sem espaços)</span></label>
+        <div style="display:flex;gap:.5rem;align-items:center;">
+          <input id="afiliadoCodigo" type="text" placeholder="JOAOSILVA" style="flex:1;padding:.65rem .85rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.9rem;outline:none;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');atualizarPreviewLink()"/>
+          <button onclick="gerarCodigoAleatorio()" style="background:#EBF4FF;border:1px solid rgba(46,126,198,.2);color:#2E7EC6;padding:.65rem .85rem;border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;">Gerar</button>
+        </div>
+        <div id="previewLink" style="font-size:.72rem;color:#2E7EC6;margin-top:.4rem;word-break:break-all;"></div>
+      </div>
+      <div><label style="display:block;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;font-weight:600;">E-mail <span style="color:#4A6A82;font-weight:400;">(opcional)</span></label><input id="afiliadoEmail" type="email" placeholder="joao@email.com" style="width:100%;padding:.65rem .85rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.9rem;outline:none;"/></div>
+      <div><label style="display:block;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;font-weight:600;">WhatsApp <span style="color:#4A6A82;font-weight:400;">(opcional)</span></label><input id="afiliadoWhatsapp" type="tel" placeholder="(11) 99999-9999" style="width:100%;padding:.65rem .85rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.9rem;outline:none;"/></div>
+    </div>
+    <div id="afiliadoFeedback" style="display:none;margin-bottom:.75rem;"></div>
+    <div style="display:flex;gap:.75rem;">
+      <button onclick="fecharModalNovoAfiliado()" style="flex:1;background:#fff;border:1px solid var(--line2);color:var(--muted);padding:.75rem;border-radius:8px;font-size:.78rem;cursor:pointer;">Cancelar</button>
+      <button onclick="salvarAfiliado()" style="flex:2;background:#2E7EC6;color:#fff;border:none;padding:.75rem;border-radius:8px;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;">Criar afiliado</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SAQUE AFILIADO -->
+<div id="modalSaque" onclick="if(event.target===this)fecharModalSaque()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(13,27,42,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <div>
+        <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#00875A;font-weight:600;margin-bottom:.2rem;">Afiliado</div>
+        <div style="font-size:1.1rem;font-weight:600;color:#0D1B2A;">Solicitar saque</div>
+      </div>
+      <button onclick="fecharModalSaque()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
+    </div>
+    <div style="background:#F0FDF4;border:1px solid rgba(0,135,90,.2);border-radius:10px;padding:1rem;margin-bottom:1.25rem;text-align:center;">
+      <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#00875A;font-weight:600;margin-bottom:.2rem;">Saldo disponível</div>
+      <div id="modalSaldoDisp" style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:#00875A;line-height:1;">R$ 0,00</div>
+    </div>
+    <div class="field"><label>Valor do saque</label><input id="saqueValor" type="number" placeholder="Ex: 50.00" min="10" step="0.01"/></div>
+    <div class="field"><label>Chave Pix</label><input id="saqueChavePix" type="text" placeholder="CPF, e-mail, telefone ou chave aleatória"/></div>
+    <div id="saqueFeedback" style="display:none;margin-bottom:.75rem;font-size:.82rem;padding:.65rem 1rem;border-radius:8px;"></div>
+    <div style="display:flex;gap:.75rem;">
+      <button onclick="fecharModalSaque()" style="flex:1;background:#fff;border:1px solid rgba(13,27,42,.15);color:#4A6A82;padding:.75rem;border-radius:8px;font-size:.78rem;cursor:pointer;">Cancelar</button>
+      <button onclick="confirmarSaque()" style="flex:2;background:#00875A;color:#fff;border:none;padding:.75rem;border-radius:8px;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;">Solicitar saque</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL RELATÓRIO -->
 <div id="modalRelatorio" onclick="if(event.target===this)fecharModalRelatorio()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
   <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(13,27,42,.2);">

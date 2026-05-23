@@ -306,7 +306,19 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
   <button class="menu-btn" onclick="toggleMenu()" aria-label="Abrir menu"><span></span><span></span><span></span></button>
 </header>
 
-<div class="mobile-menu" id="mobileMenu">
+<!-- BANNER INDICAÇÃO -->
+<div id="bannerIndicacao" style="display:none;position:fixed;top:76px;left:0;right:0;z-index:49;background:linear-gradient(135deg,#00875A,#2E7EC6);padding:.65rem 4vw;">
+  <div style="max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:.75rem;">
+      <span style="font-size:1.2rem;">🎁</span>
+      <div>
+        <span style="font-size:.85rem;font-weight:700;color:#fff;" id="bannerNomeIndicador">Você foi indicado!</span>
+        <span style="font-size:.82rem;color:rgba(255,255,255,.85);margin-left:.5rem;">Seu desconto de <strong style="color:#fff;">5% já está aplicado</strong> — pague no Pix e ganhe mais 5%!</span>
+      </div>
+    </div>
+    <a href="#orcamento" style="background:rgba(255,255,255,.2);color:#fff;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.45rem .9rem;border-radius:6px;text-decoration:none;white-space:nowrap;border:1px solid rgba(255,255,255,.3);">Solicitar agora →</a>
+  </div>
+</div>
   <a href="#processo" onclick="toggleMenu()">Processo</a>
   <a href="#documentos" onclick="toggleMenu()">Documentos</a>
   <a href="#traducoes" onclick="toggleMenu()">Traduções</a>
@@ -402,6 +414,11 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
             <div class="field"><label>E-mail</label><input id="email" type="email" placeholder="seu@email.com" required></div>
             <div class="field"><label>WhatsApp</label><input id="whatsapp" type="tel" placeholder="(11) 99999-9999" required></div>
             <div class="field"><label>País de destino</label><input id="pais" type="text" placeholder="Portugal, Itália, Espanha..."></div>
+          </div>
+          <div class="field full" id="campoIndicacao" style="display:none;margin-top:.5rem;">
+            <label>Código de indicação</label>
+            <input id="indicadoPor" type="text" placeholder="Ex: JOAOSILVA" style="background:#F0FDF4;border-color:rgba(0,135,90,.3);" readonly/>
+            <span style="font-size:.72rem;color:#00875A;margin-top:.3rem;display:block;">✓ Desconto de 5% aplicado!</span>
           </div>
           <div class="field full" style="margin-top:.5rem">
             <label>O que você precisa?</label>
@@ -884,7 +901,10 @@ function renderSummary(){const nome=document.getElementById('nome').value||'';co
 document.getElementById('quoteForm').addEventListener('submit',async function(e){
   e.preventDefault();
   const btn=this.querySelector('[type="submit"]');btn.disabled=true;btn.textContent='Enviando...';
-  const nome=document.getElementById('nome').value.trim(),email=document.getElementById('email').value.trim(),whatsapp=document.getElementById('whatsapp').value.trim(),pais=(document.getElementById('pais')||{}).value||'',qty=getQty(),tipoServico=(document.getElementById('tipoServico')||{}).value||'Apenas Apostila de Haia',obs=(document.getElementById('obs')||{}).value||'',unit=unitPrice(qty),total=unit*qty,descricao=obs||'Sem observações adicionais.';
+  const nome=document.getElementById('nome').value.trim(),email=document.getElementById('email').value.trim(),whatsapp=document.getElementById('whatsapp').value.trim(),pais=(document.getElementById('pais')||{}).value||'',qty=getQty(),tipoServico=(document.getElementById('tipoServico')||{}).value||'Apenas Apostila de Haia',obs=(document.getElementById('obs')||{}).value||'',unit=unitPrice(qty),descricao=obs||'Sem observações adicionais.';
+  const indicadoPor = document.getElementById('indicadoPor')?.value?.trim()||'';
+  const desconto = indicadoPor ? 0.05 : 0;
+  const total = unit*qty*(1-desconto);
   let codigoOrc='';
   try{
     const sb=window._sbClient||(window._sbClient=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY));
@@ -893,8 +913,12 @@ document.getElementById('quoteForm').addEventListener('submit',async function(e)
     codigoOrc='ORC-'+String(ultimoNum+1).padStart(4,'0');
     const arquivosUrls=[];
     if(selectedFiles.length>0){for(const file of selectedFiles){const filePath=codigoOrc+'/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {data:uploadData,error:uploadError}=await sb.storage.from('documentos').upload(filePath,file);if(!uploadError&&uploadData)arquivosUrls.push(filePath);}}
-    await sb.from('leads').upsert({email,nome,whatsapp,pais,servico:tipoServico,codigo:codigoOrc,created_at:new Date().toISOString()});
-    await sb.from('orders').insert({servico:tipoServico,valor:total,pais,status:'orcamento_criado',prazo:tipoServico==='Apenas Apostila de Haia'?'Em até 24h':'Após análise',obs_admin:obs||null,codigo:codigoOrc,arquivos:arquivosUrls.length>0?arquivosUrls:null});
+    await sb.from('leads').upsert({email,nome,whatsapp,pais,servico:tipoServico,codigo:codigoOrc,indicado_por:indicadoPor||null,created_at:new Date().toISOString()});
+    await sb.from('orders').insert({servico:tipoServico,valor:total,pais,status:'orcamento_criado',prazo:tipoServico==='Apenas Apostila de Haia'?'Em até 24h':'Após análise',obs_admin:(obs||(indicadoPor?'Indicação: '+indicadoPor:''))||null,codigo:codigoOrc,arquivos:arquivosUrls.length>0?arquivosUrls:null,indicado_por:indicadoPor||null});
+    // Atualizar contador do afiliado
+    if(indicadoPor){
+      await sb.from('afiliados').update({total_indicacoes:sb.rpc('increment')}).eq('codigo',indicadoPor.toUpperCase()).catch(()=>{});
+    }
   }catch(err){console.warn('Supabase:',err);}
   try{await fetch(EDGE_FUNCTION_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},body:JSON.stringify({nome,email,servico:tipoServico,descricao,codigo:codigoOrc})});}catch(err){console.warn('Edge:',err);}
   btn.disabled=false;btn.textContent='Enviar orçamento';
@@ -903,6 +927,49 @@ document.getElementById('quoteForm').addEventListener('submit',async function(e)
 
 function resetForm(){document.getElementById('quoteForm').reset();selectedFiles=[];renderFiles();updateEstimate();nextStep(1);}
 updateEstimate();
+
+// ── SISTEMA DE INDICAÇÃO ──
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  if(!ref) return;
+  const codigo = ref.toUpperCase();
+  // Salvar no sessionStorage
+  try{ sessionStorage.setItem('ref_indicacao', codigo); }catch(e){}
+  // Mostrar banner
+  const banner = document.getElementById('bannerIndicacao');
+  const nomeEl = document.getElementById('bannerNomeIndicador');
+  if(banner){ banner.style.display='block'; document.body.style.paddingTop='38px'; }
+  if(nomeEl) nomeEl.textContent = `Você foi indicado por ${codigo}!`;
+  // Preencher campo do formulário
+  const input = document.getElementById('indicadoPor');
+  const campo = document.getElementById('campoIndicacao');
+  if(input){ input.value = codigo; }
+  if(campo){ campo.style.display='block'; }
+  // Aplicar desconto no simulador
+  window._refIndicacao = codigo;
+  // Atualizar mensagem do WhatsApp widget
+  setTimeout(()=>{
+    const msgEl = document.getElementById('whatsBubbleMsg');
+    const linkEl = document.getElementById('whatsBubbleLink');
+    if(msgEl) msgEl.textContent = `🎁 Você tem 5% de desconto por indicação! Quer fazer seu orçamento agora?`;
+    if(linkEl) linkEl.href = `https://wa.me/5511999999999?text=${encodeURIComponent('Olá! Vim por indicação de '+codigo+' e gostaria de fazer um orçamento.')}`;
+  }, 500);
+})();
+
+// Restaurar indicação do sessionStorage se vier de outra página
+(function(){
+  if(window._refIndicacao) return;
+  try{
+    const ref = sessionStorage.getItem('ref_indicacao');
+    if(!ref) return;
+    const input = document.getElementById('indicadoPor');
+    const campo = document.getElementById('campoIndicacao');
+    if(input){ input.value = ref; }
+    if(campo){ campo.style.display='block'; }
+    window._refIndicacao = ref;
+  }catch(e){}
+})();
 
 document.addEventListener('DOMContentLoaded',()=>{
   const chips=document.querySelectorAll('.doc-chip');const panes=document.querySelectorAll('.doc-pane');
