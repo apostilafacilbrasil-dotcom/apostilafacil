@@ -1888,7 +1888,8 @@ function openModal(i){
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;padding-top:1.2rem;border-top:1px solid #eee;flex-wrap:wrap;gap:.75rem;">
         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
-          ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 WhatsApp</a>`:''}
+          ${lead?.whatsapp?`<a href="https://wa.me/55${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;text-decoration:none;">💬 WhatsApp</a>
+          <button onclick="enviarMsgStatusWpp('${o.id}')" style="display:inline-flex;align-items:center;gap:.5rem;background:#EBF4FF;color:#2E7EC6;border:1px solid rgba(46,126,198,.2);font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;cursor:pointer;">📋 Msg de status</button>`:''}
           <button onclick="gerarLinkPagamento('${o.id}','${o.codigo||''}')" id="btnGerarLink-${o.id}" style="display:inline-flex;align-items:center;gap:.5rem;background:#009EE3;color:#fff;border:none;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.75rem 1.2rem;border-radius:8px;cursor:pointer;">
             💳 Gerar link de pagamento
           </button>
@@ -2420,7 +2421,8 @@ async function updateStatus(id, status, selectEl){
         body:JSON.stringify({nome:lead.nome,email:lead.email,servico:order.servico,descricao:order.obs_admin||'',codigo:updateData.codigo||order.codigo,tipo:'aprovado',valor:order.valor}),
       });
     } catch(e){ console.warn('email aprovação error',e); }
-    showNotifBar('✅ Projeto '+( updateData.codigo||order.codigo)+' aprovado! E-mail enviado para '+lead.email,'#00875A');
+    showNotifBar('✅ Projeto '+(updateData.codigo||order.codigo)+' aprovado! E-mail enviado para '+lead.email,'#00875A');
+    showWppStatusBar('pedido_aprovado', lead, {...order, codigo: updateData.codigo||order.codigo});
   }
 
   // ── E-mail de pagamento confirmado ──
@@ -2433,7 +2435,7 @@ async function updateStatus(id, status, selectEl){
       });
     } catch(e){ console.warn('email pagamento error',e); }
     showNotifBar('💰 Pagamento confirmado! E-mail enviado para '+lead.email,'#00875A');
-    // Registrar comissão do afiliado se houver indicação
+    showWppStatusBar('pagamento_confirmado', lead, order);
     await registrarComissao(order);
     carregarSaquesPendentes();
   }
@@ -2448,6 +2450,7 @@ async function updateStatus(id, status, selectEl){
       });
     } catch(e){ console.warn('email producao error',e); }
     showNotifBar('⚙️ Cliente notificado: documento em produção!','#0891B2');
+    showWppStatusBar('em_producao', lead, order);
   }
 
   // ── E-mail de entrega ──
@@ -2460,6 +2463,7 @@ async function updateStatus(id, status, selectEl){
       });
     } catch(e){ console.warn('email entrega error',e); }
     showNotifBar('📦 Entrega notificada! E-mail enviado para '+lead.email,'#00875A');
+    showWppStatusBar('entregue', lead, order);
   }
 
   // ── E-mails de follow-up ──
@@ -2471,7 +2475,12 @@ async function updateStatus(id, status, selectEl){
         body:JSON.stringify({nome:lead.nome,email:lead.email,servico:order.servico,descricao:order.obs_admin||'',codigo:order.codigo,tipo:status,valor:order.valor}),
       });
     } catch(e){ console.warn('email followup error',e); }
-    showFollowupWpp(status,lead,order);
+    showFollowupWpp(status, lead, order);
+  }
+
+  // ── WhatsApp para status sem e-mail ──
+  if(status==='aguardando_pagamento' && lead?.whatsapp){
+    showWppStatusBar('aguardando_pagamento', lead, order);
   }
 
   setTimeout(()=>loadAdminData(),400);
@@ -2499,21 +2508,58 @@ function showNotifBar(msg, cor='#2E7EC6'){
   setTimeout(()=>bar.remove(), 6000);
 }
 
-function showFollowupWpp(tipo,lead,order){
-  const nome=lead?.nome?.split(' ')[0]||'cliente', codigo=order?.codigo||'', servico=order?.servico||'apostilamento', whats=(lead?.whatsapp||'').replace(/\D/g,'');
-  const msgs={
-    followup_1:`Olá, ${nome}! 😊\n\nPassando para verificar se você teve a oportunidade de analisar o orçamento *${codigo}* para o serviço de *${servico}*.\n\nEstamos prontos para atender você com:\n\n📋 Atendimento ágil e profissional\n🔒 Processo seguro e 100% online\n📩 Suporte pelo WhatsApp em cada etapa\n✨ Sem burocracia e sem deslocamento\n\nQualquer dúvida, é só nos chamar. Será um prazer ajudar! 🙌\n\nApostila Simples`,
-    followup_2:`Olá, ${nome}! 👋\n\nSabemos que a rotina é corrida, mas o orçamento *${codigo}* ainda está disponível para o seu *${servico}*.\n\n✅ Processo 100% online — sem sair de casa\n✅ Entrega digital em até 24h\n✅ Sem filas e sem cartório\n✅ Suporte pelo WhatsApp em cada etapa\n✅ Pagamento somente após confirmação\n\nPodemos dar início *hoje mesmo*. O que acha? 🚀\n\nApostila Simples`,
-    followup_3:`${nome}, última chance! 🎯\n\nQueremos muito te ajudar com o *${servico}* e preparamos uma condição especial:\n\n🎁 *15% de desconto* no orçamento ${codigo}\n⏰ Válido por apenas *24 horas*\n\n👉 Responda esta mensagem com *QUERO*\n\nNão perca essa oportunidade! 🙌\n\nApostila Simples`,
+function enviarMsgStatusWpp(orderId){
+  const order = allOrders.find(o=>o.id===orderId);
+  const lead = order?._lead;
+  if(!order||!lead?.whatsapp){ showNotifBar('⚠️ Cliente sem WhatsApp cadastrado.','#B45309'); return; }
+  const msg = getMsgWhatsApp(order.status, lead.nome, order.codigo, order.servico);
+  if(!msg){ showNotifBar('⚠️ Sem mensagem definida para este status.','#B45309'); return; }
+  const whats = lead.whatsapp.replace(/\D/g,'');
+  window.open(`https://wa.me/55${whats}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function getMsgWhatsApp(status, nome, codigo, servico){
+  const n = nome?.split(' ')[0]||'cliente';
+  const msgs = {
+    pedido_aprovado: `Olá, ${n}! 🎉\n\nSeu projeto *${codigo}* foi aprovado e já está em andamento!\n\nNossa equipe está trabalhando no seu *${servico}*. Em breve você receberá atualizações.\n\nQualquer dúvida, estamos à disposição. 🙌\n\n_Apostila Simples_`,
+    aguardando_pagamento: `Olá, ${n}! 👋\n\nSeu orçamento *${codigo}* está pronto e aguardando o pagamento para darmos início.\n\nAssim que confirmarmos o pagamento, já começamos a processar seu *${servico}*.\n\nQualquer dúvida é só chamar! 😊\n\n_Apostila Simples_`,
+    pagamento_confirmado: `Olá, ${n}! ✅\n\nConfirmamos o recebimento do seu pagamento para o projeto *${codigo}*.\n\nNossa equipe já está se preparando para iniciar o seu *${servico}*. Em breve você terá novidades!\n\n_Apostila Simples_`,
+    em_producao: `Olá, ${n}! ⚙️\n\nBoa notícia! Seu *${servico}* referente ao projeto *${codigo}* já está em produção.\n\nEstamos trabalhando com cuidado para garantir a melhor qualidade. Em breve você receberá o documento finalizado!\n\n_Apostila Simples_`,
+    entregue: `Olá, ${n}! 📦\n\nSeu *${servico}* foi concluído com sucesso!\n\nO projeto *${codigo}* foi finalizado e entregue. Verifique seu e-mail para acessar o documento.\n\nFoi um prazer atender você! Até a próxima. 🙌\n\n_Apostila Simples_`,
+    followup_1: `Olá, ${n}! 😊\n\nPassando para verificar se você teve a oportunidade de analisar o orçamento *${codigo}* para o serviço de *${servico}*.\n\nEstamos prontos para atender você com:\n\n📋 Atendimento ágil e profissional\n🔒 Processo seguro e 100% online\n📩 Suporte pelo WhatsApp em cada etapa\n\nQualquer dúvida, é só nos chamar! 🙌\n\n_Apostila Simples_`,
+    followup_2: `Olá, ${n}! 👋\n\nSabemos que a rotina é corrida, mas o orçamento *${codigo}* ainda está disponível para o seu *${servico}*.\n\n✅ Processo 100% online\n✅ Entrega digital em até 24h\n✅ Sem filas e sem cartório\n\nPodemos dar início *hoje mesmo*. O que acha? 🚀\n\n_Apostila Simples_`,
+    followup_3: `${n}, última chance! 🎯\n\nQueremos muito te ajudar com o *${servico}* e preparamos uma condição especial:\n\n🎁 *15% de desconto* no orçamento ${codigo}\n⏰ Válido por apenas *24 horas*\n\n👉 Responda com *QUERO*\n\n_Apostila Simples_`,
   };
-  const url=`https://wa.me/55${whats||'5511999999999'}?text=${encodeURIComponent(msgs[tipo]||'')}`;
-  const existing=document.getElementById('wppFollowupBar');
+  return msgs[status]||null;
+}
+
+function showWppStatusBar(status, lead, order){
+  const nome = lead?.nome||'cliente';
+  const codigo = order?.codigo||'';
+  const servico = order?.servico||'';
+  const whats = (lead?.whatsapp||'').replace(/\D/g,'');
+  const msg = getMsgWhatsApp(status, nome, codigo, servico);
+  if(!msg||!whats) return;
+  const url = `https://wa.me/55${whats}?text=${encodeURIComponent(msg)}`;
+  const existing = document.getElementById('wppFollowupBar');
   if(existing) existing.remove();
-  const bar=document.createElement('div');
-  bar.id='wppFollowupBar';
-  bar.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:200;background:#0D1B2A;border-top:1px solid rgba(46,126,198,.3);padding:1rem 4vw;display:flex;align-items:center;justify-content:space-between;gap:1rem;';
-  bar.innerHTML=`<span style="color:#fff;font-size:.85rem;">✉️ E-mail de follow-up enviado! Envie também pelo WhatsApp:</span><div style="display:flex;gap:.75rem;align-items:center;"><a href="${url}" target="_blank" style="background:#25D366;color:#000;font-weight:700;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;padding:.65rem 1.2rem;border-radius:8px;text-decoration:none;white-space:nowrap;">💬 Abrir WhatsApp</a><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);padding:.5rem .75rem;border-radius:6px;font-size:.75rem;cursor:pointer;">Fechar</button></div>`;
+  const bar = document.createElement('div');
+  bar.id = 'wppFollowupBar';
+  bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:200;background:#0D1B2A;border-top:1px solid rgba(46,126,198,.3);padding:1rem 4vw;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;';
+  const statusLabels = {pedido_aprovado:'aprovado',aguardando_pagamento:'aguardando pagamento',pagamento_confirmado:'pagamento confirmado',em_producao:'em produção',entregue:'entregue'};
+  const label = statusLabels[status]||status;
+  bar.innerHTML = `
+    <span style="color:#fff;font-size:.85rem;">💬 Notifique o cliente sobre o status <strong style="color:#7CB9E8;">${label}</strong> pelo WhatsApp:</span>
+    <div style="display:flex;gap:.75rem;align-items:center;">
+      <a href="${url}" target="_blank" style="background:#25D366;color:#000;font-weight:700;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;padding:.65rem 1.2rem;border-radius:8px;text-decoration:none;white-space:nowrap;">💬 Enviar mensagem</a>
+      <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);padding:.5rem .75rem;border-radius:6px;font-size:.75rem;cursor:pointer;">Fechar</button>
+    </div>`;
   document.body.appendChild(bar);
+  setTimeout(()=>bar?.remove(), 15000);
+}
+
+function showFollowupWpp(tipo, lead, order){
+  showWppStatusBar(tipo, lead, order);
 }
 
 // ── CLIENT ──
