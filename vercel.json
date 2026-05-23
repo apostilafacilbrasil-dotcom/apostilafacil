@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/acompanhar", "destination": "/acompanhar.html" },
-    { "source": "/portal",     "destination": "/portal.html" }
+    { "source": "/portal",     "destination": "/portal.html" },
+    { "source": "/apostila",   "destination": "/apostila.html" }
   ]
 }
