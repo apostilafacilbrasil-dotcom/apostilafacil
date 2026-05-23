@@ -284,7 +284,7 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
             <div class="page-eyebrow">Visão geral</div>
             <h1 class="page-title">Dashboard</h1>
           </div>
-          <button onclick="gerarRelatorioMensal()" id="btnRelatorio" style="display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--line2);color:var(--muted);padding:.55rem 1rem;border-radius:8px;font-size:.75rem;font-weight:500;letter-spacing:.04em;transition:.2s;" onmouseover="this.style.borderColor='#2E7EC6';this.style.color='#2E7EC6'" onmouseout="this.style.borderColor='var(--line2)';this.style.color='var(--muted)'">
+          <button onclick="abrirModalRelatorio()" id="btnRelatorio" style="display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--line2);color:var(--muted);padding:.55rem 1rem;border-radius:8px;font-size:.75rem;font-weight:500;letter-spacing:.04em;transition:.2s;" onmouseover="this.style.borderColor='#2E7EC6';this.style.color='#2E7EC6'" onmouseout="this.style.borderColor='var(--line2)';this.style.color='var(--muted)'">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             Enviar relatório por e-mail
           </button>
@@ -1702,16 +1702,83 @@ function copiarLink(orderId){
   });
 }
 
-async function gerarRelatorioMensal(){
+function abrirModalRelatorio(){
+  document.getElementById('modalRelatorio').style.display='flex';
+  // Popular seletor de meses (12 meses para trás)
+  const sel = document.getElementById('rMesSeletor');
+  if(sel && !sel.options.length){
+    const now = new Date();
+    for(let i=0;i<12;i++){
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      const value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const label = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+      if(i===0) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+  selecionarPeriodoRelatorio('mensal');
+}
+
+function fecharModalRelatorio(){
+  document.getElementById('modalRelatorio').style.display='none';
+}
+
+function selecionarPeriodoRelatorio(tipo){
+  ['semanal','quinzenal','mensal','personalizado'].forEach(t=>{
+    const label=document.getElementById('rLabel-'+t);
+    if(label) label.style.borderColor = t===tipo ? '#2E7EC6' : 'rgba(46,126,198,.2)';
+    if(label) label.style.background = t===tipo ? 'rgba(46,126,198,.04)' : '#fff';
+    const input=label?.querySelector('input');
+    if(input) input.checked = t===tipo;
+  });
+  const datas=document.getElementById('rDatasPersonalizadas');
+  if(datas) datas.style.display = tipo==='personalizado' ? 'block' : 'none';
+}
+
+async function confirmarEnvioRelatorio(){
+  const tipo = document.querySelector('input[name="periodoRelatorio"]:checked')?.value || 'mensal';
+  const now = new Date();
+  let inicio, fim, labelPeriodo;
+
+  if(tipo==='semanal'){
+    inicio = new Date(now); inicio.setDate(now.getDate()-7);
+    fim = now;
+    labelPeriodo = 'Últimos 7 dias';
+  } else if(tipo==='quinzenal'){
+    inicio = new Date(now); inicio.setDate(now.getDate()-15);
+    fim = now;
+    labelPeriodo = 'Últimos 15 dias';
+  } else if(tipo==='mensal'){
+    const mesSel = document.getElementById('rMesSeletor')?.value;
+    const [ano, mes] = (mesSel || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`).split('-').map(Number);
+    inicio = new Date(ano, mes-1, 1);
+    fim = new Date(ano, mes, 0, 23, 59, 59);
+    labelPeriodo = inicio.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+    labelPeriodo = labelPeriodo.charAt(0).toUpperCase() + labelPeriodo.slice(1);
+  } else {
+    const di = document.getElementById('rDataInicio')?.value;
+    const df = document.getElementById('rDataFim')?.value;
+    if(!di||!df){ alert('Selecione as datas de início e fim.'); return; }
+    inicio = new Date(di+'T00:00:00');
+    fim = new Date(df+'T23:59:59');
+    labelPeriodo = `${di.split('-').reverse().join('/')} a ${df.split('-').reverse().join('/')}`;
+  }
+
+  fecharModalRelatorio();
+  await gerarRelatorioMensal(inicio.toISOString(), fim.toISOString(), labelPeriodo);
+}
+
+async function gerarRelatorioMensal(inicioISO, fimISO, labelPeriodo){
   const btn = document.getElementById('btnRelatorio');
   if(btn){ btn.disabled=true; btn.textContent='Gerando...'; }
   try{
     const now = new Date();
-    const mesAtual = now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
-    const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const fimMes = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59).toISOString();
+    const mesAtual = labelPeriodo || now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
 
-    const pedidosMes = allOrders.filter(o=> o.created_at >= inicioMes && o.created_at <= fimMes);
+    const pedidosMes = allOrders.filter(o=> o.created_at >= inicioISO && o.created_at <= fimISO);
     const entreguesMes = pedidosMes.filter(o=>o.status==='entregue');
     const pagosMes = pedidosMes.filter(o=>o.status_pagamento==='pagamento_confirmado');
     const receitaMes = entreguesMes.reduce((s,o)=>s+(o.valor||0),0);
@@ -1882,5 +1949,68 @@ async function criarOrcamentoManual(){
   alert('Orçamento '+codigo+' criado com sucesso!');
 }
 </script>
+<!-- MODAL RELATÓRIO -->
+<div id="modalRelatorio" onclick="if(event.target===this)fecharModalRelatorio()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(13,27,42,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <div>
+        <div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:#2E7EC6;font-weight:600;margin-bottom:.2rem;">Relatório</div>
+        <div style="font-size:1.1rem;font-weight:600;color:#0D1B2A;">Selecione o período</div>
+      </div>
+      <button onclick="fecharModalRelatorio()" style="background:none;border:1px solid #ddd;width:30px;height:30px;border-radius:50%;font-size:1rem;color:#666;cursor:pointer;">✕</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.25rem;">
+      <label style="display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border:1.5px solid rgba(46,126,198,.2);border-radius:8px;cursor:pointer;transition:.2s;" id="rLabel-semanal" onclick="selecionarPeriodoRelatorio('semanal')">
+        <input type="radio" name="periodoRelatorio" value="semanal" style="accent-color:#2E7EC6;cursor:pointer;"/>
+        <div>
+          <div style="font-size:.88rem;font-weight:500;color:#0D1B2A;">Últimos 7 dias</div>
+          <div style="font-size:.72rem;color:#4A6A82;margin-top:.1rem;">Semanal</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border:1.5px solid rgba(46,126,198,.2);border-radius:8px;cursor:pointer;transition:.2s;" id="rLabel-quinzenal" onclick="selecionarPeriodoRelatorio('quinzenal')">
+        <input type="radio" name="periodoRelatorio" value="quinzenal" style="accent-color:#2E7EC6;cursor:pointer;"/>
+        <div>
+          <div style="font-size:.88rem;font-weight:500;color:#0D1B2A;">Últimos 15 dias</div>
+          <div style="font-size:.72rem;color:#4A6A82;margin-top:.1rem;">Quinzenal</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border:1.5px solid rgba(46,126,198,.2);border-radius:8px;cursor:pointer;transition:.2s;" id="rLabel-mensal" onclick="selecionarPeriodoRelatorio('mensal')">
+        <input type="radio" name="periodoRelatorio" value="mensal" style="accent-color:#2E7EC6;cursor:pointer;" checked/>
+        <div style="flex:1;">
+          <div style="font-size:.88rem;font-weight:500;color:#0D1B2A;">Mês específico</div>
+          <div style="font-size:.72rem;color:#4A6A82;margin-top:.1rem;">Mensal</div>
+        </div>
+        <select id="rMesSeletor" onclick="event.stopPropagation();selecionarPeriodoRelatorio('mensal')" style="background:#EBF4FF;border:1px solid rgba(46,126,198,.25);color:#0D1B2A;padding:.35rem .6rem;border-radius:6px;font-size:.78rem;outline:none;cursor:pointer;"></select>
+      </label>
+      <label style="display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border:1.5px solid rgba(46,126,198,.2);border-radius:8px;cursor:pointer;transition:.2s;" id="rLabel-personalizado" onclick="selecionarPeriodoRelatorio('personalizado')">
+        <input type="radio" name="periodoRelatorio" value="personalizado" style="accent-color:#2E7EC6;cursor:pointer;"/>
+        <div>
+          <div style="font-size:.88rem;font-weight:500;color:#0D1B2A;">Período personalizado</div>
+          <div style="font-size:.72rem;color:#4A6A82;margin-top:.1rem;">Escolha as datas</div>
+        </div>
+      </label>
+    </div>
+
+    <div id="rDatasPersonalizadas" style="display:none;background:#EBF4FF;border-radius:8px;padding:1rem;margin-bottom:1.25rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+        <div>
+          <div style="font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;font-weight:600;">De</div>
+          <input type="date" id="rDataInicio" style="width:100%;padding:.55rem .75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.85rem;color:#0D1B2A;outline:none;"/>
+        </div>
+        <div>
+          <div style="font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#4A6A82;margin-bottom:.4rem;font-weight:600;">Até</div>
+          <input type="date" id="rDataFim" style="width:100%;padding:.55rem .75rem;border:1.5px solid rgba(46,126,198,.25);border-radius:8px;font-size:.85rem;color:#0D1B2A;outline:none;"/>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;">
+      <button onclick="fecharModalRelatorio()" style="flex:1;background:#fff;border:1px solid var(--line2);color:var(--muted);padding:.75rem;border-radius:8px;font-size:.78rem;font-weight:500;cursor:pointer;">Cancelar</button>
+      <button onclick="confirmarEnvioRelatorio()" style="flex:2;background:#2E7EC6;color:#fff;border:none;padding:.75rem;border-radius:8px;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;">📩 Enviar relatório</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
