@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Apostila de Haia Online em até 24h — Apostila Simples</title>
+<meta name="description" content="Apostile seus documentos para o exterior 100% online, sem sair de casa. Processo rápido, seguro e entregue digitalmente em até 24h."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#0D1B2A;
+  --blue:#2E7EC6;
+  --blue-light:#7CB9E8;
+  --green:#00875A;
+  --bg:#F0F7FF;
+  --white:#ffffff;
+  --text:#1E3A52;
+  --muted:#4A6A82;
+  --line:rgba(13,27,42,.1);
+}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;color:var(--text);background:var(--white);overflow-x:hidden;}
+
+/* ── HERO ── */
+.hero{min-height:100vh;background:var(--navy);position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:0;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(46,126,198,.15),transparent 60%),radial-gradient(ellipse at 10% 80%,rgba(0,135,90,.08),transparent 50%);pointer-events:none;}
+.hero-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(46,126,198,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(46,126,198,.04) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;}
+.hero-left{padding:5rem 4vw 5rem 6vw;position:relative;z-index:2;}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(46,126,198,.12);border:1px solid rgba(46,126,198,.25);color:var(--blue-light);font-size:.72rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:.45rem 1rem;border-radius:999px;margin-bottom:2rem;}
+.hero-badge span{width:6px;height:6px;border-radius:50%;background:#00D68F;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,5.5vw,6rem);line-height:.92;color:var(--white);margin-bottom:1.5rem;}
+.hero-title em{color:var(--blue);font-style:normal;}
+.hero-sub{font-size:1.05rem;color:rgba(255,255,255,.65);line-height:1.7;max-width:480px;margin-bottom:2.5rem;}
+.hero-sub strong{color:rgba(255,255,255,.9);}
+.hero-cta-group{display:flex;flex-direction:column;gap:.75rem;}
+.btn-primary-hero{display:inline-flex;align-items:center;justify-content:center;gap:.6rem;background:var(--blue);color:#fff;font-size:.92rem;font-weight:600;letter-spacing:.04em;padding:1.1rem 2rem;border-radius:10px;text-decoration:none;border:none;cursor:pointer;transition:background .2s,transform .15s;}
+.btn-primary-hero:hover{background:#2470B3;transform:translateY(-1px);}
+.btn-wpp{display:inline-flex;align-items:center;justify-content:center;gap:.6rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-size:.88rem;font-weight:500;padding:.85rem 2rem;border-radius:10px;text-decoration:none;cursor:pointer;transition:all .2s;}
+.btn-wpp:hover{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.3);color:#fff;}
+.hero-trust{display:flex;gap:1.5rem;margin-top:2rem;flex-wrap:wrap;}
+.trust-item{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(255,255,255,.45);}
+.trust-item svg{flex-shrink:0;}
+
+/* ── HERO RIGHT — FORM ── */
+.hero-right{background:rgba(255,255,255,.03);border-left:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;padding:3rem 4vw 3rem 3vw;position:relative;z-index:2;}
+.form-card{background:#fff;border-radius:16px;padding:2rem 1.75rem;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.3);}
+.form-card-tag{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);font-weight:600;margin-bottom:.4rem;}
+.form-card-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--navy);line-height:1;margin-bottom:1.25rem;}
+.field{margin-bottom:.9rem;}
+.field label{display:block;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:.4rem;}
+.field input,.field select,.field textarea{width:100%;padding:.7rem .85rem;border:1.5px solid rgba(13,27,42,.12);border-radius:8px;font-size:.9rem;color:var(--navy);outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s;background:#fff;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.btn-submit{width:100%;background:var(--blue);color:#fff;border:none;padding:1rem;border-radius:8px;font-size:.92rem;font-weight:600;letter-spacing:.04em;cursor:pointer;transition:background .2s;margin-top:.5rem;}
+.btn-submit:hover{background:#2470B3;}
+.form-note{font-size:.7rem;color:var(--muted);text-align:center;margin-top:.75rem;line-height:1.5;}
+
+/* ── STATS BAR ── */
+.stats-bar{background:var(--blue);padding:1.25rem 4vw;}
+.stats-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-around;gap:2rem;flex-wrap:wrap;}
+.stat-item{text-align:center;}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:#fff;line-height:1;}
+.stat-label{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-top:.1rem;}
+
+/* ── COMO FUNCIONA ── */
+.como{padding:5rem 4vw;background:var(--bg);}
+.section-inner{max-width:900px;margin:0 auto;}
+.section-tag{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);font-weight:600;margin-bottom:.5rem;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,3.5vw,3rem);color:var(--navy);margin-bottom:3rem;}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;}
+.step{position:relative;padding:2rem 1.5rem;background:#fff;border-radius:14px;border:1px solid var(--line);}
+.step-num{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;color:rgba(46,126,198,.12);line-height:1;margin-bottom:.75rem;}
+.step-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--navy);margin-bottom:.5rem;}
+.step-desc{font-size:.85rem;color:var(--muted);line-height:1.7;}
+.step-arrow{position:absolute;top:50%;right:-1.5rem;transform:translateY(-50%);color:var(--blue);font-size:1.2rem;z-index:1;}
+
+/* ── SERVIÇOS ── */
+.servicos{padding:5rem 4vw;background:#fff;}
+.servicos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem;}
+.servico-card{border:1.5px solid var(--line);border-radius:14px;padding:1.75rem;transition:border-color .2s,box-shadow .2s;}
+.servico-card:hover{border-color:var(--blue);box-shadow:0 8px 32px rgba(46,126,198,.1);}
+.servico-card.destaque{border-color:var(--blue);background:var(--navy);}
+.servico-icon{font-size:2rem;margin-bottom:1rem;}
+.servico-tag{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);font-weight:600;margin-bottom:.4rem;}
+.servico-card.destaque .servico-tag{color:var(--blue-light);}
+.servico-nome{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--navy);margin-bottom:.5rem;line-height:1.1;}
+.servico-card.destaque .servico-nome{color:#fff;}
+.servico-desc{font-size:.82rem;color:var(--muted);line-height:1.7;margin-bottom:1rem;}
+.servico-card.destaque .servico-desc{color:rgba(255,255,255,.6);}
+.servico-preco{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--blue);line-height:1;}
+.servico-preco-note{font-size:.72rem;color:var(--muted);margin-top:.25rem;}
+.servico-card.destaque .servico-preco-note{color:rgba(255,255,255,.4);}
+.servico-upsell{margin-top:1rem;padding:.75rem 1rem;background:rgba(46,126,198,.06);border-radius:8px;font-size:.78rem;color:var(--blue);border:1px solid rgba(46,126,198,.15);}
+
+/* ── CTA MEIO ── */
+.cta-meio{padding:4rem 4vw;background:linear-gradient(135deg,var(--navy),#1a2d42);}
+.cta-meio-inner{max-width:700px;margin:0 auto;text-align:center;}
+.cta-meio h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,3.5vw,3rem);color:#fff;margin-bottom:1rem;}
+.cta-meio p{font-size:.95rem;color:rgba(255,255,255,.6);margin-bottom:2rem;line-height:1.7;}
+
+/* ── FAQ ── */
+.faq{padding:5rem 4vw;background:var(--bg);}
+.faq-list{margin-top:2.5rem;}
+.faq-item{border-bottom:1px solid var(--line);}
+.faq-item:first-child{border-top:1px solid var(--line);}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:1.1rem 0;cursor:pointer;color:var(--navy);font-size:.9rem;font-weight:500;gap:1rem;transition:color .2s;}
+.faq-q:hover{color:var(--blue);}
+.faq-icon{width:22px;height:22px;border:1px solid rgba(13,27,42,.15);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--blue);flex-shrink:0;border-radius:4px;transition:transform .25s;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
+.faq-a{font-size:.83rem;color:var(--muted);line-height:1.8;padding-bottom:1.1rem;display:none;}
+.faq-item.open .faq-a{display:block;}
+
+/* ── CTA FINAL ── */
+.cta-final{padding:5rem 4vw;background:var(--navy);text-align:center;}
+.cta-final h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,4vw,4rem);color:#fff;margin-bottom:1rem;line-height:1;}
+.cta-final p{font-size:.95rem;color:rgba(255,255,255,.6);margin-bottom:2.5rem;}
+
+/* ── FOOTER MINIMALISTA ── */
+.lp-footer{background:#080F17;padding:1.5rem 4vw;text-align:center;}
+.lp-footer p{font-size:.72rem;color:rgba(255,255,255,.2);}
+.lp-footer a{color:rgba(255,255,255,.35);text-decoration:none;}
+
+/* ── WHATSAPP FLUTUANTE ── */
+.wpp-float{position:fixed;right:1.5rem;bottom:1.5rem;z-index:50;background:#25D366;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,.4);animation:wppPulse 2s infinite;cursor:pointer;text-decoration:none;}
+.wpp-float svg{width:28px;height:28px;fill:#fff;}
+@keyframes wppPulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,.5)}70%{box-shadow:0 0 0 14px rgba(37,211,102,0)}100%{box-shadow:0 0 0 0 rgba(37,211,102,0)}}
+
+/* ── SUCCESS ── */
+.success-wrap{display:none;text-align:center;padding:2rem 0;}
+.success-icon{font-size:3rem;margin-bottom:1rem;}
+.success-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--green);margin-bottom:.5rem;}
+.success-desc{font-size:.85rem;color:var(--muted);line-height:1.6;}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  .hero{grid-template-columns:1fr;min-height:auto;}
+  .hero-left{padding:3rem 1.5rem 2rem;}
+  .hero-right{padding:0 1.5rem 3rem;border-left:none;border-top:1px solid rgba(255,255,255,.07);}
+  .steps{grid-template-columns:1fr;}
+  .step-arrow{display:none;}
+  .servicos-grid{grid-template-columns:1fr;}
+  .field-row{grid-template-columns:1fr;}
+  .stats-inner{gap:1.5rem;}
+}
+@media(max-width:480px){
+  .hero-title{font-size:3rem;}
+  .hero-trust{gap:1rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+
+  <!-- LEFT -->
+  <div class="hero-left">
+    <div class="hero-badge">
+      <span></span>
+      Atendimento 100% online
+    </div>
+    <h1 class="hero-title">
+      SEU DOCUMENTO<br>
+      VÁLIDO NO<br>
+      <em>EXTERIOR</em><br>
+      EM ATÉ 24H.
+    </h1>
+    <p class="hero-sub">
+      Apostile seus documentos sem sair de casa. Processo <strong>rápido, seguro</strong> e entregue digitalmente. Precisa traduzir também? <strong>A gente faz tudo junto.</strong>
+    </p>
+    <div class="hero-cta-group">
+      <a href="#formulario" class="btn-primary-hero">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+        Solicitar orçamento grátis
+      </a>
+      <a href="https://wa.me/5511999999999" target="_blank" class="btn-wpp">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.556 4.122 1.526 5.855L.057 24l6.305-1.654A11.954 11.954 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.814 9.814 0 0 1-5.006-1.368l-.358-.214-3.724.977 1.001-3.648-.234-.374A9.818 9.818 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z"/></svg>
+        Falar no WhatsApp
+      </a>
+    </div>
+    <div class="hero-trust">
+      <div class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Processo seguro e criptografado
+      </div>
+      <div class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Entrega em até 24h
+      </div>
+      <div class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Sem ir ao cartório
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT — FORMULÁRIO -->
+  <div class="hero-right" id="formulario">
+    <div class="form-card">
+      <div id="formWrap">
+        <div class="form-card-tag">Orçamento gratuito</div>
+        <div class="form-card-title">Solicite agora</div>
+        <form id="lpForm" onsubmit="enviarLP(event)">
+          <div class="field-row">
+            <div class="field"><label>Nome</label><input id="lp_nome" type="text" placeholder="Seu nome" required/></div>
+            <div class="field"><label>WhatsApp</label><input id="lp_whats" type="tel" placeholder="(11) 99999-9999" required/></div>
+          </div>
+          <div class="field"><label>E-mail</label><input id="lp_email" type="email" placeholder="seu@email.com" required/></div>
+          <div class="field">
+            <label>Serviço</label>
+            <select id="lp_servico">
+              <option value="Apenas Apostila de Haia">Apostila de Haia</option>
+              <option value="Apostilamento + Tradução">Apostila + Tradução Juramentada</option>
+              <option value="Apostilamento + Tradução + Apostilamento da Tradução">Apostila + Tradução + Apostila da Tradução</option>
+              <option value="Apenas Tradução Juramentada">Só Tradução Juramentada</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>País de destino</label>
+              <input id="lp_pais" type="text" placeholder="Ex: Portugal"/>
+            </div>
+            <div class="field">
+              <label>Nº de documentos</label>
+              <select id="lp_qty">
+                <option value="1">1 documento</option>
+                <option value="2">2 documentos</option>
+                <option value="3">3 documentos</option>
+                <option value="4">4 documentos</option>
+                <option value="5">5+ documentos</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn-submit" id="lpSubmitBtn">Solicitar orçamento grátis →</button>
+          <p class="form-note">🔒 Seus dados são protegidos. Sem spam, sem compromisso.</p>
+        </form>
+      </div>
+      <div class="success-wrap" id="successWrap">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">Pedido recebido!</div>
+        <p class="success-desc">Obrigado! Nossa equipe vai analisar seu pedido e entrar em contato em breve pelo WhatsApp e e-mail.<br/><br/><strong>Guarde seu código de acompanhamento — enviamos por e-mail.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-num" id="lpCnt1">1.247</div>
+      <div class="stat-label">Documentos apostilados</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">+120</div>
+      <div class="stat-label">Países aceitos</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">24H</div>
+      <div class="stat-label">Prazo médio de entrega</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Online — sem cartório</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMO FUNCIONA -->
+<section class="como">
+  <div class="section-inner">
+    <div class="section-tag">Simples assim</div>
+    <h2 class="section-title">Como funciona</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Envie o documento</div>
+        <p class="step-desc">Preencha o formulário, faça o upload do documento e aguarde. Uma foto nítida já é suficiente.</p>
+        <div class="step-arrow">→</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Aprove o orçamento</div>
+        <p class="step-desc">Nossa equipe analisa e envia o orçamento final. Você aprova e realiza o pagamento com segurança.</p>
+        <div class="step-arrow">→</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Receba digitalmente</div>
+        <p class="step-desc">O documento apostilado chega no seu e-mail em até 24h, pronto para uso internacional.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVIÇOS -->
+<section class="servicos">
+  <div class="section-inner">
+    <div class="section-tag">Nossos serviços</div>
+    <h2 class="section-title">O que você precisa?</h2>
+    <div class="servicos-grid">
+
+      <div class="servico-card destaque">
+        <div class="servico-icon">📄</div>
+        <div class="servico-tag">Mais solicitado</div>
+        <div class="servico-nome">Apostila de Haia</div>
+        <p class="servico-desc">Valide seu documento para qualquer país signatário. Processo 100% online, sem sair de casa.</p>
+        <div class="servico-preco">A partir de R$109,90</div>
+        <div class="servico-preco-note">por documento · entrega em até 24h</div>
+        <div class="servico-upsell" style="background:rgba(46,126,198,.15);border-color:rgba(46,126,198,.3);color:#7CB9E8;">Precisa traduzir também? A gente faz tudo junto 👇</div>
+      </div>
+
+      <div class="servico-card">
+        <div class="servico-icon">🌍</div>
+        <div class="servico-tag">Combo completo</div>
+        <div class="servico-nome">Apostila + Tradução Juramentada</div>
+        <p class="servico-desc">Apostilamento do documento original mais tradução juramentada para o idioma do país de destino.</p>
+        <div class="servico-preco" style="color:var(--blue);">Sob orçamento</div>
+        <div class="servico-preco-note">depende do idioma e nº de páginas</div>
+      </div>
+
+      <div class="servico-card">
+        <div class="servico-icon">✍️</div>
+        <div class="servico-tag">Tradução com validade legal</div>
+        <div class="servico-nome">Tradução Juramentada</div>
+        <p class="servico-desc">Tradução com fé pública para processos legais, vistos, intercâmbios e documentações oficiais. +12 idiomas.</p>
+        <div class="servico-preco" style="color:var(--blue);">Sob orçamento</div>
+        <div class="servico-preco-note">inglês, espanhol, francês, italiano e mais</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA MEIO -->
+<div class="cta-meio">
+  <div class="cta-meio-inner">
+    <h2>Pronto para apostilar seu documento?</h2>
+    <p>Sem burocracia, sem cartório, sem complicação. Envie agora e receba em até 24h.</p>
+    <a href="#formulario" class="btn-primary-hero" style="display:inline-flex;">Solicitar orçamento grátis →</a>
+  </div>
+</div>
+
+<!-- FAQ -->
+<section class="faq">
+  <div class="section-inner">
+    <div class="section-tag">Dúvidas</div>
+    <h2 class="section-title">Perguntas frequentes</h2>
+    <div class="faq-list">
+      <div class="faq-item open"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">O apostilamento digital tem validade internacional? <div class="faq-icon">+</div></div><div class="faq-a">Sim. Desde 2017 o Brasil é signatário do protocolo e-APP da Conferência de Haia, que permite emissão de apostilas em formato digital com plena validade em mais de 120 países.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Preciso ir a algum cartório? <div class="faq-icon">+</div></div><div class="faq-a">Não. O processo é 100% online. Você envia o documento pelo formulário, nossa equipe cuida de todo o trâmite e você recebe o documento apostilado digitalmente no seu e-mail.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Quanto tempo leva? <div class="faq-icon">+</div></div><div class="faq-a">O prazo médio para apostilamento simples é de até 24 horas após a confirmação do pagamento. Para casos com tradução, o prazo é informado após análise do documento.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Quais documentos posso apostilar? <div class="faq-icon">+</div></div><div class="faq-a">Certidões de nascimento, casamento e óbito, diplomas, históricos escolares, documentos notariais, procurações e atestados públicos. Em caso de dúvida sobre um documento específico, entre em contato pelo WhatsApp.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Preciso apostilar e traduzir? Como funciona? <div class="faq-icon">+</div></div><div class="faq-a">Depende do país e da instituição de destino. Muitos países exigem tanto o apostilamento quanto a tradução juramentada. Fazemos os dois juntos — é só selecionar o serviço completo no formulário e nossa equipe cuida de tudo.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final">
+  <h2>SEU DOCUMENTO PRONTO<br>EM ATÉ <em style="color:var(--blue);">24 HORAS.</em></h2>
+  <p>Sem sair de casa. Sem burocracia. Sem complicação.</p>
+  <a href="#formulario" class="btn-primary-hero" style="display:inline-flex;font-size:1rem;padding:1.1rem 2.5rem;">Solicitar orçamento grátis →</a>
+</section>
+
+<!-- FOOTER -->
+<footer class="lp-footer">
+  <p>© 2026 Apostila Simples · <a href="https://apostilasimples.com.br">apostilasimples.com.br</a> · <a href="https://apostilasimples.com.br#privacidade">Política de Privacidade</a></p>
+</footer>
+
+<!-- WHATSAPP FLUTUANTE -->
+<a class="wpp-float" href="https://wa.me/5511999999999" target="_blank" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.556 4.122 1.526 5.855L.057 24l6.305-1.654A11.954 11.954 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.814 9.814 0 0 1-5.006-1.368l-.358-.214-3.724.977 1.001-3.648-.234-.374A9.818 9.818 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z"/></svg>
+</a>
+
+<script>
+const SUPABASE_URL='https://kclbawvrvmiiyngkzibi.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w';
+const EDGE_FUNCTION_URL=SUPABASE_URL+'/functions/v1/enviar-pedido';
+const BASE_PEDIDOS = 1200;
+
+// Contador dinâmico
+async function carregarContador(){
+  try{
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const {count} = await sb.from('orders').select('*',{count:'exact',head:true}).in('status',['pedido_aprovado','em_producao','entregue','pagamento_confirmado','pagamento_em_analise','aguardando_pagamento','pagamento_parcial']);
+    const total = BASE_PEDIDOS + (count||0);
+    animarContador('lpCnt1', total);
+  } catch(e){
+    animarContador('lpCnt1', BASE_PEDIDOS + Math.floor((Date.now()-new Date('2026-05-01').getTime())/(1000*60*60*4)));
+  }
+}
+
+function animarContador(id, target){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const start = performance.now();
+  const duration = 1500;
+  function update(now){
+    const p = Math.min((now-start)/duration, 1);
+    const ease = 1-Math.pow(1-p,3);
+    el.textContent = Math.floor(target*ease).toLocaleString('pt-BR');
+    if(p<1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// Observer para animar contador quando visível
+const obs = new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting){ carregarContador(); obs.disconnect(); }
+},{threshold:.3});
+const statsBar = document.querySelector('.stats-bar');
+if(statsBar) obs.observe(statsBar);
+
+// Envio do formulário
+async function enviarLP(e){
+  e.preventDefault();
+  const btn = document.getElementById('lpSubmitBtn');
+  btn.disabled=true; btn.textContent='Enviando...';
+  const nome = document.getElementById('lp_nome').value.trim();
+  const email = document.getElementById('lp_email').value.trim();
+  const whatsapp = document.getElementById('lp_whats').value.trim();
+  const servico = document.getElementById('lp_servico').value;
+  const pais = document.getElementById('lp_pais').value.trim();
+  const qty = parseInt(document.getElementById('lp_qty').value)||1;
+  const unitApost = qty<=1?109.90:qty<=4?104.90:99.90;
+  const valor = unitApost*qty;
+  try{
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const {data:orcData} = await sb.from('orders').select('codigo').like('codigo','ORC-%').order('codigo',{ascending:false}).limit(1);
+    const ultimoNum = orcData&&orcData.length>0?parseInt((orcData[0].codigo||'ORC-0000').split('-')[1]):0;
+    const codigoOrc = 'ORC-'+String(ultimoNum+1).padStart(4,'0');
+    await sb.from('leads').upsert({email,nome,whatsapp,pais,servico,codigo:codigoOrc,created_at:new Date().toISOString()});
+    await sb.from('orders').insert({servico,valor,pais,status:'orcamento_criado',prazo:servico.includes('Tradução')?'Após análise':'Em até 24h',codigo:codigoOrc});
+    await fetch(EDGE_FUNCTION_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},
+      body:JSON.stringify({nome,email,servico,codigo:codigoOrc,tipo:'boas_vindas',valor}),
+    });
+  } catch(err){ console.warn('Erro:',err); }
+  document.getElementById('formWrap').style.display='none';
+  document.getElementById('successWrap').style.display='block';
+}
+
+// Leitura do ?ref= para indicação
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  if(!ref) return;
+  try{ sessionStorage.setItem('ref_indicacao', ref); }catch(e){}
+})();
+</script>
+</body>
+</html>
