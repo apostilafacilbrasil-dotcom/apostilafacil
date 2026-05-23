@@ -213,7 +213,24 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
       <div class="field"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com"/></div>
       <div class="field"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••"/></div>
       <button class="btn-primary" onclick="doLogin()">ACESSAR PORTAL</button>
+      <div style="text-align:center;margin-top:1rem;">
+        <button onclick="mostrarEsqueciSenha()" style="background:none;border:none;color:#2E7EC6;font-size:.78rem;cursor:pointer;text-decoration:underline;">Esqueci minha senha</button>
+      </div>
     </div>
+
+    <div id="esqueciSenhaForm" style="display:none;">
+      <div style="text-align:center;margin-bottom:1.25rem;">
+        <div style="font-size:2rem;margin-bottom:.5rem;">🔑</div>
+        <div style="font-size:.95rem;font-weight:600;color:#0D1B2A;margin-bottom:.25rem;">Redefinir senha</div>
+        <div style="font-size:.78rem;color:#4A6A82;line-height:1.5;">Informe seu e-mail e enviaremos um link para criar uma nova senha.</div>
+      </div>
+      <div class="field"><label>E-mail</label><input type="email" id="esqueciEmail" placeholder="seu@email.com"/></div>
+      <button class="btn-primary" onclick="enviarRedefinicao()">Enviar link de redefinição</button>
+      <div style="text-align:center;margin-top:1rem;">
+        <button onclick="voltarParaLogin()" style="background:none;border:none;color:#4A6A82;font-size:.78rem;cursor:pointer;">← Voltar para o login</button>
+      </div>
+    </div>
+
     <div id="registerForm" style="display:none">
       <div class="field"><label>Nome completo</label><input type="text" id="regNome" placeholder="Seu nome"/></div>
       <div class="field"><label>E-mail</label><input type="email" id="regEmail" placeholder="seu@email.com"/></div>
@@ -765,6 +782,46 @@ function showAuthTab(tab){
 function showErr(msg){ const el=document.getElementById('authErr'); el.textContent=msg; el.classList.add('show'); }
 
 // ── LOGIN ──
+function mostrarEsqueciSenha(){
+  document.getElementById('loginForm').style.display='none';
+  document.getElementById('esqueciSenhaForm').style.display='block';
+  document.getElementById('registerForm').style.display='none';
+  const errEl=document.getElementById('authErr');
+  if(errEl) errEl.textContent='';
+}
+
+function voltarParaLogin(){
+  document.getElementById('esqueciSenhaForm').style.display='none';
+  document.getElementById('loginForm').style.display='block';
+  const errEl=document.getElementById('authErr');
+  if(errEl) errEl.textContent='';
+}
+
+async function enviarRedefinicao(){
+  const email = document.getElementById('esqueciEmail').value.trim();
+  if(!email){ showErr('Informe seu e-mail.'); return; }
+  const btn = document.querySelector('#esqueciSenhaForm .btn-primary');
+  if(btn){ btn.disabled=true; btn.textContent='Enviando...'; }
+  try{
+    const {error} = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://apostilasimples.com.br/portal'
+    });
+    if(btn){ btn.disabled=false; btn.textContent='Enviar link de redefinição'; }
+    if(error){ showErr('Erro: '+error.message); return; }
+    // Mostrar mensagem de sucesso
+    document.getElementById('esqueciSenhaForm').innerHTML=`
+      <div style="text-align:center;padding:1rem 0;">
+        <div style="font-size:2.5rem;margin-bottom:.75rem;">📩</div>
+        <div style="font-size:1rem;font-weight:600;color:#00875A;margin-bottom:.5rem;">E-mail enviado!</div>
+        <div style="font-size:.82rem;color:#4A6A82;line-height:1.6;margin-bottom:1.25rem;">Verifique sua caixa de entrada em <strong>${email}</strong> e clique no link para criar uma nova senha.</div>
+        <button onclick="voltarParaLogin()" style="background:none;border:none;color:#2E7EC6;font-size:.78rem;cursor:pointer;text-decoration:underline;">← Voltar para o login</button>
+      </div>`;
+  } catch(e){
+    if(btn){ btn.disabled=false; btn.textContent='Enviar link de redefinição'; }
+    showErr('Erro de conexão: '+e.message);
+  }
+}
+
 async function doLogin(){
   const email = document.getElementById('loginEmail').value.trim();
   const pass  = document.getElementById('loginPass').value;
