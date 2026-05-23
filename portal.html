@@ -294,11 +294,31 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
           <div class="stat-card"><div class="stat-num" id="statTicket">—</div><div class="stat-label">Ticket médio</div></div>
         </div>
         <div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.5rem;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:.75rem;">
             <span style="font-family:'EB Garamond',Georgia,serif;font-size:1.1rem;color:var(--navy);">Receita por mês</span>
-            <span style="font-size:.72rem;color:var(--muted2);letter-spacing:.08em;">Últimos 6 meses</span>
+            <div style="display:flex;align-items:center;gap:.5rem;">
+              <select id="chartPeriodo" onchange="renderRevenueChart()" style="background:var(--bg);border:1px solid var(--line2);color:var(--text);padding:.4rem .75rem;border-radius:8px;font-size:.78rem;outline:none;cursor:pointer;">
+                <option value="3">Últimos 3 meses</option>
+                <option value="6" selected>Últimos 6 meses</option>
+                <option value="12">Últimos 12 meses</option>
+              </select>
+            </div>
           </div>
           <canvas id="revenueChart" height="100"></canvas>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-top:1.2rem;border-top:1px solid var(--line);padding-top:1.2rem;">
+            <div style="text-align:center;">
+              <div id="chartTotalOrc" style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--blue);">—</div>
+              <div style="font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-top:.2rem;">Orçamentos no período</div>
+            </div>
+            <div style="text-align:center;">
+              <div id="chartTotalPago" style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:#00875A;">—</div>
+              <div style="font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-top:.2rem;">Recebido no período</div>
+            </div>
+            <div style="text-align:center;">
+              <div id="chartConversao" style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--navy);">—</div>
+              <div style="font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-top:.2rem;">Taxa de conversão</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -317,7 +337,12 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
         <div class="table-wrap">
           <div class="table-head">
             <span class="table-title">Todos os pedidos</span>
-            <input class="table-search" type="text" placeholder="Nome, e-mail, WhatsApp, código..." oninput="filterOrders()"/>
+            <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+              <input class="table-search" type="text" placeholder="Nome, e-mail, WhatsApp, código..." oninput="filterOrders()" style="width:260px;"/>
+              <input type="date" id="filtroDataInicio" onchange="filterOrders()" title="Data inicial" style="background:var(--bg);border:1px solid var(--line2);color:var(--text);padding:.5rem .75rem;border-radius:8px;font-size:.82rem;outline:none;cursor:pointer;" />
+              <input type="date" id="filtroDataFim" onchange="filterOrders()" title="Data final" style="background:var(--bg);border:1px solid var(--line2);color:var(--text);padding:.5rem .75rem;border-radius:8px;font-size:.82rem;outline:none;cursor:pointer;" />
+              <button onclick="limparFiltroData()" title="Limpar datas" style="background:none;border:1px solid var(--line2);color:var(--muted2);padding:.5rem .75rem;border-radius:8px;font-size:.75rem;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='#2E7EC6';this.style.color='#2E7EC6'" onmouseout="this.style.borderColor='var(--line2)';this.style.color='var(--muted2)'">✕ Limpar</button>
+            </div>
           </div>
           <div class="filter-bar" id="filterBar"></div>
           <div id="ordersLoading" class="loading"><div class="spinner"></div>Carregando pedidos...</div>
@@ -569,20 +594,24 @@ let revenueChartInstance = null;
 function renderRevenueChart(){
   const ctx = document.getElementById('revenueChart');
   if(!ctx) return;
-  // Montar últimos 6 meses
+  const periodo = parseInt((document.getElementById('chartPeriodo')||{}).value||'6');
   const now = new Date();
   const months = [];
-  for(let i=5;i>=0;i--){
+  for(let i=periodo-1;i>=0;i--){
     const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
     months.push({ key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}) });
   }
-  const receitaMap = {}, pagosMap = {};
-  months.forEach(m=>{ receitaMap[m.key]=0; pagosMap[m.key]=0; });
+  const receitaMap = {}, pagosMap = {}, qtdMap = {}, entreguesMap = {};
+  months.forEach(m=>{ receitaMap[m.key]=0; pagosMap[m.key]=0; qtdMap[m.key]=0; entreguesMap[m.key]=0; });
   allOrders.forEach(o=>{
-    if(!o.created_at||!o.valor) return;
+    if(!o.created_at) return;
     const k=o.created_at.slice(0,7);
-    if(receitaMap[k]!==undefined) receitaMap[k]+=(o.valor||0);
-    if(o.pago && pagosMap[k]!==undefined) pagosMap[k]+=(o.valor||0);
+    if(receitaMap[k]!==undefined){
+      receitaMap[k]+=(o.valor||0);
+      qtdMap[k]++;
+      if(o.pago) pagosMap[k]+=(o.valor||0);
+      if(o.status==='entregue') entreguesMap[k]++;
+    }
   });
   const labels=months.map(m=>m.label);
   const dataReceita=months.map(m=>receitaMap[m.key]);
@@ -606,6 +635,16 @@ function renderRevenueChart(){
       }
     }
   });
+  // Atualizar stats do período
+  const totalOrc = Object.values(receitaMap).reduce((a,b)=>a+b,0);
+  const totalPago = Object.values(pagosMap).reduce((a,b)=>a+b,0);
+  const totalQtd = Object.values(qtdMap).reduce((a,b)=>a+b,0);
+  const totalEntregues = Object.values(entreguesMap).reduce((a,b)=>a+b,0);
+  const conversao = totalQtd > 0 ? Math.round((totalEntregues/totalQtd)*100) : 0;
+  const fmt = v => 'R$'+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const el1=document.getElementById('chartTotalOrc'); if(el1) el1.textContent=fmt(totalOrc);
+  const el2=document.getElementById('chartTotalPago'); if(el2) el2.textContent=fmt(totalPago);
+  const el3=document.getElementById('chartConversao'); if(el3) el3.textContent=conversao+'%';
 }
 
 function isNew(dateStr){ if(!dateStr) return false; return (Date.now()-new Date(dateStr).getTime()) < 86400000; }
@@ -633,8 +672,18 @@ function setFilter(key){
   applyFilters();
 }
 
+function limparFiltroData(){
+  const di=document.getElementById('filtroDataInicio');
+  const df=document.getElementById('filtroDataFim');
+  if(di) di.value='';
+  if(df) df.value='';
+  filterOrders();
+}
+
 function applyFilters(){
   const q = (document.querySelector('.table-search')||{}).value||'';
+  const dataInicio = (document.getElementById('filtroDataInicio')||{}).value||'';
+  const dataFim = (document.getElementById('filtroDataFim')||{}).value||'';
   const statusMap = {
     orcamento:['orcamento_criado','orcamento_enviado','followup_1','followup_2','followup_3','aguardando_retorno','negociacao','revisando_valor'],
     aprovado:['pedido_aprovado'],
@@ -655,6 +704,18 @@ function applyFilters(){
           || (lead.nome||'').toLowerCase().includes(t)
           || (lead.email||'').toLowerCase().includes(t)
           || (lead.whatsapp||'').replace(/\D/g,'').includes(t.replace(/\D/g,''));
+    });
+  }
+  if(dataInicio){
+    result = result.filter(o=>{
+      if(!o.created_at) return false;
+      return o.created_at.slice(0,10) >= dataInicio;
+    });
+  }
+  if(dataFim){
+    result = result.filter(o=>{
+      if(!o.created_at) return false;
+      return o.created_at.slice(0,10) <= dataFim;
     });
   }
   // Aplicar ordenação
@@ -1213,6 +1274,42 @@ async function updateStatus(id, status, selectEl){
       });
     } catch(e){ console.warn('email aprovação error',e); }
     showNotifBar('✅ Projeto '+( updateData.codigo||order.codigo)+' aprovado! E-mail enviado para '+lead.email,'#00875A');
+  }
+
+  // ── E-mail de pagamento confirmado ──
+  if(status==='pagamento_confirmado' && lead?.email){
+    try {
+      await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w'},
+        body:JSON.stringify({nome:lead.nome,email:lead.email,servico:order.servico,descricao:order.obs_admin||'',codigo:order.codigo,tipo:'pagamento_confirmado',valor:order.valor}),
+      });
+    } catch(e){ console.warn('email pagamento error',e); }
+    showNotifBar('💰 Pagamento confirmado! E-mail enviado para '+lead.email,'#00875A');
+  }
+
+  // ── E-mail em produção ──
+  if(status==='em_producao' && lead?.email){
+    try {
+      await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w'},
+        body:JSON.stringify({nome:lead.nome,email:lead.email,servico:order.servico,descricao:order.obs_admin||'',codigo:order.codigo,tipo:'em_producao',valor:order.valor}),
+      });
+    } catch(e){ console.warn('email producao error',e); }
+    showNotifBar('⚙️ Cliente notificado: documento em produção!','#0891B2');
+  }
+
+  // ── E-mail de entrega ──
+  if(status==='entregue' && lead?.email){
+    try {
+      await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w'},
+        body:JSON.stringify({nome:lead.nome,email:lead.email,servico:order.servico,descricao:order.obs_admin||'',codigo:order.codigo,tipo:'entregue',valor:order.valor}),
+      });
+    } catch(e){ console.warn('email entrega error',e); }
+    showNotifBar('📦 Entrega notificada! E-mail enviado para '+lead.email,'#00875A');
   }
 
   // ── E-mails de follow-up ──
