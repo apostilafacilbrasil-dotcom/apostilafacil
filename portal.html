@@ -2654,6 +2654,16 @@ async function updateStatus(id, status, selectEl){
     showNotifBar('📦 Entrega notificada! E-mail enviado para '+lead.email,'#00875A');
     adicionarNotificacao('entrega', `Documento entregue — ${order.codigo||''} para ${lead.nome||''}`);
     showWppStatusBar('entregue', lead, order);
+    // E-mail de avaliação (com delay de 1 dia seria ideal, mas disparamos junto por simplicidade)
+    setTimeout(async()=>{
+      try{
+        await fetch('https://kclbawvrvmiiyngkzibi.supabase.co/functions/v1/enviar-pedido',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w'},
+          body:JSON.stringify({nome:lead.nome,email:lead.email,servico:order.servico,codigo:order.codigo,tipo:'avaliacao',valor:order.valor}),
+        });
+      }catch(e){console.warn('email avaliacao error',e);}
+    }, 3000);
   }
 
   // ── E-mails de follow-up ──

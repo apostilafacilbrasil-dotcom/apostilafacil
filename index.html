@@ -953,7 +953,7 @@ document.getElementById('quoteForm').addEventListener('submit',async function(e)
       await sb.from('afiliados').update({total_indicacoes:sb.rpc('increment')}).eq('codigo',indicadoPor.toUpperCase()).catch(()=>{});
     }
   }catch(err){console.warn('Supabase:',err);}
-  try{await fetch(EDGE_FUNCTION_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},body:JSON.stringify({nome,email,servico:tipoServico,descricao,codigo:codigoOrc})});}catch(err){console.warn('Edge:',err);}
+  try{await fetch(EDGE_FUNCTION_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY},body:JSON.stringify({nome,email,servico:tipoServico,descricao,codigo:codigoOrc,tipo:'boas_vindas',valor:total})});}catch(err){console.warn('Edge:',err);}
   btn.disabled=false;btn.textContent='Enviar orçamento';
   nextStep(5);
 });
