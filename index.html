@@ -857,7 +857,28 @@ if(counterSection){
 }
 
 function money(v){return 'R$'+v.toFixed(2).replace('.',',');}
-function unitPrice(qty){if(qty<=1)return 109.90;if(qty<=4)return 104.90;return 99.90;}
+function calcularTotalPedido(){
+  const qty=getQty();
+  const tipoServico=(document.getElementById('tipoServico')||{}).value||'Apenas Apostila de Haia';
+  const temApost=!tipoServico.toLowerCase().includes('apenas tradução');
+  const temTrad=tipoServico.toLowerCase().includes('tradu');
+  const isProcessoCompleto=tipoServico.toLowerCase().includes('apostilamento da tradução')&&tipoServico.toLowerCase().includes('apostilamento');
+  const unitApost=unitPrice(qty);
+  const numApostilas=isProcessoCompleto?2:(temApost?1:0);
+  const apostTotal=numApostilas*unitApost*qty;
+  let tradTotal=0;
+  if(temTrad&&formSimPalavras>0){
+    const simIdioma=document.getElementById('simIdiomaForm');
+    const k=simIdioma?simIdioma.value:'';
+    const c=FORM_IDIOMAS[k];
+    if(c){
+      const extraWords=Math.max(0,formSimPalavras-200);
+      const extraBlocks=Math.ceil(extraWords/200);
+      tradTotal=c.m+(extraBlocks*c.b);
+    }
+  }
+  return apostTotal+tradTotal;
+}
 function getQty(){return Number(document.getElementById('quantidade').value||1);}
 function updateEstimate(){const qty=getQty();const el=document.getElementById('estimateTotal');if(el)el.textContent=money(unitPrice(qty)*qty);}
 
@@ -901,10 +922,11 @@ function renderSummary(){const nome=document.getElementById('nome').value||'';co
 document.getElementById('quoteForm').addEventListener('submit',async function(e){
   e.preventDefault();
   const btn=this.querySelector('[type="submit"]');btn.disabled=true;btn.textContent='Enviando...';
-  const nome=document.getElementById('nome').value.trim(),email=document.getElementById('email').value.trim(),whatsapp=document.getElementById('whatsapp').value.trim(),pais=(document.getElementById('pais')||{}).value||'',qty=getQty(),tipoServico=(document.getElementById('tipoServico')||{}).value||'Apenas Apostila de Haia',obs=(document.getElementById('obs')||{}).value||'',unit=unitPrice(qty),descricao=obs||'Sem observações adicionais.';
+  const nome=document.getElementById('nome').value.trim(),email=document.getElementById('email').value.trim(),whatsapp=document.getElementById('whatsapp').value.trim(),pais=(document.getElementById('pais')||{}).value||'',qty=getQty(),tipoServico=(document.getElementById('tipoServico')||{}).value||'Apenas Apostila de Haia',obs=(document.getElementById('obs')||{}).value||'',descricao=obs||'Sem observações adicionais.';
   const indicadoPor = document.getElementById('indicadoPor')?.value?.trim()||'';
   const desconto = indicadoPor ? 0.05 : 0;
-  const total = unit*qty*(1-desconto);
+  const totalBase = calcularTotalPedido();
+  const total = totalBase*(1-desconto);
   let codigoOrc='';
   try{
     const sb=window._sbClient||(window._sbClient=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY));
