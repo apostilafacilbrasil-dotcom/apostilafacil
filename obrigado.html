@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Pedido recebido — Apostila Simples</title>
+<meta name="robots" content="noindex"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:#0D1B2A;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.5rem;color:#fff;}
+.wrap{max-width:600px;width:100%;text-align:center;}
+.logo{display:inline-flex;align-items:center;gap:.6rem;margin-bottom:3rem;text-decoration:none;}
+.logo-text{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.12em;color:#fff;}
+.logo-text span{color:#2E7EC6;}
+.check-circle{width:72px;height:72px;border-radius:50%;background:rgba(0,135,90,.12);border:1.5px solid rgba(0,135,90,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 1.75rem;animation:scaleIn .4s ease;}
+@keyframes scaleIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.check-circle svg{width:32px;height:32px;stroke:#00D68F;stroke-width:2.5;fill:none;}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3.2rem);color:#fff;line-height:1;margin-bottom:.75rem;}
+.subtitle{font-size:1rem;color:rgba(255,255,255,.55);line-height:1.7;margin-bottom:2.5rem;}
+.subtitle strong{color:rgba(255,255,255,.85);}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2.5rem;}
+.step-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.25rem 1rem;text-align:center;}
+.step-icon{width:40px;height:40px;border-radius:50%;background:rgba(46,126,198,.12);display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;}
+.step-icon svg{width:20px;height:20px;stroke:#7CB9E8;stroke-width:1.8;fill:none;}
+.step-text{font-size:.78rem;color:rgba(255,255,255,.5);line-height:1.55;}
+.btns{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem;}
+.btn-wpp{display:inline-flex;align-items:center;gap:.5rem;background:#25D366;color:#000;font-size:.9rem;font-weight:600;padding:.85rem 1.75rem;border-radius:100px;text-decoration:none;transition:opacity .2s;}
+.btn-wpp:hover{opacity:.9;}
+.btn-wpp svg{width:18px;height:18px;fill:#000;}
+.btn-track{display:inline-flex;align-items:center;gap:.5rem;background:rgba(46,126,198,.12);border:1px solid rgba(46,126,198,.25);color:#7CB9E8;font-size:.9rem;font-weight:500;padding:.85rem 1.75rem;border-radius:100px;text-decoration:none;transition:all .2s;}
+.btn-track:hover{background:rgba(46,126,198,.2);}
+.btn-track svg{width:16px;height:16px;stroke:#7CB9E8;stroke-width:2;fill:none;}
+.footer-link{font-size:.78rem;color:rgba(255,255,255,.25);text-decoration:none;}
+.footer-link:hover{color:rgba(255,255,255,.5);}
+@media(max-width:480px){
+  .steps{grid-template-columns:1fr;}
+  .btns{flex-direction:column;align-items:center;}
+  .btn-wpp,.btn-track{width:100%;justify-content:center;}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <a href="https://apostilasimples.com.br" class="logo">
+    <svg viewBox="0 0 100 100" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="#2E7EC6" stroke-width="2" stroke-dasharray="4 2.5"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="#2E7EC6" stroke-width="1"/>
+      <line x1="27" y1="40" x2="73" y2="40" stroke="#2E7EC6" stroke-width="0.9"/>
+      <line x1="27" y1="62" x2="73" y2="62" stroke="#2E7EC6" stroke-width="0.9"/>
+      <text x="50" y="49" text-anchor="middle" font-family="Arial" font-size="13" font-weight="900" fill="#fff" letter-spacing="1">AP</text>
+      <text x="50" y="60" text-anchor="middle" font-family="Arial" font-size="7" fill="#7CB9E8" letter-spacing="4">SIM</text>
+    </svg>
+    <span class="logo-text">APOSTILA <span>SIMPLES</span></span>
+  </a>
+
+  <div class="check-circle">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+
+  <h1>Pedido recebido!</h1>
+  <p class="subtitle" id="msgSubtitle">
+    Obrigado! Nossa equipe vai analisar seu pedido e entrar em contato em breve pelo WhatsApp e e-mail.
+  </p>
+
+  <div class="steps">
+    <div class="step-card">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </div>
+      <p class="step-text">Verifique seu e-mail com o código do pedido</p>
+    </div>
+    <div class="step-card">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.68 5.68l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </div>
+      <p class="step-text">Retornamos em até 2h pelo WhatsApp</p>
+    </div>
+    <div class="step-card">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <p class="step-text">Entrega em até 24h após a aprovação</p>
+    </div>
+  </div>
+
+  <div class="btns">
+    <a id="btnWpp" href="https://wa.me/5511999999999" target="_blank" class="btn-wpp">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.556 4.122 1.526 5.855L.057 24l6.305-1.654A11.954 11.954 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.814 9.814 0 0 1-5.006-1.368l-.358-.214-3.724.977 1.001-3.648-.234-.374A9.818 9.818 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z"/></svg>
+      Falar no WhatsApp
+    </a>
+    <a id="btnTrack" href="https://apostilasimples.com.br/acompanhar" class="btn-track">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Acompanhar pedido
+    </a>
+  </div>
+
+  <a href="https://apostilasimples.com.br" class="footer-link">Voltar para o site</a>
+
+</div>
+
+<script>
+const WHATSAPP = '5511999999999';
+// Pegar parâmetros da URL
+const params = new URLSearchParams(window.location.search);
+const nome = params.get('nome');
+const codigo = params.get('codigo');
+
+if(nome){
+  const el = document.getElementById('msgSubtitle');
+  if(el) el.innerHTML = `Obrigado, <strong>${nome.split(' ')[0]}</strong>! Nossa equipe vai analisar seu pedido e entrar em contato em breve pelo WhatsApp e e-mail.`;
+}
+
+if(codigo){
+  const btnTrack = document.getElementById('btnTrack');
+  if(btnTrack) btnTrack.href = `https://apostilasimples.com.br/acompanhar?codigo=${encodeURIComponent(codigo)}`;
+}
+
+// Link do WhatsApp com mensagem pré-preenchida
+const btnWpp = document.getElementById('btnWpp');
+if(btnWpp){
+  const msg = codigo
+    ? `Olá! Acabei de enviar meu pedido ${codigo} pelo site. Aguardo o orçamento!`
+    : `Olá! Acabei de enviar meu pedido pelo site e gostaria de mais informações.`;
+  btnWpp.href = `https://wa.me/55${WHATSAPP}?text=${encodeURIComponent(msg)}`;
+}
+</script>
+</body>
+</html>

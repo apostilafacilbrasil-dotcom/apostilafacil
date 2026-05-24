@@ -48,19 +48,24 @@ h1{font-family:"EB Garamond",Georgia,serif;font-size:1.6rem;color:var(--navy);te
 .result-nome{font-size:.85rem;color:var(--muted);}
 
 /* TIMELINE */
-.timeline{display:flex;align-items:flex-start;justify-content:center;gap:0;margin:1.5rem 0;overflow-x:auto;padding-bottom:.5rem;}
-.tl-item{display:flex;flex-direction:column;align-items:center;gap:.35rem;flex:1;min-width:52px;}
-.tl-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;border:2px solid #CBD5E1;background:transparent;transition:.3s;flex-shrink:0;}
-.tl-dot.done{background:rgba(0,135,90,.08);border-color:#00875A;}
-.tl-dot.active{background:rgba(46,126,198,.1);border-color:#2E7EC6;}
+.timeline{display:flex;align-items:flex-start;justify-content:center;gap:0;margin:1.75rem 0 .5rem;overflow-x:auto;padding-bottom:.5rem;}
+.tl-item{display:flex;flex-direction:column;align-items:center;gap:.4rem;flex:1;min-width:56px;}
+.tl-dot{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;border:2px solid #CBD5E1;background:#fff;transition:.3s;flex-shrink:0;position:relative;}
+.tl-dot.done{background:rgba(0,135,90,.08);border-color:#00875A;box-shadow:0 0 0 4px rgba(0,135,90,.08);}
+.tl-dot.active{background:rgba(46,126,198,.1);border-color:#2E7EC6;box-shadow:0 0 0 4px rgba(46,126,198,.1);animation:tlPulse 2s infinite;}
+@keyframes tlPulse{0%,100%{box-shadow:0 0 0 4px rgba(46,126,198,.1)}50%{box-shadow:0 0 0 8px rgba(46,126,198,.04)}}
 .tl-dot.lost{background:rgba(192,57,43,.08);border-color:#C0392B;}
 .tl-label{font-size:.58rem;font-weight:500;color:#94A3B8;text-align:center;letter-spacing:.02em;white-space:nowrap;}
 .tl-label.done{color:#00875A;font-weight:600;}
 .tl-label.active{color:#2E7EC6;font-weight:600;}
 .tl-label.lost{color:#C0392B;}
-.tl-line{height:2px;flex:1;background:#E2E8F0;margin-top:18px;transition:.3s;min-width:8px;}
+.tl-line{height:2px;flex:1;background:#E2E8F0;margin-top:21px;transition:.3s;min-width:8px;}
 .tl-line.done{background:#00875A;}
 .tl-connector{display:flex;align-items:flex-start;flex:1;}
+.status-msg{background:var(--bg);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;text-align:center;font-size:.85rem;color:var(--text);line-height:1.6;border:1px solid rgba(46,126,198,.1);}
+.status-msg strong{color:var(--blue);}
+.status-msg.msg-green{border-color:rgba(0,135,90,.15);background:rgba(0,135,90,.04);}
+.status-msg.msg-green strong{color:#00875A;}
 
 /* INFO CARDS */
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem;}
@@ -126,6 +131,9 @@ h1{font-family:"EB Garamond",Georgia,serif;font-size:1.6rem;color:var(--navy);te
 
     <!-- TIMELINE -->
     <div class="timeline" id="timeline"></div>
+
+    <!-- MENSAGEM DE STATUS HUMANIZADA -->
+    <div class="status-msg" id="statusMsg" style="display:none;"></div>
 
     <!-- SUBSTATUS ENTREGA -->
     <div id="substatusEntregaBox" style="display:none;text-align:center;margin-bottom:1rem;">
@@ -278,6 +286,31 @@ function renderResultado(p){
   document.getElementById('resultEntrega').textContent = p.data_entrega
     ? new Date(p.data_entrega).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})
     : 'A confirmar';
+
+  // Mensagem humanizada por status
+  const msgEl = document.getElementById('statusMsg');
+  if(msgEl){
+    const nome1 = p.nome ? p.nome.split(' ')[0] : '';
+    const msgs = {
+      orcamento_criado:   {txt:`Recebemos seu pedido${nome1?' '+nome1:''}! Nossa equipe já está analisando e em breve você receberá o orçamento.`, cls:''},
+      orcamento_enviado:  {txt:`Seu orçamento foi enviado${nome1?' '+nome1:''}! Verifique seu e-mail e fique à vontade para tirar dúvidas pelo WhatsApp.`, cls:''},
+      followup_1:         {txt:`Seu orçamento ainda está disponível. Qualquer dúvida é só nos chamar!`, cls:''},
+      followup_2:         {txt:`Ainda dá tempo! Seu orçamento segue disponível. Estamos prontos para atender você.`, cls:''},
+      followup_3:         {txt:`Última chamada! Entre em contato e garanta uma condição especial.`, cls:''},
+      pedido_aprovado:    {txt:`Ótima notícia${nome1?' '+nome1:''}! Seu pedido foi aprovado. Agora é só confirmar o pagamento para começarmos.`, cls:''},
+      aguardando_pagamento:{txt:`Estamos aguardando a confirmação do seu pagamento. Assim que confirmarmos, já começamos a produção!`, cls:''},
+      pagamento_parcial:  {txt:`Recebemos parte do pagamento. Para darmos início à produção precisamos do valor completo.`, cls:''},
+      pagamento_em_analise:{txt:`Seu pagamento está sendo analisado. Em breve confirmaremos e daremos início ao serviço.`, cls:''},
+      pagamento_confirmado:{txt:`Pagamento confirmado! Nossa equipe está se preparando para iniciar o seu documento.`, cls:'msg-green'},
+      em_producao:        {txt:`Seu documento está em produção${nome1?' '+nome1:''}! Estamos trabalhando com cuidado e em breve você receberá a entrega.`, cls:'msg-green'},
+      entregue:           {txt:`Prontinho${nome1?' '+nome1:''}! Seu documento foi entregue. Esperamos ter atendido muito bem. Pode contar sempre com a gente!`, cls:'msg-green'},
+      perdido:            {txt:`Este pedido foi cancelado. Se precisar de ajuda ou quiser recomeçar, estamos à disposição!`, cls:''},
+    };
+    const info = msgs[p.status]||{txt:`Status: <strong>${statusLabel(p.status)}</strong>`, cls:''};
+    msgEl.className = 'status-msg '+(info.cls||'');
+    msgEl.innerHTML = info.txt;
+    msgEl.style.display='block';
+  }
 
   // Substatus entrega
   const subBox = document.getElementById('substatusEntregaBox');

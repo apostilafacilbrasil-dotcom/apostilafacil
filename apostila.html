@@ -445,6 +445,9 @@ async function enviarLP(e){
   } catch(err){ console.warn('Erro:',err); }
   document.getElementById('formWrap').style.display='none';
   document.getElementById('successWrap').style.display='block';
+  setTimeout(()=>{
+    window.location.href = `/obrigado?nome=${encodeURIComponent(nome)}&codigo=${encodeURIComponent(codigoOrc)}`;
+  }, 1500);
 }
 
 // Leitura do ?ref= para indicação
