@@ -19,7 +19,12 @@
 <meta name="twitter:description" content="Apostilamento digital em até 24h. Sem fila, sem cartório.">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/apostilasimplesbrasil-dotcom/apostilasimples/main/og-image.jpg">
 <title>Apostila Simples | Apostila de Haia Online</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -747,15 +752,25 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
   <button onclick="acceptCookies()" style="background:#2E7EC6;color:#fff;border:none;padding:.6rem 1.4rem;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:8px;">Aceitar</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script>
-if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
+function carregarScript(src, cb){
+  const s = document.createElement('script');
+  s.src = src;
+  s.onload = cb||null;
+  document.body.appendChild(s);
+}
+function carregarPdfJs(cb){
+  carregarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', ()=>{
+    if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    if(cb) cb();
+  });
+}
+function carregarMammoth(cb){ carregarScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js', cb); }
+function carregarTesseract(cb){ carregarScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js', cb); }
+function carregarD3(cb){ carregarScript('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js', ()=>{ carregarScript('https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js', cb); }); }
+</script>
+<script>
 const SUPABASE_URL='https://kclbawvrvmiiyngkzibi.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w';
 const EDGE_FUNCTION_URL=SUPABASE_URL+'/functions/v1/enviar-pedido';
@@ -1118,7 +1133,24 @@ document.addEventListener('DOMContentLoaded',()=>{
   chips.forEach(chip=>{chip.addEventListener('click',()=>{chips.forEach(c=>c.classList.remove('active'));panes.forEach(p=>p.classList.remove('active'));chip.classList.add('active');const target=document.getElementById(chip.dataset.doc);if(target)target.classList.add('active');});});
 });
 
-(function(){const canvas=document.getElementById('globeCanvas');if(!canvas)return;const ctx=canvas.getContext('2d');const W=280,H=280,R=125;const haiaSet=new Set([4,8,12,24,32,36,40,50,56,64,68,72,76,100,116,120,124,144,152,156,170,188,191,196,203,208,218,231,233,234,246,250,268,276,288,300,320,324,340,348,356,360,372,376,380,388,392,398,400,404,410,414,418,422,426,428,430,438,440,442,450,454,458,470,484,496,498,499,504,516,524,528,554,558,566,578,586,591,598,600,604,608,616,620,630,634,642,643,646,659,662,670,674,678,682,686,694,703,706,710,724,740,752,756,762,764,780,788,792,800,804,807,818,826,840,858,860,862,882,887,894]);let rotX=20,rotY=-23,autoSpin=true,returningToEquator=false,dragging=false,lastX=0,lastY=0,velX=0.2,velY=0,countries=null;const projection=d3.geoOrthographic().scale(R).translate([W/2,H/2]).clipAngle(90);const path=d3.geoPath(projection,ctx);const sphere={type:'Sphere'};const graticule=d3.geoGraticule().step([20,20])();canvas.style.cursor='grab';canvas.addEventListener('mousedown',e=>{dragging=true;autoSpin=false;lastX=e.clientX;lastY=e.clientY;canvas.style.cursor='grabbing';});window.addEventListener('mousemove',e=>{if(!dragging)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;velX=dx*0.5;velY=dy*0.5;rotX+=dx*0.5;rotY=Math.max(-90,Math.min(90,rotY-dy*0.5));lastX=e.clientX;lastY=e.clientY;returningToEquator=false;autoSpin=false;});window.addEventListener('mouseup',()=>{dragging=false;canvas.style.cursor='grab';returningToEquator=true;});canvas.addEventListener('touchstart',e=>{e.preventDefault();dragging=true;autoSpin=false;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;},{passive:false});canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!dragging)return;const dx=e.touches[0].clientX-lastX,dy=e.touches[0].clientY-lastY;velX=dx*0.5;velY=dy*0.5;rotX+=dx*0.5;rotY=Math.max(-90,Math.min(90,rotY-dy*0.5));lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;returningToEquator=false;autoSpin=false;},{passive:false});canvas.addEventListener('touchend',()=>{dragging=false;returningToEquator=true;});fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(r=>r.json()).then(world=>{countries=topojson.feature(world,world.objects.countries);}).catch(()=>{});function draw(){ctx.clearRect(0,0,W,H);projection.rotate([rotX,rotY,0]);ctx.beginPath();path(sphere);const og=ctx.createRadialGradient(W*.4,H*.38,5,W/2,H/2,R);og.addColorStop(0,'#EAF5FF');og.addColorStop(0.6,'#BDD9F0');og.addColorStop(1,'#8EC0E4');ctx.fillStyle=og;ctx.fill();if(countries){countries.features.forEach(f=>{if(!haiaSet.has(+f.id)){ctx.beginPath();path(f);ctx.fillStyle='#C8D6E0';ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=0.3;ctx.stroke();}});countries.features.forEach(f=>{if(haiaSet.has(+f.id)){ctx.beginPath();path(f);ctx.fillStyle='#1A5FA0';ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=0.4;ctx.stroke();}});}ctx.beginPath();path(graticule);ctx.strokeStyle='rgba(46,126,198,0.12)';ctx.lineWidth=0.4;ctx.stroke();ctx.beginPath();path(sphere);ctx.strokeStyle='rgba(46,126,198,0.4)';ctx.lineWidth=1.5;ctx.stroke();const shine=ctx.createRadialGradient(W*.38,H*.32,0,W/2,H/2,R);shine.addColorStop(0,'rgba(255,255,255,0.18)');shine.addColorStop(0.4,'rgba(255,255,255,0.04)');shine.addColorStop(1,'rgba(0,0,0,0.06)');ctx.beginPath();path(sphere);ctx.fillStyle=shine;ctx.fill();}let raf;function animate(){raf=requestAnimationFrame(animate);if(!dragging){if(returningToEquator){velX*=0.88;velY*=0.88;rotY+=(0-rotY)*0.06;rotX+=velX;if(Math.abs(rotY)<0.5&&Math.abs(velY)<0.05){rotY=0;velX=0.2;velY=0;returningToEquator=false;autoSpin=true;}}else if(autoSpin){velX+=(0.2-velX)*0.04;velY+=(0-velY)*0.04;rotX+=velX;rotY=Math.max(-90,Math.min(90,rotY+velY));}}draw();}animate();new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)animate();else cancelAnimationFrame(raf);});}).observe(canvas);})();
+// Globo — carrega D3 apenas quando o canvas estiver visível
+(function(){
+  const canvas = document.getElementById('globeCanvas');
+  if(!canvas) return;
+  let carregado = false;
+  const obs = new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting && !carregado){
+      carregado = true;
+      obs.disconnect();
+      carregarD3(iniciarGlobo);
+    }
+  },{threshold:0.1});
+  obs.observe(canvas);
+
+  function iniciarGlobo(){
+    const ctx=canvas.getContext('2d');const W=280,H=280,R=125;const haiaSet=new Set([4,8,12,24,32,36,40,50,56,64,68,72,76,100,116,120,124,144,152,156,170,188,191,196,203,208,218,231,233,234,246,250,268,276,288,300,320,324,340,348,356,360,372,376,380,388,392,398,400,404,410,414,418,422,426,428,430,438,440,442,450,454,458,470,484,496,498,499,504,516,524,528,554,558,566,578,586,591,598,600,604,608,616,620,630,634,642,643,646,659,662,670,674,678,682,686,694,703,706,710,724,740,752,756,762,764,780,788,792,800,804,807,818,826,840,858,860,862,882,887,894]);let rotX=20,rotY=-23,autoSpin=true,returningToEquator=false,dragging=false,lastX=0,lastY=0,velX=0.2,velY=0,countries=null;const projection=d3.geoOrthographic().scale(R).translate([W/2,H/2]).clipAngle(90);const path=d3.geoPath(projection,ctx);const sphere={type:'Sphere'};const graticule=d3.geoGraticule().step([20,20])();canvas.style.cursor='grab';canvas.addEventListener('mousedown',e=>{dragging=true;autoSpin=false;lastX=e.clientX;lastY=e.clientY;canvas.style.cursor='grabbing';});window.addEventListener('mousemove',e=>{if(!dragging)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;velX=dx*0.5;velY=dy*0.5;rotX+=dx*0.5;rotY=Math.max(-90,Math.min(90,rotY-dy*0.5));lastX=e.clientX;lastY=e.clientY;returningToEquator=false;autoSpin=false;});window.addEventListener('mouseup',()=>{dragging=false;canvas.style.cursor='grab';returningToEquator=true;});canvas.addEventListener('touchstart',e=>{e.preventDefault();dragging=true;autoSpin=false;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;},{passive:false});canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!dragging)return;const dx=e.touches[0].clientX-lastX,dy=e.touches[0].clientY-lastY;velX=dx*0.5;velY=dy*0.5;rotX+=dx*0.5;rotY=Math.max(-90,Math.min(90,rotY-dy*0.5));lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;returningToEquator=false;autoSpin=false;},{passive:false});canvas.addEventListener('touchend',()=>{dragging=false;returningToEquator=true;});fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(r=>r.json()).then(world=>{countries=topojson.feature(world,world.objects.countries);}).catch(()=>{});function draw(){ctx.clearRect(0,0,W,H);projection.rotate([rotX,rotY,0]);ctx.beginPath();path(sphere);const og=ctx.createRadialGradient(W*.4,H*.38,5,W/2,H/2,R);og.addColorStop(0,'#EAF5FF');og.addColorStop(0.6,'#BDD9F0');og.addColorStop(1,'#8EC0E4');ctx.fillStyle=og;ctx.fill();if(countries){countries.features.forEach(f=>{if(!haiaSet.has(+f.id)){ctx.beginPath();path(f);ctx.fillStyle='#C8D6E0';ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=0.3;ctx.stroke();}});countries.features.forEach(f=>{if(haiaSet.has(+f.id)){ctx.beginPath();path(f);ctx.fillStyle='#1A5FA0';ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=0.4;ctx.stroke();}});}ctx.beginPath();path(graticule);ctx.strokeStyle='rgba(46,126,198,0.12)';ctx.lineWidth=0.4;ctx.stroke();ctx.beginPath();path(sphere);ctx.strokeStyle='rgba(46,126,198,0.4)';ctx.lineWidth=1.5;ctx.stroke();const shine=ctx.createRadialGradient(W*.38,H*.32,0,W/2,H/2,R);shine.addColorStop(0,'rgba(255,255,255,0.18)');shine.addColorStop(0.4,'rgba(255,255,255,0.04)');shine.addColorStop(1,'rgba(0,0,0,0.06)');ctx.beginPath();path(sphere);ctx.fillStyle=shine;ctx.fill();}let raf;function animate(){raf=requestAnimationFrame(animate);if(!dragging){if(returningToEquator){velX*=0.88;velY*=0.88;rotY+=(0-rotY)*0.06;rotX+=velX;if(Math.abs(rotY)<0.5&&Math.abs(velY)<0.05){rotY=0;velX=0.2;velY=0;returningToEquator=false;autoSpin=true;}}else if(autoSpin){velX+=(0.2-velX)*0.04;velY+=(0-velY)*0.04;rotX+=velX;rotY=Math.max(-90,Math.min(90,rotY+velY));}}draw();}animate();
+  }
+})();
 </script>
 </body>
 </html>
