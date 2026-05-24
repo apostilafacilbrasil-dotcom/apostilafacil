@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Apostila Simples — Portal</title>
+<title>Apostila Simples | Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -1049,7 +1049,7 @@ function iniciarPolling(){
     if(novos.length > 0){
       novos.forEach(o => {
         ultimosPedidosIds.add(o.id);
-        adicionarNotificacao('pedido', `Novo pedido: ${o.codigo||'sem código'} — ${(o.servico||'').slice(0,30)}`, o.created_at);
+        adicionarNotificacao('pedido', `Novo pedido: ${o.codigo||'sem código'} | ${(o.servico||'').slice(0,30)}`, o.created_at);
       });
       tocarSomNotificacao();
       mostrarToastNovoPedido(novos);
@@ -1107,7 +1107,7 @@ function atualizarBadgeAba(qtd){
   if(badgeInterval) clearInterval(badgeInterval);
   let visible = true;
   badgeInterval = setInterval(()=>{
-    document.title = visible ? `(${badgeCount}) Novo pedido! — Portal` : tituloOriginal;
+    document.title = visible ? `(${badgeCount}) Novo pedido! | Portal` : tituloOriginal;
     visible = !visible;
   }, 1000);
   // Para de piscar quando usuário foca na aba
@@ -2623,7 +2623,7 @@ async function updateStatus(id, status, selectEl){
       });
     } catch(e){ console.warn('email pagamento error',e); }
     showNotifBar('💰 Pagamento confirmado! E-mail enviado para '+lead.email,'#00875A');
-    adicionarNotificacao('pagamento', `Pagamento confirmado — ${order.codigo||''} (${lead.nome||''})`);
+    adicionarNotificacao('pagamento', `Pagamento confirmado: ${order.codigo||''} para ${lead.nome||''}`);
     showWppStatusBar('pagamento_confirmado', lead, order);
     await registrarComissao(order);
     carregarSaquesPendentes();
@@ -2652,7 +2652,7 @@ async function updateStatus(id, status, selectEl){
       });
     } catch(e){ console.warn('email entrega error',e); }
     showNotifBar('📦 Entrega notificada! E-mail enviado para '+lead.email,'#00875A');
-    adicionarNotificacao('entrega', `Documento entregue — ${order.codigo||''} para ${lead.nome||''}`);
+    adicionarNotificacao('entrega', `Documento entregue: ${order.codigo||''} para ${lead.nome||''}`);
     showWppStatusBar('entregue', lead, order);
     // E-mail de avaliação (com delay de 1 dia seria ideal, mas disparamos junto por simplicidade)
     setTimeout(async()=>{
