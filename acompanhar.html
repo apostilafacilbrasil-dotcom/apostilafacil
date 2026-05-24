@@ -132,6 +132,15 @@ h1{font-family:"EB Garamond",Georgia,serif;font-size:1.6rem;color:var(--navy);te
     <!-- TIMELINE -->
     <div class="timeline" id="timeline"></div>
 
+    <!-- ESTIMATIVA DE CONCLUSÃO (em produção) -->
+    <div id="estimativaBox" style="display:none;background:rgba(0,135,90,.06);border:1px solid rgba(0,135,90,.15);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;align-items:center;gap:.75rem;">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#00875A" stroke-width="1.8" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div>
+        <div style="font-size:.72rem;font-weight:600;color:#00875A;margin-bottom:.15rem;">Estimativa de conclusão</div>
+        <div id="estimativaTxt" style="font-size:.82rem;color:#00875A;"></div>
+      </div>
+    </div>
+
     <!-- MENSAGEM DE STATUS HUMANIZADA -->
     <div class="status-msg" id="statusMsg" style="display:none;"></div>
 
@@ -310,6 +319,24 @@ function renderResultado(p){
     msgEl.className = 'status-msg '+(info.cls||'');
     msgEl.innerHTML = info.txt;
     msgEl.style.display='block';
+  }
+
+  // Mensagem de estimativa quando em produção
+  if(p.status === 'em_producao' && p.data_entrega){
+    const entrega = new Date(p.data_entrega);
+    const agora = new Date();
+    const diffMs = entrega - agora;
+    const diffH = Math.round(diffMs / (1000*60*60));
+    const estimEl = document.getElementById('estimativaBox');
+    const estimTxt = document.getElementById('estimativaTxt');
+    if(estimEl && estimTxt && diffH > 0){
+      const horaEntrega = entrega.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      const hoje = agora.toDateString() === entrega.toDateString();
+      estimTxt.textContent = hoje
+        ? `Hoje até as ${horaEntrega} (em cerca de ${diffH} hora${diffH!==1?'s':''})`
+        : `${entrega.toLocaleDateString('pt-BR',{weekday:'long'})} até as ${horaEntrega}`;
+      estimEl.style.display='flex';
+    }
   }
 
   // Substatus entrega

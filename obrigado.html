@@ -98,12 +98,35 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3.2rem);color:#f
     </a>
   </div>
 
+  <!-- CONTADOR REGRESSIVO -->
+  <div style="margin-bottom:2rem;background:rgba(46,126,198,.08);border:1px solid rgba(46,126,198,.15);border-radius:12px;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:center;gap:.85rem;">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#7CB9E8" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <div style="text-align:center;">
+      <div style="font-size:.78rem;color:rgba(255,255,255,.45);margin-bottom:.2rem;">Nossa equipe entra em contato em até</div>
+      <div id="countdownTimer" style="font-size:1.6rem;font-weight:500;color:#7CB9E8;letter-spacing:.05em;">2:00:00</div>
+    </div>
+  </div>
+
   <a href="https://apostilasimples.com.br" class="footer-link">Voltar para o site</a>
 
 </div>
 
 <script>
-const WHATSAPP = '5511999999999';
+// Contador regressivo de 2 horas
+let totalSecs = 7200;
+const timerEl = document.getElementById('countdownTimer');
+function atualizarTimer(){
+  if(totalSecs <= 0){
+    if(timerEl) timerEl.textContent = 'Em breve!';
+    return;
+  }
+  totalSecs--;
+  const h = Math.floor(totalSecs/3600);
+  const m = Math.floor((totalSecs%3600)/60);
+  const s = totalSecs%60;
+  if(timerEl) timerEl.textContent = h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+setInterval(atualizarTimer, 1000);
 // Pegar parâmetros da URL
 const params = new URLSearchParams(window.location.search);
 const nome = params.get('nome');

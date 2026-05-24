@@ -413,7 +413,11 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
             <div class="field"><label>Nome completo</label><input id="nome" type="text" placeholder="Seu nome" required></div>
             <div class="field"><label>E-mail</label><input id="email" type="email" placeholder="seu@email.com" required></div>
             <div class="field"><label>WhatsApp</label><input id="whatsapp" type="tel" placeholder="(11) 99999-9999" required></div>
-            <div class="field"><label>País de destino</label><input id="pais" type="text" placeholder="Portugal, Itália, Espanha..."></div>
+            <div class="field"><label>País de destino</label><input id="pais" type="text" placeholder="Portugal, Itália, Espanha..." oninput="mostrarDicaPais(this.value)"></div>
+          </div>
+          <div id="dicaPais" style="display:none;margin-top:.5rem;background:#EBF4FF;border-radius:8px;padding:.75rem 1rem;font-size:.82rem;color:#1E3A52;line-height:1.6;border:1px solid rgba(46,126,198,.15);">
+            <span style="font-weight:600;color:#2E7EC6;" id="dicaPaisTitulo"></span><br/>
+            <span id="dicaPaisTexto"></span>
           </div>
           <div class="field full" id="campoIndicacao" style="display:none;margin-top:.5rem;">
             <label>Código de indicação</label>
@@ -754,7 +758,63 @@ let currentStep=1,selectedFiles=[];
 
 function toggleMenu(){const m=document.getElementById('mobileMenu');m.classList.toggle('open');document.body.style.overflow=m.classList.contains('open')?'hidden':'';}
 document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){const id=this.getAttribute('href').slice(1);if(!id)return;const t=document.getElementById(id);if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});const m=document.getElementById('mobileMenu');if(m)m.classList.remove('open');}});});
-function acceptCookies(){document.getElementById('cookieBanner').style.display='none';try{localStorage.setItem('cookies_accepted','1');}catch(e){}}
+// ── DICA DO PAÍS DE DESTINO ──
+const DICAS_PAIS = {
+  'portugal':   {titulo:'Portugal aceita apostilamento digital', texto:'O documento mais apostilado para Portugal é a certidão de nascimento. O prazo médio é de até 24 horas.'},
+  'italia':     {titulo:'Itália aceita apostilamento digital', texto:'Para processos de cidadania italiana são necessárias certidões apostiladas. Trabalhamos com todos os documentos exigidos.'},
+  'espanha':    {titulo:'Espanha aceita apostilamento digital', texto:'Diplomas e certidões são os documentos mais apostilados para a Espanha. Entrega em até 24 horas.'},
+  'alemanha':   {titulo:'Alemanha aceita apostilamento digital', texto:'Documentos acadêmicos e certidões são muito solicitados para a Alemanha. Trabalhamos com tradução juramentada também.'},
+  'estados unidos': {titulo:'Estados Unidos aceita apostilamento digital', texto:'Diplomas, certidões e procurações são os documentos mais apostilados para os EUA. Prazo médio de 24 horas.'},
+  'eua':        {titulo:'EUA aceita apostilamento digital', texto:'Diplomas, certidões e procurações são os documentos mais apostilados para os EUA. Prazo médio de 24 horas.'},
+  'franca':     {titulo:'França aceita apostilamento digital', texto:'Certidões e documentos acadêmicos são muito solicitados para a França. Tradução juramentada também disponível.'},
+  'australia':  {titulo:'Austrália aceita apostilamento digital', texto:'Certidões e diplomas são os mais solicitados para a Austrália. Entregamos em até 24 horas.'},
+  'reino unido':{titulo:'Reino Unido aceita apostilamento digital', texto:'Certidões de nascimento e diplomas são os mais apostilados para o Reino Unido. Prazo médio de 24 horas.'},
+  'canada':     {titulo:'Canadá aceita apostilamento digital', texto:'Certidões e documentos acadêmicos são muito solicitados para o Canadá. Trabalhamos com todos os tipos.'},
+  'suica':      {titulo:'Suíça aceita apostilamento digital', texto:'Certidões e diplomas são os mais apostilados para a Suíça. Tradução disponível em vários idiomas.'},
+  'holanda':    {titulo:'Holanda aceita apostilamento digital', texto:'Documentos de registro civil e acadêmicos são muito solicitados. Tradução juramentada disponível.'},
+};
+
+function normalizarPais(str){
+  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+
+function mostrarDicaPais(valor){
+  const chave = normalizarPais(valor);
+  const dica = DICAS_PAIS[chave];
+  const box = document.getElementById('dicaPais');
+  const titulo = document.getElementById('dicaPaisTitulo');
+  const texto = document.getElementById('dicaPaisTexto');
+  if(dica && chave.length > 3){
+    titulo.textContent = dica.titulo;
+    texto.textContent = dica.texto;
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+// ── WHATSAPP CONTEXTUAL POR LOCALIZAÇÃO ──
+(function(){
+  try{
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    const lang = navigator.language || '';
+    const msgs = {
+      'Europe/Lisbon':   'Precisa apostilar para Portugal? A gente resolve em até 24h!',
+      'Europe/Rome':     'Precisa apostilar para a Itália? Trabalhamos com cidadania italiana!',
+      'Europe/Madrid':   'Precisa apostilar para a Espanha? Entregamos em até 24h!',
+      'Europe/Berlin':   'Precisa apostilar para a Alemanha? Resolvemos tudo online!',
+      'America/New_York':'Precisa apostilar para os EUA? A gente cuida de tudo!',
+      'America/Chicago': 'Precisa apostilar para os EUA? A gente cuida de tudo!',
+      'America/Los_Angeles':'Precisa apostilar para os EUA? A gente cuida de tudo!',
+      'Europe/London':   'Precisa apostilar para o Reino Unido? Entregamos em até 24h!',
+      'Australia/Sydney':'Precisa apostilar para a Austrália? Resolvemos online!',
+    };
+    const msgContextual = msgs[tz];
+    if(msgContextual){
+      window._wppMsgContextual = msgContextual;
+    }
+  } catch(e){}
+})();
 
 // ── WHATSAPP WIDGET ──
 const wppMensagens = {
@@ -787,8 +847,12 @@ function atualizarMensagemBubble(){
   const dados = wppMensagens[secao] || wppMensagens.default;
   const msgEl = document.getElementById('whatsBubbleMsg');
   const linkEl = document.getElementById('whatsBubbleLink');
-  if(msgEl) msgEl.textContent = dados.msg;
-  if(linkEl) linkEl.href = `https://wa.me/5511999999999?text=${encodeURIComponent(dados.text)}`;
+  const msgFinal = window._wppMsgContextual || dados.msg;
+  const textFinal = window._wppMsgContextual
+    ? window._wppMsgContextual
+    : dados.text;
+  if(msgEl) msgEl.textContent = msgFinal;
+  if(linkEl) linkEl.href = `https://wa.me/5511999999999?text=${encodeURIComponent(textFinal)}`;
 }
 
 function toggleBubble(){
