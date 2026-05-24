@@ -112,6 +112,8 @@ h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3.2rem);color:#f
 </div>
 
 <script>
+const WHATSAPP = '5511999999999';
+
 // Contador regressivo de 2 horas
 let totalSecs = 7200;
 const timerEl = document.getElementById('countdownTimer');
@@ -127,6 +129,37 @@ function atualizarTimer(){
   if(timerEl) timerEl.textContent = h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
 }
 setInterval(atualizarTimer, 1000);
+
+// Mensagem proativa após 1 minuto
+setTimeout(()=>{
+  const existing = document.getElementById('popupProativo');
+  if(existing) return;
+  const nomeParam = new URLSearchParams(window.location.search).get('nome');
+  const nome1 = nomeParam ? nomeParam.split(' ')[0] : '';
+  const codigoParam = new URLSearchParams(window.location.search).get('codigo');
+  const msg = codigoParam
+    ? `Olá${nome1?' '+nome1:''}! Vi que você acabou de enviar o pedido ${codigoParam}. Tem alguma dúvida? Estou aqui para ajudar!`
+    : `Olá${nome1?' '+nome1:''}! Vi que você acabou de enviar seu pedido. Tem alguma dúvida? Estou aqui para ajudar!`;
+  const popup = document.createElement('div');
+  popup.id = 'popupProativo';
+  popup.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;background:#0D1B2A;border:1px solid rgba(37,211,102,.25);border-radius:14px;padding:1.25rem 1.5rem;max-width:290px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideInRight .3s ease;';
+  popup.innerHTML = `
+    <style>@keyframes slideInRight{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}</style>
+    <button onclick="document.getElementById('popupProativo').remove()" style="position:absolute;top:.6rem;right:.75rem;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:1rem;">✕</button>
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.75rem;font-weight:700;color:#000;">AS</div>
+      <div>
+        <div style="font-size:.82rem;font-weight:600;color:#fff;">Apostila Simples</div>
+        <div style="font-size:.68rem;color:#25D366;">Online agora</div>
+      </div>
+    </div>
+    <div style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.55;margin-bottom:.85rem;">${nome1?'Oi '+nome1+'! ':''} Tem alguma dúvida sobre seu pedido? Estou aqui para ajudar!</div>
+    <a href="https://wa.me/5511999999999?text=${encodeURIComponent(msg)}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;padding:.65rem 1rem;border-radius:8px;text-decoration:none;">
+      💬 Responder agora
+    </a>`;
+  document.body.appendChild(popup);
+  setTimeout(()=>popup?.remove(), 20000);
+}, 60000);
 // Pegar parâmetros da URL
 const params = new URLSearchParams(window.location.search);
 const nome = params.get('nome');

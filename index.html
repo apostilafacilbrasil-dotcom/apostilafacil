@@ -487,6 +487,12 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
             <button class="btn-ghost" type="button" onclick="nextStep(2)">Voltar</button>
             <button class="btn-primary" type="submit">Enviar orçamento</button>
           </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:.85rem;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#4A6A82" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span style="font-size:.72rem;color:#4A6A82;">Seus dados são protegidos e nunca compartilhados</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#4A6A82" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span style="font-size:.72rem;color:#4A6A82;">SSL</span>
+          </div>
         </div>
 
         <div class="form-step" id="step5">
@@ -758,6 +764,45 @@ let currentStep=1,selectedFiles=[];
 
 function toggleMenu(){const m=document.getElementById('mobileMenu');m.classList.toggle('open');document.body.style.overflow=m.classList.contains('open')?'hidden':'';}
 document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){const id=this.getAttribute('href').slice(1);if(!id)return;const t=document.getElementById(id);if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});const m=document.getElementById('mobileMenu');if(m)m.classList.remove('open');}});});
+// ── POPUP HESITAÇÃO NA SEÇÃO DE PREÇOS ──
+(function(){
+  let timerPrecos = null;
+  let popupMostrado = false;
+  const secaoPrecos = document.getElementById('precos');
+  if(!secaoPrecos) return;
+  const obs = new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting && !popupMostrado){
+      timerPrecos = setTimeout(()=>{
+        if(popupMostrado) return;
+        popupMostrado = true;
+        mostrarPopupHesitacao();
+      }, 30000);
+    } else {
+      clearTimeout(timerPrecos);
+    }
+  }, {threshold: 0.3});
+  obs.observe(secaoPrecos);
+})();
+
+function mostrarPopupHesitacao(){
+  const existing = document.getElementById('popupHesitacao');
+  if(existing) return;
+  const popup = document.createElement('div');
+  popup.id = 'popupHesitacao';
+  popup.style.cssText = 'position:fixed;bottom:1.5rem;left:1.5rem;z-index:200;background:#0D1B2A;border:1px solid rgba(46,126,198,.3);border-radius:14px;padding:1.25rem 1.5rem;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:slideInLeft .3s ease;';
+  popup.innerHTML = `
+    <style>@keyframes slideInLeft{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}</style>
+    <button onclick="document.getElementById('popupHesitacao').remove()" style="position:absolute;top:.6rem;right:.75rem;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:1rem;">✕</button>
+    <div style="font-size:.85rem;font-weight:600;color:#fff;margin-bottom:.35rem;">Ficou com alguma dúvida?</div>
+    <div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.55;margin-bottom:.85rem;">Nossa equipe explica tudo em menos de 2 minutos pelo WhatsApp.</div>
+    <a href="https://wa.me/5511999999999?text=${encodeURIComponent('Olá! Estou vendo os preços e gostaria de tirar uma dúvida.')}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:.5rem;background:#25D366;color:#000;font-size:.78rem;font-weight:700;padding:.65rem 1rem;border-radius:8px;text-decoration:none;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="#000"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.556 4.122 1.526 5.855L.057 24l6.305-1.654A11.954 11.954 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.814 9.814 0 0 1-5.006-1.368l-.358-.214-3.724.977 1.001-3.648-.234-.374A9.818 9.818 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z"/></svg>
+      Falar agora
+    </a>`;
+  document.body.appendChild(popup);
+  setTimeout(()=>popup?.remove(), 15000);
+}
+
 // ── DICA DO PAÍS DE DESTINO ──
 const DICAS_PAIS = {
   'portugal':   {titulo:'Portugal aceita apostilamento digital', texto:'O documento mais apostilado para Portugal é a certidão de nascimento. O prazo médio é de até 24 horas.'},
