@@ -148,9 +148,13 @@ textarea{min-height:110px;resize:vertical;}
 .file-item{display:flex;align-items:center;justify-content:space-between;gap:1rem;background:#EBF4FF;border:1px solid rgba(46,126,198,.2);padding:.85rem 1rem;border-radius:8px;}
 .file-item span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#0D1B2A;font-size:.86rem;}
 .file-item button{background:none;border:none;color:#C0392B;font-weight:700;cursor:pointer;}
-.summary{border-top:1px solid rgba(13,27,42,.1);margin-top:1rem;}
-.summary-row{display:flex;justify-content:space-between;gap:1rem;padding:1rem 0;border-bottom:1px solid rgba(13,27,42,.1);font-size:.88rem;}
-.summary-row span:first-child{color:#4A6A82;}
+.summary{margin-top:1rem;display:flex;flex-direction:column;gap:.5rem;}
+.summary-group{background:#F0F7FF;border-radius:12px;overflow:hidden;}
+.summary-group-title{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#2E7EC6;padding:.75rem 1rem .4rem;opacity:.8;}
+.summary-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.65rem 1rem;font-size:.875rem;border-top:1px solid rgba(46,126,198,.08);}
+.summary-row:first-of-type{border-top:none;}
+.summary-row span:first-child{color:#4A6A82;font-size:.8rem;}
+.summary-row span:last-child{font-weight:500;color:#0D1B2A;text-align:right;max-width:60%;}
 .total-box{margin-top:1.4rem;background:#EBF4FF;border:1px solid rgba(46,126,198,.25);padding:1.3rem;display:flex;justify-content:space-between;gap:1rem;align-items:start;border-radius:10px;}
 .total-box small{color:#4A6A82;letter-spacing:.16em;text-transform:uppercase;font-size:.62rem;}
 .total-box strong{font-family:"Bebas Neue",sans-serif;color:#2E7EC6;font-size:3.7rem;line-height:.85;font-weight:400;}
@@ -1052,7 +1056,28 @@ uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classLi
 uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag'));
 uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('drag');handleFiles(e.dataTransfer.files);});
 
-function renderSummary(){const nome=document.getElementById('nome').value||'';const email=document.getElementById('email').value||'';const whatsapp=document.getElementById('whatsapp').value||'';const pais=document.getElementById('pais').value||'A confirmar';const qty=getQty();const tipoServico=document.getElementById('tipoServico').value||'Apenas Apostila de Haia';const obs=document.getElementById('obs').value||'Sem observações';const files=selectedFiles.length?selectedFiles.length+' arquivo(s)':'Nenhum arquivo';const temApost=!tipoServico.toLowerCase().includes('apenas tradução');const temTrad=tipoServico.toLowerCase().includes('tradu');const isProcessoCompleto=tipoServico.toLowerCase().includes('apostilamento da tradução')&&tipoServico.toLowerCase().includes('apostilamento');const unitApost=unitPrice(qty);const numApostilas=isProcessoCompleto?2:(temApost?1:0);const apostTotal=numApostilas*unitApost*qty;let tradTotal=0;if(temTrad&&formSimPalavras>0){const simIdioma=document.getElementById('simIdiomaForm');const k=simIdioma?simIdioma.value:'';const c=FORM_IDIOMAS[k];if(c){const extraWords=Math.max(0,formSimPalavras-200);const extraBlocks=Math.ceil(extraWords/200);tradTotal=c.m+(extraBlocks*c.b);}}const total=apostTotal+tradTotal;document.getElementById('summaryBox').innerHTML=`<div class="summary-row"><span>Nome</span><span>${nome}</span></div><div class="summary-row"><span>E-mail</span><span>${email}</span></div><div class="summary-row"><span>WhatsApp</span><span>${whatsapp}</span></div><div class="summary-row"><span>País</span><span>${pais}</span></div><div class="summary-row"><span>Quantidade</span><span>${qty} documento(s)</span></div><div class="summary-row"><span>Serviço</span><span>${tipoServico}</span></div><div class="summary-row"><span>Arquivos</span><span>${files}</span></div><div class="summary-row"><span>Observações</span><span>${obs}</span></div>`;document.getElementById('estimateTotal').textContent=(temTrad&&tradTotal===0)?'A calcular':money(total);}
+function renderSummary(){
+  var nome=document.getElementById('nome').value||'';
+  var email=document.getElementById('email').value||'';
+  var whatsapp=document.getElementById('whatsapp').value||'';
+  var pais=document.getElementById('pais').value||'A confirmar';
+  var qty=getQty();
+  var tipoServico=document.getElementById('tipoServico').value||'Apenas Apostila de Haia';
+  var obs=document.getElementById('obs').value||'';
+  var files=selectedFiles.length?selectedFiles.length+' arquivo(s)':'Nenhum arquivo';
+  var temApost=!tipoServico.toLowerCase().includes('apenas tradução');
+  var temTrad=tipoServico.toLowerCase().includes('tradu');
+  var isProcessoCompleto=tipoServico.toLowerCase().includes('apostilamento da tradução')&&tipoServico.toLowerCase().includes('apostilamento');
+  var unitApost=unitPrice(qty);
+  var numApostilas=isProcessoCompleto?2:(temApost?1:0);
+  var apostTotal=numApostilas*unitApost*qty;
+  var tradTotal=0;
+  if(temTrad&&formSimPalavras>0){var simIdioma=document.getElementById('simIdiomaForm');var k=simIdioma?simIdioma.value:'';var c=FORM_IDIOMAS[k];if(c){var extraWords=Math.max(0,formSimPalavras-200);var extraBlocks=Math.ceil(extraWords/200);tradTotal=c.m+(extraBlocks*c.b);}}
+  var total=apostTotal+tradTotal;
+  var obsRow=obs?'<div class="summary-row"><span>Observações</span><span>'+obs+'</span></div>':'';
+  document.getElementById('summaryBox').innerHTML='<div class="summary-group"><div class="summary-group-title">Seus dados</div><div class="summary-row"><span>Nome</span><span>'+nome+'</span></div><div class="summary-row"><span>E-mail</span><span>'+email+'</span></div><div class="summary-row"><span>WhatsApp</span><span>'+whatsapp+'</span></div><div class="summary-row"><span>País de destino</span><span>'+pais+'</span></div></div><div class="summary-group"><div class="summary-group-title">Pedido</div><div class="summary-row"><span>Serviço</span><span>'+tipoServico+'</span></div><div class="summary-row"><span>Quantidade</span><span>'+qty+' documento(s)</span></div><div class="summary-row"><span>Arquivos</span><span>'+files+'</span></div>'+obsRow+'</div>';
+  document.getElementById('estimateTotal').textContent=(temTrad&&tradTotal===0)?'A calcular':money(total);
+}
 
 document.getElementById('quoteForm').addEventListener('submit',async function(e){
   e.preventDefault();
