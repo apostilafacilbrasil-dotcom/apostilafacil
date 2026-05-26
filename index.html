@@ -435,11 +435,11 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
           <div class="field full" style="margin-top:.5rem">
             <label>O que você precisa?</label>
             <div class="service-cards" id="serviceCards">
-              <div class="svc-card active" data-value="Apenas Apostila de Haia" onclick="selectService(this)"><div class="svc-title">Apostilamento</div><div class="svc-desc">Apostilamento do documento original</div></div>
-              <div class="svc-card" data-value="Apenas Tradução Juramentada" onclick="selectService(this)"><div class="svc-title">Tradução Juramentada</div><div class="svc-desc">Tradução sem apostilamento</div></div>
-              <div class="svc-card" data-value="Tradução Juramentada + Apostila de Haia" onclick="selectService(this)"><div class="svc-title">Apostilamento + Tradução</div><div class="svc-desc">Apostilamento + tradução juramentada</div></div>
-              <div class="svc-card" data-value="Tradução Juramentada + Apostilamento da Tradução" onclick="selectService(this)"><div class="svc-title">Tradução + Apostilamento da Tradução</div><div class="svc-desc">Tradução juramentada e apostilamento da tradução</div></div>
-              <div class="svc-card" data-value="Apostilamento + Tradução + Apostilamento da Tradução" onclick="selectService(this)"><div class="svc-title">Processo Completo</div><div class="svc-desc">Apostilamento + Tradução + Apostilamento da Tradução</div></div>
+              <div class="svc-card active" data-value="Apenas Apostila de Haia" onclick="selectService(this)"><div class="svc-title">Apostilamento</div><div class="svc-desc">Apostila do documento original</div></div>
+              <div class="svc-card" data-value="Apenas Tradução Juramentada" onclick="selectService(this)"><div class="svc-title">Tradução Juramentada</div><div class="svc-desc">Tradução oficial do documento</div></div>
+              <div class="svc-card" data-value="Apostilamento + Tradução Juramentada" onclick="selectService(this)"><div class="svc-title">Apostilamento + Tradução</div><div class="svc-desc">Apostila do original + tradução oficial</div></div>
+              <div class="svc-card" data-value="Tradução Juramentada + Apostilamento da Tradução" onclick="selectService(this)"><div class="svc-title">Tradução + Apostila</div><div class="svc-desc">Tradução oficial + apostila da tradução</div></div>
+              <div class="svc-card" data-value="Processo Completo (Apostila + Tradução + Apostila da Tradução)" onclick="selectService(this)"><div class="svc-title">Processo Completo</div><div class="svc-desc">Apostila do original + tradução + apostila da tradução</div></div>
             </div>
             <input type="hidden" id="tipoServico" value="Apenas Apostila de Haia">
           </div>
@@ -1001,7 +1001,7 @@ function calcularTotalPedido(){
   const tipoServico=(document.getElementById('tipoServico')||{}).value||'Apenas Apostila de Haia';
   const temApost=!tipoServico.toLowerCase().includes('apenas tradução');
   const temTrad=tipoServico.toLowerCase().includes('tradu');
-  const isProcessoCompleto=tipoServico.toLowerCase().includes('apostilamento da tradução')&&tipoServico.toLowerCase().includes('apostilamento');
+  const isProcessoCompleto=tipoServico.toLowerCase().includes('processo completo');
   const unitApost=unitPrice(qty);
   const numApostilas=isProcessoCompleto?2:(temApost?1:0);
   const apostTotal=numApostilas*unitApost*qty;
@@ -1039,7 +1039,7 @@ function selectService(el){document.querySelectorAll('.svc-card').forEach(c=>c.c
 let formSimPalavras=0;
 const FORM_IDIOMAS={Inglês:{b:35,m:109.90},Espanhol:{b:35,m:109.90},Italiano:{b:45,m:129.90},Francês:{b:60,m:139.90}};
 
-function formSimCalc(){const el=document.getElementById('simIdiomaForm');if(!el)return;const k=el.value;const qty=parseInt((document.getElementById('quantidade')||{}).value)||1;const unitApost=qty<=1?109.90:qty<=4?104.90:99.90;const fmt=v=>'R$ '+v.toFixed(2).replace('.',',');const isConsulta=k==='consultar';const nt=document.getElementById('formSimTradNote');const servico=(document.getElementById('tipoServico')||{}).value||'';const temApost=!servico.toLowerCase().includes('apenas tradução');const temTrad=servico.toLowerCase().includes('tradu');if(isConsulta){document.getElementById('formSimTotal').textContent='Sob consulta';document.getElementById('formSimPerDoc').textContent='Via WhatsApp';if(nt)nt.style.display='none';return;}const c=FORM_IDIOMAS[k];let trad=0;if(c&&temTrad&&formSimPalavras>0){const extraWords=Math.max(0,formSimPalavras-200);const extraBlocks=Math.ceil(extraWords/200);trad=c.m+(extraBlocks*c.b);if(nt){nt.style.display='block';nt.textContent='Tradução: '+fmt(trad);}}else if(temTrad&&formSimPalavras===0){if(nt){nt.style.display='block';nt.textContent='Envie o doc. para calcular tradução';}}else{if(nt)nt.style.display='none';}const isProcessoCompleto=servico.toLowerCase().includes('apostilamento da tradução')&&servico.toLowerCase().includes('apostilamento');const numApostilas=isProcessoCompleto?2:(temApost?1:0);const apost=numApostilas*unitApost*qty;const total=apost+trad;const eta=document.getElementById('formSimEta');if(eta)eta.innerHTML=temTrad?'⏱ Prazo após análise':'⚡ Entrega em até 24h';document.getElementById('formSimTotal').textContent=(temTrad&&formSimPalavras===0)?'A calcular':fmt(total);document.getElementById('formSimPerDoc').textContent=temApost?fmt(unitApost)+' / doc.':'Só tradução';}
+function formSimCalc(){const el=document.getElementById('simIdiomaForm');if(!el)return;const k=el.value;const qty=parseInt((document.getElementById('quantidade')||{}).value)||1;const unitApost=qty<=1?109.90:qty<=4?104.90:99.90;const fmt=v=>'R$ '+v.toFixed(2).replace('.',',');const isConsulta=k==='consultar';const nt=document.getElementById('formSimTradNote');const servico=(document.getElementById('tipoServico')||{}).value||'';const temApost=!servico.toLowerCase().includes('apenas tradução');const temTrad=servico.toLowerCase().includes('tradu');if(isConsulta){document.getElementById('formSimTotal').textContent='Sob consulta';document.getElementById('formSimPerDoc').textContent='Via WhatsApp';if(nt)nt.style.display='none';return;}const c=FORM_IDIOMAS[k];let trad=0;if(c&&temTrad&&formSimPalavras>0){const extraWords=Math.max(0,formSimPalavras-200);const extraBlocks=Math.ceil(extraWords/200);trad=c.m+(extraBlocks*c.b);if(nt){nt.style.display='block';nt.textContent='Tradução: '+fmt(trad);}}else if(temTrad&&formSimPalavras===0){if(nt){nt.style.display='block';nt.textContent='Envie o doc. para calcular tradução';}}else{if(nt)nt.style.display='none';}const isProcessoCompleto=servico.toLowerCase().includes('processo completo');const numApostilas=isProcessoCompleto?2:(temApost?1:0);const apost=numApostilas*unitApost*qty;const total=apost+trad;const eta=document.getElementById('formSimEta');if(eta)eta.innerHTML=temTrad?'⏱ Prazo após análise':'⚡ Entrega em até 24h';document.getElementById('formSimTotal').textContent=(temTrad&&formSimPalavras===0)?'A calcular':fmt(total);document.getElementById('formSimPerDoc').textContent=temApost?fmt(unitApost)+' / doc.':'Só tradução';}
 
 let simFiles=[];
 function formSimHandleMulti(inp){const files=Array.from(inp.files||[]);if(!files.length)return;if(simFiles.length+files.length>20){openWhatsModal('Muitos arquivos!','Para pedidos com mais de 20 arquivos, nosso time faz um orçamento pelo WhatsApp.');return;}files.forEach(file=>{if(!simFiles.some(f=>f.name===file.name&&f.size===file.size)){simFiles.push({name:file.name,size:file.size,palavras:0,status:'analisando'});processSimFile(file);}});renderSimFiles();}
@@ -1067,7 +1067,7 @@ function renderSummary(){
   var files=selectedFiles.length?selectedFiles.length+' arquivo(s)':'Nenhum arquivo';
   var temApost=!tipoServico.toLowerCase().includes('apenas tradução');
   var temTrad=tipoServico.toLowerCase().includes('tradu');
-  var isProcessoCompleto=tipoServico.toLowerCase().includes('apostilamento da tradução')&&tipoServico.toLowerCase().includes('apostilamento');
+  var isProcessoCompleto=tipoServico.toLowerCase().includes('processo completo');
   var unitApost=unitPrice(qty);
   var numApostilas=isProcessoCompleto?2:(temApost?1:0);
   var apostTotal=numApostilas*unitApost*qty;
