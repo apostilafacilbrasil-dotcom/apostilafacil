@@ -204,6 +204,121 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
   tbody td:last-child{padding-bottom:.8rem;}
   tbody tr{display:block;border-bottom:1px solid var(--line);}
 }
+
+<style>
+.prc-wrap{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 68px - 2rem);max-height:700px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;}
+.prc-left{border-right:1px solid var(--line);display:flex;flex-direction:column;background:#fff;}
+.prc-left-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px;}
+.prc-tabs{display:flex;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.prc-tab{flex:1;padding:7px;font-size:.75rem;font-weight:600;background:none;border:none;color:var(--muted2);cursor:pointer;transition:.15s;letter-spacing:.02em;}
+.prc-tab.active{background:var(--navy);color:#fff;}
+.prc-search{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:.82rem;background:var(--bg);color:var(--navy);}
+.prc-filters{display:flex;gap:5px;flex-wrap:wrap;}
+.prc-pill{border:1px solid var(--line);border-radius:20px;padding:3px 10px;font-size:.7rem;color:var(--muted2);cursor:pointer;background:#fff;transition:.15s;}
+.prc-pill.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.prc-list{flex:1;overflow-y:auto;}
+.prc-contact{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s;}
+.prc-contact:hover{background:var(--bg);}
+.prc-contact.active{background:#EBF4FF;}
+.prc-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.prc-cinfo{flex:1;min-width:0;}
+.prc-cname{font-size:.82rem;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prc-csub{font-size:.72rem;color:var(--muted2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prc-badge{font-size:.65rem;padding:2px 8px;border-radius:20px;font-weight:600;flex-shrink:0;}
+.prc-add-btn{margin:12px 16px;padding:8px;border:1.5px dashed var(--line2);border-radius:8px;background:none;color:var(--blue);font-size:.78rem;font-weight:600;cursor:pointer;width:calc(100% - 32px);transition:.15s;}
+.prc-add-btn:hover{background:#EBF4FF;}
+.prc-right{display:flex;flex-direction:column;background:#fff;}
+.prc-empty-right{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;color:var(--muted2);}
+.prc-empty-right svg{opacity:.25;}
+.prc-detail-head{padding:18px 22px 14px;border-bottom:1px solid var(--line);}
+.prc-detail-top{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.prc-det-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;}
+.prc-det-name{font-size:1.1rem;font-weight:700;color:var(--navy);line-height:1.2;}
+.prc-det-type{font-size:.78rem;color:var(--muted2);margin-top:3px;}
+.prc-det-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.prc-btn-act{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 12px;font-size:.75rem;color:var(--navy);cursor:pointer;display:flex;align-items:center;gap:5px;transition:.15s;}
+.prc-btn-act:hover{border-color:var(--blue);color:var(--blue);}
+.prc-btn-primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+.prc-btn-primary:hover{background:#163A5F;color:#fff;border-color:#163A5F;}
+.prc-detail-body{flex:1;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:16px;}
+.prc-section-lbl{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.prc-section-lbl a{font-size:.65rem;color:var(--blue);cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0;}
+.prc-progress{display:flex;gap:4px;margin-bottom:6px;}
+.prc-prog-step{flex:1;height:4px;border-radius:2px;background:var(--line);}
+.prc-prog-labels{display:flex;justify-content:space-between;font-size:.65rem;color:var(--muted2);}
+.prc-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.prc-info-item{background:var(--bg);border-radius:8px;padding:9px 11px;}
+.prc-info-lbl{font-size:.6rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;}
+.prc-info-val{font-size:.8rem;color:var(--navy);font-weight:600;}
+.prc-note{background:var(--bg);border-radius:8px;padding:11px 12px;font-size:.82rem;color:var(--navy);line-height:1.6;border-left:3px solid var(--blue);}
+.prc-next{background:var(--bg);border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.prc-next-text{font-size:.82rem;color:var(--navy);font-weight:500;}
+.prc-next-date{font-size:.75rem;color:var(--blue);font-weight:600;white-space:nowrap;}
+.prc-timeline{display:flex;flex-direction:column;}
+.prc-tl-row{display:flex;gap:10px;padding-bottom:12px;position:relative;}
+.prc-tl-row:not(:last-child):before{content:'';position:absolute;left:10px;top:22px;bottom:0;width:1px;background:var(--line);}
+.prc-tl-ic{width:22px;height:22px;border-radius:50%;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
+.prc-tl-main{font-size:.78rem;color:var(--navy);font-weight:500;}
+.prc-tl-when{font-size:.7rem;color:var(--muted2);margin-top:1px;}
+.prc-footer{padding:12px 22px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.prc-footer-status{font-size:.78rem;color:var(--muted2);}
+.prc-move-btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:.78rem;font-weight:600;cursor:pointer;transition:.15s;}
+.prc-move-btn:hover{background:var(--blue2);}
+/* AGENDA */
+.ag-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;}
+.ag-head{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;}
+.ag-period{font-size:.95rem;font-weight:700;color:var(--navy);}
+.ag-sub-txt{font-size:.75rem;color:var(--muted2);margin-top:2px;}
+.ag-nav-grp{display:flex;align-items:center;gap:8px;}
+.ag-nav-btn{border:1px solid var(--line);background:#fff;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--muted2);transition:.15s;}
+.ag-nav-btn:hover{background:var(--bg);}
+.ag-today-btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 12px;font-size:.75rem;color:var(--muted2);cursor:pointer;}
+.ag-add-btn{background:var(--navy);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:.75rem;font-weight:600;cursor:pointer;}
+.ag-week{display:grid;grid-template-columns:repeat(7,1fr);}
+.ag-day-head{padding:8px 4px 6px;text-align:center;border-bottom:1px solid var(--line);border-right:1px solid var(--line);}
+.ag-day-head:last-child{border-right:none;}
+.ag-day-name{font-size:.65rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;}
+.ag-day-num{font-size:1.1rem;font-weight:500;color:var(--navy);line-height:1.3;margin-top:1px;}
+.ag-day-num.today-num{background:var(--navy);color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;margin:1px auto 0;font-size:.9rem;}
+.ag-day-col{border-right:1px solid var(--line);min-height:220px;padding:7px 5px;display:flex;flex-direction:column;gap:5px;}
+.ag-day-col:last-child{border-right:none;}
+.ag-day-col.today-col{background:#FAFBFF;}
+.ag-day-col.weekend-col{background:#FAFAFA;}
+.ag-event{border-radius:5px;padding:5px 7px;cursor:pointer;border-left:3px solid transparent;transition:opacity .12s;}
+.ag-event:hover{opacity:.8;}
+.ag-ev-type{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1px;}
+.ag-ev-name{font-size:.72rem;font-weight:600;line-height:1.3;color:var(--navy);}
+.ag-ev-time{font-size:.65rem;margin-top:2px;opacity:.7;color:var(--navy);}
+.ag-ev-email{background:#EBF4FF;border-left-color:#2E7EC6;}
+.ag-ev-email .ag-ev-type{color:#1A5FA0;}
+.ag-ev-call{background:#EAF3DE;border-left-color:#3B6D11;}
+.ag-ev-call .ag-ev-type{color:#27500A;}
+.ag-ev-whats{background:#E1F5EE;border-left-color:#0F6E56;}
+.ag-ev-whats .ag-ev-type{color:#085041;}
+.ag-ev-meeting{background:#EEEDFE;border-left-color:#534AB7;}
+.ag-ev-meeting .ag-ev-type{color:#3C3489;}
+.ag-ev-followup{background:#FAEEDA;border-left-color:#854F0B;}
+.ag-ev-followup .ag-ev-type{color:#633806;}
+.ag-col-add{font-size:.65rem;color:var(--muted2);text-align:center;padding:3px;cursor:pointer;border-radius:4px;margin-top:auto;}
+.ag-col-add:hover{background:var(--bg);color:var(--blue);}
+.ag-footer-leg{padding:10px 20px;border-top:1px solid var(--line);display:flex;gap:14px;flex-wrap:wrap;}
+.ag-leg{display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--muted2);}
+.ag-leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+/* MODAL PARCEIRO */
+.prc-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center;padding:1rem;}
+.prc-modal-overlay.open{display:flex;}
+.prc-modal{background:#fff;border-radius:14px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.prc-modal-head{padding:18px 20px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.prc-modal-title{font-size:1rem;font-weight:700;color:var(--navy);}
+.prc-modal-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px;}
+.prc-modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;}
+.prc-field{display:flex;flex-direction:column;gap:5px;}
+.prc-field label{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);}
+.prc-field input,.prc-field select,.prc-field textarea{border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:.85rem;color:var(--navy);background:#fff;outline:none;transition:.15s;}
+.prc-field input:focus,.prc-field select:focus,.prc-field textarea:focus{border-color:var(--blue);}
+.prc-field textarea{min-height:80px;resize:vertical;}
+.prc-field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+</style>
 </style>
 </head>
 <body>
@@ -308,6 +423,10 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
       <button class="snav-item" onclick="navTo('afiliados')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         <span>Afiliados</span>
+      </button>
+      <button class="snav-item" onclick="navTo('parceiros')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Parceiros</span>
       </button>
       <button class="snav-item" onclick="navTo('configuracoes')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -530,7 +649,75 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
       </div>
 
       <!-- PÁGINA CONFIGURAÇÕES -->
-      <div class="page" id="page-configuracoes" style="display:none">
+      
+      <div class="page" id="page-parceiros" style="display:none">
+        <div class="page-header" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.2rem;">
+          <div>
+            <div class="page-eyebrow">CRM</div>
+            <h1 class="page-title">Parceiros</h1>
+          </div>
+          <div style="display:flex;gap:.6rem;">
+            <button onclick="mostrarAbaParceiros('lista')" id="tabBtnLista" class="btn-sm btn-outline active-tab-btn" style="font-size:.75rem;padding:.45rem 1rem;">Lista</button>
+            <button onclick="mostrarAbaParceiros('agenda')" id="tabBtnAgenda" class="btn-sm btn-outline" style="font-size:.75rem;padding:.45rem 1rem;">Agenda</button>
+          </div>
+        </div>
+
+        <!-- ABA LISTA -->
+        <div id="parcLista">
+          <div class="prc-wrap">
+            <div class="prc-left">
+              <div class="prc-left-head">
+                <input class="prc-search" id="prcSearch" placeholder="Buscar parceiro..." oninput="filtrarParceiros()">
+                <div class="prc-filters" id="prcFilters">
+                  <button class="prc-pill on" onclick="setParcFiltro('todos',this)">Todos</button>
+                  <button class="prc-pill" onclick="setParcFiltro('prospeccao',this)">Prospecção</button>
+                  <button class="prc-pill" onclick="setParcFiltro('contato',this)">Contato</button>
+                  <button class="prc-pill" onclick="setParcFiltro('followup',this)">Follow-up</button>
+                  <button class="prc-pill" onclick="setParcFiltro('tratativa',this)">Tratativa</button>
+                  <button class="prc-pill" onclick="setParcFiltro('ativo',this)">Ativos</button>
+                </div>
+              </div>
+              <div class="prc-list" id="prcList"></div>
+              <button class="prc-add-btn" onclick="abrirModalNovoParceiro()">+ Novo parceiro</button>
+            </div>
+            <div class="prc-right" id="prcRight">
+              <div class="prc-empty-right">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Selecione um parceiro</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA AGENDA -->
+        <div id="parcAgenda" style="display:none">
+          <div class="ag-wrap">
+            <div class="ag-head">
+              <div>
+                <div class="ag-period" id="agPeriod">Maio 2026</div>
+                <div class="ag-sub-txt" id="agSub">Carregando...</div>
+              </div>
+              <div class="ag-nav-grp">
+                <button class="ag-nav-btn" onclick="agNavSemana(-1)">&#8249;</button>
+                <button class="ag-today-btn" onclick="agHoje()">Hoje</button>
+                <button class="ag-nav-btn" onclick="agNavSemana(1)">&#8250;</button>
+                <button class="ag-add-btn" onclick="abrirModalCompromisso()">+ Compromisso</button>
+              </div>
+            </div>
+            <div class="ag-week" id="agDayHeads"></div>
+            <div class="ag-week" id="agDayCols"></div>
+            <div class="ag-footer-leg">
+              <div class="ag-leg"><div class="ag-leg-dot" style="background:#2E7EC6"></div>E-mail</div>
+              <div class="ag-leg"><div class="ag-leg-dot" style="background:#3B6D11"></div>Ligação</div>
+              <div class="ag-leg"><div class="ag-leg-dot" style="background:#0F6E56"></div>WhatsApp</div>
+              <div class="ag-leg"><div class="ag-leg-dot" style="background:#534AB7"></div>Reunião</div>
+              <div class="ag-leg"><div class="ag-leg-dot" style="background:#854F0B"></div>Follow-up</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<div class="page" id="page-configuracoes" style="display:none">
         <div class="page-header">
           <div class="page-eyebrow">Financeiro</div>
           <h1 class="page-title">Configurações de custo</h1>
@@ -933,6 +1120,7 @@ function navTo(page){
   if(page==='dashboard') setTimeout(renderRevenueChart, 50);
   if(page==='leads') carregarLeads();
   if(page==='afiliados') carregarAfiliados();
+  if(page==='parceiros') carregarParceiros();
   if(page==='configuracoes') carregarConfiguracoes();
 }
 
@@ -3096,6 +3284,391 @@ async function criarOrcamentoManual(){
   loadAdminData();
   alert('Orçamento '+codigo+' criado com sucesso!');
 }
+
+// ═══════════════════════════════════════════
+// PARCEIROS — CRM
+// ═══════════════════════════════════════════
+let parceiros = [];
+let parcFiltroAtual = 'todos';
+let parcSelecionado = null;
+const ETAPAS = {
+  prospeccao: { label:'Prospecção', cor:'#888780', bg:'#F1EFE8', txt:'#444441' },
+  contato:    { label:'Contato feito', cor:'#2E7EC6', bg:'#EBF4FF', txt:'#0C447C' },
+  followup:   { label:'Follow-up', cor:'#D97706', bg:'#FAEEDA', txt:'#854F0B' },
+  tratativa:  { label:'Em tratativa', cor:'#7C3AED', bg:'#EEEDFE', txt:'#3C3489' },
+  ativo:      { label:'Parceiro ativo', cor:'#059669', bg:'#EAF3DE', txt:'#27500A' },
+};
+const ETAPAS_ORDEM = ['prospeccao','contato','followup','tratativa','ativo'];
+const TIPO_ICONS = { email:'📧', call:'📞', whats:'💬', meeting:'🤝', followup:'🔁' };
+
+async function carregarParceiros() {
+  try {
+    const {data,error} = await sb.from('parceiros').select('*').order('created_at',{ascending:false});
+    if(error) throw error;
+    parceiros = data || [];
+    renderizarListaParceiros();
+    renderizarAgenda();
+    popularSelectParceiros();
+  } catch(e) {
+    parceiros = [];
+    renderizarListaParceiros();
+  }
+}
+
+function getIniciaisAvatar(nome) {
+  const parts = nome.trim().split(' ');
+  if(parts.length>=2) return (parts[0][0]+parts[1][0]).toUpperCase();
+  return nome.substring(0,2).toUpperCase();
+}
+
+function getCorAvatar(etapa) {
+  const map = { prospeccao:'#F1EFE8', contato:'#EBF4FF', followup:'#FAEEDA', tratativa:'#EEEDFE', ativo:'#EAF3DE' };
+  const mapt = { prospeccao:'#444441', contato:'#0C447C', followup:'#854F0B', tratativa:'#3C3489', ativo:'#27500A' };
+  return { bg: map[etapa]||'#F1EFE8', txt: mapt[etapa]||'#444441' };
+}
+
+function filtrarParceiros() { renderizarListaParceiros(); }
+
+function setParcFiltro(filtro, btn) {
+  parcFiltroAtual = filtro;
+  document.querySelectorAll('.prc-pill').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  renderizarListaParceiros();
+}
+
+function renderizarListaParceiros() {
+  const busca = (document.getElementById('prcSearch')||{}).value||'';
+  const lista = document.getElementById('prcList');
+  if(!lista) return;
+  let filtrados = parceiros.filter(p => {
+    const matchFiltro = parcFiltroAtual==='todos' || p.etapa===parcFiltroAtual;
+    const matchBusca = !busca || p.nome.toLowerCase().includes(busca.toLowerCase()) || (p.email||'').toLowerCase().includes(busca.toLowerCase()) || (p.cidade||'').toLowerCase().includes(busca.toLowerCase());
+    return matchFiltro && matchBusca;
+  });
+  if(!filtrados.length) {
+    lista.innerHTML='<div style="padding:2rem;text-align:center;color:var(--muted2);font-size:.82rem;">Nenhum parceiro encontrado.</div>';
+    return;
+  }
+  lista.innerHTML = filtrados.map(p => {
+    const et = ETAPAS[p.etapa]||ETAPAS.prospeccao;
+    const av = getCorAvatar(p.etapa);
+    const ini = getIniciaisAvatar(p.nome);
+    const isActive = parcSelecionado && parcSelecionado.id===p.id;
+    return `<div class="prc-contact${isActive?' active':''}" onclick="selecionarParceiro('${p.id}')">
+      <div class="prc-avatar" style="background:${av.bg};color:${av.txt}">${ini}</div>
+      <div class="prc-cinfo">
+        <div class="prc-cname">${p.nome}</div>
+        <div class="prc-csub">${p.tipo||''}${p.cidade?' · '+p.cidade:''}</div>
+      </div>
+      <span class="prc-badge" style="background:${et.bg};color:${et.txt}">${et.label}</span>
+    </div>`;
+  }).join('');
+}
+
+function selecionarParceiro(id, abrirLista=false) {
+  parcSelecionado = parceiros.find(p=>p.id===id);
+  if(!parcSelecionado) return;
+  if(abrirLista) {
+    mostrarAbaParceiros('lista');
+    setTimeout(()=>{ renderizarListaParceiros(); renderDetalhe(parcSelecionado); },50);
+    return;
+  }
+  renderizarListaParceiros();
+  renderDetalhe(parcSelecionado);
+}
+
+function renderDetalhe(p) {
+  const right = document.getElementById('prcRight');
+  if(!right) return;
+  const et = ETAPAS[p.etapa]||ETAPAS.prospeccao;
+  const av = getCorAvatar(p.etapa);
+  const ini = getIniciaisAvatar(p.nome);
+  const etIdx = ETAPAS_ORDEM.indexOf(p.etapa);
+  const progBars = ETAPAS_ORDEM.map((e,i)=>`<div class="prc-prog-step" style="background:${i<=etIdx?'var(--navy)':'var(--line)'}"></div>`).join('');
+  const historico = (p.historico||[]).slice().reverse().slice(0,5).map(h=>`
+    <div class="prc-tl-row">
+      <div class="prc-tl-ic">${TIPO_ICONS[h.tipo]||'📌'}</div>
+      <div>
+        <div class="prc-tl-main">${h.resumo}</div>
+        <div class="prc-tl-when">${h.data_fmt||''}</div>
+      </div>
+    </div>`).join('');
+  const proximoEtapa = ETAPAS_ORDEM[etIdx+1];
+  const btnMover = proximoEtapa ? `<button class="prc-move-btn" onclick="moverEtapa('${p.id}','${proximoEtapa}')">Mover para ${ETAPAS[proximoEtapa].label} →</button>` : `<span style="font-size:.75rem;color:#059669;font-weight:600;">Parceiro ativo ✓</span>`;
+  right.innerHTML = `
+    <div class="prc-detail-head">
+      <div class="prc-detail-top">
+        <div class="prc-det-avatar" style="background:${av.bg};color:${av.txt}">${ini}</div>
+        <div>
+          <div class="prc-det-name">${p.nome}</div>
+          <div class="prc-det-type">${p.tipo||''}${p.cidade?' · '+p.cidade:''}</div>
+        </div>
+      </div>
+      <div class="prc-det-actions">
+        ${p.email?`<button class="prc-btn-act" onclick="window.open('mailto:${p.email}')">📧 E-mail</button>`:''}
+        ${p.whatsapp?`<button class="prc-btn-act" onclick="window.open('https://wa.me/55${p.whatsapp.replace(/\D/g,'')}')">💬 WhatsApp</button>`:''}
+        <button class="prc-btn-act prc-btn-primary" onclick="abrirModalContato('${p.id}')">+ Registrar contato</button>
+        <button class="prc-btn-act" onclick="abrirModalEditarParceiro('${p.id}')">✏️ Editar</button>
+      </div>
+    </div>
+    <div class="prc-detail-body">
+      <div>
+        <div class="prc-section-lbl">Progresso</div>
+        <div class="prc-progress">${progBars}</div>
+        <div class="prc-prog-labels"><span>Prospecção</span><span>Parceiro ativo</span></div>
+      </div>
+      <div class="prc-info-grid">
+        <div class="prc-info-item"><div class="prc-info-lbl">Contato</div><div class="prc-info-val">${p.contato||'Não informado'}</div></div>
+        <div class="prc-info-item"><div class="prc-info-lbl">E-mail</div><div class="prc-info-val" style="font-size:.72rem">${p.email||'Não informado'}</div></div>
+        <div class="prc-info-item"><div class="prc-info-lbl">WhatsApp</div><div class="prc-info-val">${p.whatsapp||'Não informado'}</div></div>
+        <div class="prc-info-item"><div class="prc-info-lbl">Modelo</div><div class="prc-info-val">${p.modelo||'A definir'}</div></div>
+      </div>
+      ${p.proximo_passo?`<div>
+        <div class="prc-section-lbl">Próximo passo</div>
+        <div class="prc-next">
+          <div class="prc-next-text">${p.proximo_passo}</div>
+          <div class="prc-next-date">${p.proximo_data||''}</div>
+        </div>
+      </div>`:''}
+      ${p.nota?`<div>
+        <div class="prc-section-lbl">Anotações <a onclick="abrirModalEditarParceiro('${p.id}')">editar</a></div>
+        <div class="prc-note">${p.nota}</div>
+      </div>`:''}
+      <div>
+        <div class="prc-section-lbl">Histórico <a onclick="abrirModalContato('${p.id}')">+ registrar</a></div>
+        <div class="prc-timeline">${historico||'<div style="font-size:.78rem;color:var(--muted2)">Nenhum contato registrado ainda.</div>'}</div>
+      </div>
+    </div>
+    <div class="prc-footer">
+      <span class="prc-footer-status">${et.label} · ${p.cidade||''}</span>
+      ${btnMover}
+    </div>`;
+}
+
+async function moverEtapa(id, novaEtapa) {
+  await sb.from('parceiros').update({etapa:novaEtapa}).eq('id',id);
+  const p = parceiros.find(p=>p.id===id);
+  if(p) p.etapa = novaEtapa;
+  renderizarListaParceiros();
+  renderDetalhe(parceiros.find(p=>p.id===id));
+}
+
+// MODAIS PARCEIRO
+let editandoParceiroId = null;
+function abrirModalNovoParceiro() {
+  editandoParceiroId = null;
+  document.getElementById('modalParceiroTitulo').textContent = 'Novo parceiro';
+  ['prcNome','prcContato','prcCidade','prcEmail','prcWhats','prcNota'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('prcEtapa').value='prospeccao';
+  document.getElementById('prcModelo').value='';
+  document.getElementById('prcTipo').value='Escritório';
+  document.getElementById('modalNovoParceiro').classList.add('open');
+}
+function abrirModalEditarParceiro(id) {
+  const p = parceiros.find(x=>x.id===id);
+  if(!p) return;
+  editandoParceiroId = id;
+  document.getElementById('modalParceiroTitulo').textContent = 'Editar parceiro';
+  document.getElementById('prcNome').value = p.nome||'';
+  document.getElementById('prcContato').value = p.contato||'';
+  document.getElementById('prcCidade').value = p.cidade||'';
+  document.getElementById('prcEmail').value = p.email||'';
+  document.getElementById('prcWhats').value = p.whatsapp||'';
+  document.getElementById('prcNota').value = p.nota||'';
+  document.getElementById('prcEtapa').value = p.etapa||'prospeccao';
+  document.getElementById('prcModelo').value = p.modelo||'';
+  document.getElementById('prcTipo').value = p.tipo||'Escritório';
+  document.getElementById('modalNovoParceiro').classList.add('open');
+}
+function fecharModalNovoParceiro() { document.getElementById('modalNovoParceiro').classList.remove('open'); }
+
+async function salvarParceiro() {
+  const dados = {
+    nome: document.getElementById('prcNome').value.trim(),
+    tipo: document.getElementById('prcTipo').value,
+    contato: document.getElementById('prcContato').value.trim(),
+    cidade: document.getElementById('prcCidade').value.trim(),
+    email: document.getElementById('prcEmail').value.trim(),
+    whatsapp: document.getElementById('prcWhats').value.trim(),
+    etapa: document.getElementById('prcEtapa').value,
+    modelo: document.getElementById('prcModelo').value,
+    nota: document.getElementById('prcNota').value.trim(),
+  };
+  if(!dados.nome) { alert('Informe o nome do parceiro.'); return; }
+  if(editandoParceiroId) {
+    await sb.from('parceiros').update(dados).eq('id',editandoParceiroId);
+  } else {
+    dados.historico = [];
+    await sb.from('parceiros').insert(dados);
+  }
+  fecharModalNovoParceiro();
+  await carregarParceiros();
+  if(editandoParceiroId) selecionarParceiro(editandoParceiroId);
+}
+
+// MODAL CONTATO
+let contatoParceiroId = null;
+function abrirModalContato(id) {
+  contatoParceiroId = id;
+  const hoje = new Date().toISOString().split('T')[0];
+  document.getElementById('cttData').value = hoje;
+  document.getElementById('cttHora').value = '';
+  document.getElementById('cttResumo').value = '';
+  document.getElementById('cttProximo').value = '';
+  document.getElementById('cttProximoData').value = '';
+  document.getElementById('cttProximoHora').value = '';
+  document.getElementById('cttTipo').value = 'email';
+  document.getElementById('modalContato').classList.add('open');
+}
+function fecharModalContato() { document.getElementById('modalContato').classList.remove('open'); }
+
+async function salvarContato() {
+  const p = parceiros.find(x=>x.id===contatoParceiroId);
+  if(!p) return;
+  const tipo = document.getElementById('cttTipo').value;
+  const resumo = document.getElementById('cttResumo').value.trim();
+  const data = document.getElementById('cttData').value;
+  const hora = document.getElementById('cttHora').value;
+  const proximo = document.getElementById('cttProximo').value.trim();
+  const proximoData = document.getElementById('cttProximoData').value;
+  const proximoHora = document.getElementById('cttProximoHora').value;
+  if(!resumo) { alert('Informe o resumo do contato.'); return; }
+  const dataFmt = data ? new Date(data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}) + (hora?', '+hora:'') : '';
+  const novoContato = { tipo, resumo, data, hora, data_fmt: dataFmt };
+  const historico = [...(p.historico||[]), novoContato];
+  const update = { historico };
+  if(proximo) { update.proximo_passo = proximo; update.proximo_data = proximoData ? new Date(proximoData+'T12:00:00').toLocaleDateString('pt-BR') + (proximoHora?', '+proximoHora:'') : ''; }
+  if(proximo && proximoData) {
+    const agEvent = { parceiro_id: contatoParceiroId, parceiro_nome: p.nome, tipo, descricao: proximo, data: proximoData, hora: proximoHora };
+    const comproms = JSON.parse(localStorage.getItem('ag_compromissos')||'[]');
+    comproms.push(agEvent);
+    localStorage.setItem('ag_compromissos', JSON.stringify(comproms));
+  }
+  await sb.from('parceiros').update(update).eq('id',contatoParceiroId);
+  const idx = parceiros.findIndex(x=>x.id===contatoParceiroId);
+  if(idx>-1) { parceiros[idx].historico = historico; if(proximo) { parceiros[idx].proximo_passo=proximo; parceiros[idx].proximo_data=update.proximo_data; } }
+  fecharModalContato();
+  renderDetalhe(parceiros[idx]);
+  renderizarAgenda();
+}
+
+// AGENDA
+let agSemanaOffset = 0;
+function agGetSemana(offset) {
+  const hoje = new Date();
+  const diasParaSegunda = (hoje.getDay()+6)%7;
+  const segunda = new Date(hoje);
+  segunda.setDate(hoje.getDate() - diasParaSegunda + offset*7);
+  const dias = [];
+  for(let i=0;i<7;i++) { const d=new Date(segunda); d.setDate(segunda.getDate()+i); dias.push(d); }
+  return dias;
+}
+function agNavSemana(dir) { agSemanaOffset+=dir; renderizarAgenda(); }
+function agHoje() { agSemanaOffset=0; renderizarAgenda(); }
+
+function renderizarAgenda() {
+  const heads = document.getElementById('agDayHeads');
+  const cols = document.getElementById('agDayCols');
+  const period = document.getElementById('agPeriod');
+  const sub = document.getElementById('agSub');
+  if(!heads||!cols) return;
+  const dias = agGetSemana(agSemanaOffset);
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const nomes = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  period.textContent = `${meses[dias[0].getMonth()]} ${dias[0].getFullYear()}`;
+  const comproms = getCompromissosDaSemana(dias);
+  const total = comproms.reduce((a,c)=>a+c.length,0);
+  const d0 = dias[0], d6 = dias[6];
+  sub.textContent = `${d0.getDate().toString().padStart(2,'0')}/${(d0.getMonth()+1).toString().padStart(2,'0')} a ${d6.getDate().toString().padStart(2,'0')}/${(d6.getMonth()+1).toString().padStart(2,'0')} · ${total} compromisso${total!==1?'s':''}`;
+  heads.innerHTML = dias.map((d,i)=>{
+    const isHoje = d.getTime()===hoje.getTime();
+    const num = isHoje ? `<div class="ag-day-num today-num">${d.getDate()}</div>` : `<div class="ag-day-num" style="${i>=5?'color:var(--muted2)':''}">${d.getDate()}</div>`;
+    return `<div class="ag-day-head"><div class="ag-day-name">${nomes[i]}</div>${num}</div>`;
+  }).join('');
+  const dataStr = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+  cols.innerHTML = dias.map((d,i)=>{
+    const isHoje = d.getTime()===hoje.getTime();
+    const isWeekend = i>=5;
+    const evs = comproms[i];
+    const evsHtml = evs.map(e=>`
+      <div class="ag-event ag-ev-${e.tipo}" onclick="irParaParceiro('${e.parceiro_id}')">
+        <div class="ag-ev-type">${{email:'E-mail',call:'Ligação',whats:'WhatsApp',meeting:'Reunião',followup:'Follow-up'}[e.tipo]||e.tipo}</div>
+        <div class="ag-ev-name">${e.parceiro_nome}</div>
+        <div class="ag-ev-time">${e.descricao}${e.hora?' · '+e.hora:''}</div>
+      </div>`).join('');
+    return `<div class="ag-day-col${isHoje?' today-col':''}${isWeekend?' weekend-col':''}">
+      ${evsHtml}
+      <div class="ag-col-add" onclick="abrirModalCompromissoData('${dataStr(d)}')">+ adicionar</div>
+    </div>`;
+  }).join('');
+}
+
+function getCompromissosDaSemana(dias) {
+  const comproms = JSON.parse(localStorage.getItem('ag_compromissos')||'[]');
+  const dataStr = d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+  const parcComproms = [];
+  parceiros.forEach(p => {
+    if(p.proximo_passo && p.proximo_data_iso) {
+      parcComproms.push({ parceiro_id:p.id, parceiro_nome:p.nome, tipo:'followup', descricao:p.proximo_passo, data:p.proximo_data_iso, hora:p.proximo_hora||'' });
+    }
+  });
+  const todos = [...comproms, ...parcComproms];
+  return dias.map(d => todos.filter(c=>c.data===dataStr(d)));
+}
+
+function irParaParceiro(id) {
+  selecionarParceiro(id, true);
+}
+
+// MODAL COMPROMISSO AGENDA
+function abrirModalCompromisso() { abrirModalCompromissoData(''); }
+function abrirModalCompromissoData(data) {
+  const hoje = data || new Date().toISOString().split('T')[0];
+  document.getElementById('compData').value = hoje;
+  document.getElementById('compHora').value = '';
+  document.getElementById('compDesc').value = '';
+  document.getElementById('compTipo').value = 'email';
+  document.getElementById('modalCompromisso').classList.add('open');
+}
+function fecharModalCompromisso() { document.getElementById('modalCompromisso').classList.remove('open'); }
+
+function popularSelectParceiros() {
+  const sel = document.getElementById('compParceiro');
+  if(!sel) return;
+  sel.innerHTML = parceiros.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+}
+
+function salvarCompromisso() {
+  const parceiroId = document.getElementById('compParceiro').value;
+  const parceiro = parceiros.find(p=>p.id===parceiroId);
+  if(!parceiro) return;
+  const ev = {
+    parceiro_id: parceiroId,
+    parceiro_nome: parceiro.nome,
+    tipo: document.getElementById('compTipo').value,
+    descricao: document.getElementById('compDesc').value.trim(),
+    data: document.getElementById('compData').value,
+    hora: document.getElementById('compHora').value,
+  };
+  if(!ev.descricao) { alert('Informe a descrição.'); return; }
+  const comproms = JSON.parse(localStorage.getItem('ag_compromissos')||'[]');
+  comproms.push(ev);
+  localStorage.setItem('ag_compromissos', JSON.stringify(comproms));
+  fecharModalCompromisso();
+  renderizarAgenda();
+}
+
+function mostrarAbaParceiros(aba) {
+  document.getElementById('parcLista').style.display = aba==='lista'?'block':'none';
+  document.getElementById('parcAgenda').style.display = aba==='agenda'?'block':'none';
+  document.getElementById('tabBtnLista').style.background = aba==='lista'?'var(--navy)':'';
+  document.getElementById('tabBtnLista').style.color = aba==='lista'?'#fff':'';
+  document.getElementById('tabBtnAgenda').style.background = aba==='agenda'?'var(--navy)':'';
+  document.getElementById('tabBtnAgenda').style.color = aba==='agenda'?'#fff':'';
+  if(aba==='agenda') renderizarAgenda();
+}
+
 </script>
 <!-- MODAL META MENSAL -->
 <div id="modalMeta" onclick="if(event.target===this)fecharModalMeta()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(13,27,42,.6);align-items:center;justify-content:center;padding:1.5rem;">
@@ -3229,6 +3802,130 @@ async function criarOrcamentoManual(){
     <div style="display:flex;gap:.75rem;">
       <button onclick="fecharModalRelatorio()" style="flex:1;background:#fff;border:1px solid var(--line2);color:var(--muted);padding:.75rem;border-radius:8px;font-size:.78rem;font-weight:500;cursor:pointer;">Cancelar</button>
       <button onclick="confirmarEnvioRelatorio()" style="flex:2;background:#2E7EC6;color:#fff;border:none;padding:.75rem;border-radius:8px;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;">📩 Enviar relatório</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL NOVO PARCEIRO -->
+<div class="prc-modal-overlay" id="modalNovoParceiro">
+  <div class="prc-modal">
+    <div class="prc-modal-head">
+      <span class="prc-modal-title" id="modalParceiroTitulo">Novo parceiro</span>
+      <button onclick="fecharModalNovoParceiro()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted2);">✕</button>
+    </div>
+    <div class="prc-modal-body">
+      <div class="prc-field-row">
+        <div class="prc-field"><label>Nome / Empresa</label><input id="prcNome" placeholder="Ex: Cidadania Italiana Fácil"></div>
+        <div class="prc-field"><label>Tipo</label>
+          <select id="prcTipo">
+            <option value="Escritório">Escritório de cidadania</option>
+            <option value="Advocacia">Advocacia</option>
+            <option value="Assessoria">Assessoria internacional</option>
+            <option value="Despachante">Despachante</option>
+            <option value="Consultoria">Consultoria de visto</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="prc-field-row">
+        <div class="prc-field"><label>Nome do contato</label><input id="prcContato" placeholder="Ex: Maria Ferretti"></div>
+        <div class="prc-field"><label>Cidade / Estado</label><input id="prcCidade" placeholder="Ex: São Paulo, SP"></div>
+      </div>
+      <div class="prc-field-row">
+        <div class="prc-field"><label>E-mail</label><input id="prcEmail" type="email" placeholder="contato@empresa.com.br"></div>
+        <div class="prc-field"><label>WhatsApp</label><input id="prcWhats" placeholder="(11) 99999-9999"></div>
+      </div>
+      <div class="prc-field-row">
+        <div class="prc-field"><label>Etapa</label>
+          <select id="prcEtapa">
+            <option value="prospeccao">Prospecção</option>
+            <option value="contato">Contato feito</option>
+            <option value="followup">Follow-up</option>
+            <option value="tratativa">Em tratativa</option>
+            <option value="ativo">Parceiro ativo</option>
+          </select>
+        </div>
+        <div class="prc-field"><label>Modelo de parceria</label>
+          <select id="prcModelo">
+            <option value="">A definir</option>
+            <option value="Indicação 15%">Indicação 15%</option>
+            <option value="Tradução parceiro">Tradução parceiro R$ 25,90/lauda</option>
+            <option value="Apostilamento parceiro">Apostilamento parceiro R$ 89,90</option>
+          </select>
+        </div>
+      </div>
+      <div class="prc-field"><label>Anotações</label><textarea id="prcNota" placeholder="Observações importantes sobre este parceiro..."></textarea></div>
+    </div>
+    <div class="prc-modal-foot">
+      <button onclick="fecharModalNovoParceiro()" style="background:none;border:1px solid var(--line);border-radius:8px;padding:7px 16px;font-size:.82rem;cursor:pointer;">Cancelar</button>
+      <button onclick="salvarParceiro()" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-size:.82rem;font-weight:600;cursor:pointer;">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REGISTRAR CONTATO -->
+<div class="prc-modal-overlay" id="modalContato">
+  <div class="prc-modal">
+    <div class="prc-modal-head">
+      <span class="prc-modal-title">Registrar contato</span>
+      <button onclick="fecharModalContato()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted2);">✕</button>
+    </div>
+    <div class="prc-modal-body">
+      <div class="prc-field"><label>Tipo de contato</label>
+        <select id="cttTipo">
+          <option value="email">📧 E-mail</option>
+          <option value="call">📞 Ligação</option>
+          <option value="whats">💬 WhatsApp</option>
+          <option value="meeting">🤝 Reunião</option>
+          <option value="followup">🔁 Follow-up</option>
+        </select>
+      </div>
+      <div class="prc-field"><label>Resumo</label><input id="cttResumo" placeholder="Ex: Demonstrou interesse, pediu proposta"></div>
+      <div class="prc-field-row">
+        <div class="prc-field"><label>Data</label><input type="date" id="cttData"></div>
+        <div class="prc-field"><label>Horário (opcional)</label><input type="time" id="cttHora"></div>
+      </div>
+      <div class="prc-field"><label>Próximo passo (opcional)</label><input id="cttProximo" placeholder="Ex: Ligar na quinta para confirmar"></div>
+      <div class="prc-field-row">
+        <div class="prc-field"><label>Data do próximo passo</label><input type="date" id="cttProximoData"></div>
+        <div class="prc-field"><label>Horário</label><input type="time" id="cttProximoHora"></div>
+      </div>
+    </div>
+    <div class="prc-modal-foot">
+      <button onclick="fecharModalContato()" style="background:none;border:1px solid var(--line);border-radius:8px;padding:7px 16px;font-size:.82rem;cursor:pointer;">Cancelar</button>
+      <button onclick="salvarContato()" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-size:.82rem;font-weight:600;cursor:pointer;">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COMPROMISSO AGENDA -->
+<div class="prc-modal-overlay" id="modalCompromisso">
+  <div class="prc-modal">
+    <div class="prc-modal-head">
+      <span class="prc-modal-title">Novo compromisso</span>
+      <button onclick="fecharModalCompromisso()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted2);">✕</button>
+    </div>
+    <div class="prc-modal-body">
+      <div class="prc-field"><label>Parceiro</label><select id="compParceiro" style="width:100%"></select></div>
+      <div class="prc-field"><label>Tipo</label>
+        <select id="compTipo">
+          <option value="email">📧 E-mail</option>
+          <option value="call">📞 Ligação</option>
+          <option value="whats">💬 WhatsApp</option>
+          <option value="meeting">🤝 Reunião</option>
+          <option value="followup">🔁 Follow-up</option>
+        </select>
+      </div>
+      <div class="prc-field"><label>Descrição</label><input id="compDesc" placeholder="Ex: Ligar para confirmar proposta"></div>
+      <div class="prc-field-row">
+        <div class="prc-field"><label>Data</label><input type="date" id="compData"></div>
+        <div class="prc-field"><label>Horário (opcional)</label><input type="time" id="compHora"></div>
+      </div>
+    </div>
+    <div class="prc-modal-foot">
+      <button onclick="fecharModalCompromisso()" style="background:none;border:1px solid var(--line);border-radius:8px;padding:7px 16px;font-size:.82rem;cursor:pointer;">Cancelar</button>
+      <button onclick="salvarCompromisso()" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-size:.82rem;font-weight:600;cursor:pointer;">Salvar</button>
     </div>
   </div>
 </div>
