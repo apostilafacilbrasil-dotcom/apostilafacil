@@ -974,6 +974,11 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
         <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">País</label><input id="newPais" type="text" placeholder="Portugal..." style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
         <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Valor (R$)</label><input id="newValor" type="number" placeholder="109.90" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;"/></div>
       </div>
+      <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Parceiro (opcional)</label>
+        <select id="newParceiro" style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;">
+          <option value="">Nenhum</option>
+        </select>
+      </div>
       <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Observações</label><textarea id="newObs" placeholder="Contexto do atendimento..." style="width:100%;padding:.7rem .9rem;border:1.5px solid #dde;border-radius:8px;font-size:.9rem;outline:none;min-height:80px;resize:vertical;"></textarea></div>
       <div><label style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:#4A6A82;display:block;margin-bottom:.3rem;">Documentos (opcional)</label><input id="newFiles" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx" style="width:100%;padding:.6rem;border:1.5px dashed rgba(46,126,198,.4);border-radius:8px;font-size:.82rem;background:rgba(46,126,198,.03);cursor:pointer;"/></div>
     </div>
@@ -3256,7 +3261,13 @@ function exportarCSV(){
 
 function formatDate(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}); }
 
-function openNewOrcModal(){ document.getElementById('newOrcModal').style.display='flex'; }
+function openNewOrcModal(){
+  document.getElementById('newOrcModal').style.display='flex';
+  const sel = document.getElementById('newParceiro');
+  if(sel && parceiros.length) {
+    sel.innerHTML = '<option value="">Nenhum</option>' + parceiros.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+  }
+}
 function closeNewOrcModal(){ document.getElementById('newOrcModal').style.display='none'; }
 
 async function criarOrcamentoManual(){
@@ -3439,10 +3450,18 @@ function renderDetalhe(p) {
         <div class="prc-timeline">${historico||'<div style="font-size:.78rem;color:var(--muted2)">Nenhum contato registrado ainda.</div>'}</div>
       </div>
     </div>
+    <div>
+        <div class="prc-section-lbl">Serviços realizados <a onclick="exportarServicosParceiro('${p.id}')">⬇ exportar</a></div>
+        <div id="prcServicos_${p.id}">
+          <div style="font-size:.75rem;color:var(--muted2);padding:.5rem 0;">Carregando...</div>
+        </div>
+      </div>
+    </div>
     <div class="prc-footer">
       <span class="prc-footer-status">${et.label} · ${p.cidade||''}</span>
       ${btnMover}
     </div>`;
+  setTimeout(()=>carregarServicosParceiro('${p.id}','${p.modelo||''}'), 50);
 }
 
 async function moverEtapa(id, novaEtapa) {
@@ -3667,6 +3686,86 @@ function mostrarAbaParceiros(aba) {
   document.getElementById('tabBtnAgenda').style.background = aba==='agenda'?'var(--navy)':'';
   document.getElementById('tabBtnAgenda').style.color = aba==='agenda'?'#fff':'';
   if(aba==='agenda') renderizarAgenda();
+}
+
+
+async function carregarServicosParceiro(parceiroId, modelo) {
+  const container = document.getElementById('prcServicos_'+parceiroId);
+  if(!container) return;
+  try {
+    const {data,error} = await sb.from('orders').select('id,codigo,servico,valor,status,created_at,nome').eq('parceiro_id',parceiroId).order('created_at',{ascending:false});
+    if(error||!data||!data.length) {
+      container.innerHTML='<div style="font-size:.78rem;color:var(--muted2);">Nenhum pedido vinculado ainda.</div>';
+      return;
+    }
+    const isComissao = (modelo||'').includes('15%') || (modelo||'').includes('Indicação');
+    const total = data.reduce((a,o)=>a+(parseFloat(o.valor)||0),0);
+    const comissao = isComissao ? total*0.15 : null;
+    const rows = data.map(o=>{
+      const dt = new Date(o.created_at).toLocaleDateString('pt-BR');
+      const val = 'R$ '+(parseFloat(o.valor)||0).toFixed(2).replace('.',',');
+      return `<tr style="border-bottom:1px solid var(--line);font-size:.78rem;">
+        <td style="padding:6px 8px;color:var(--navy);font-weight:500;">${o.codigo||o.id.substring(0,8)}</td>
+        <td style="padding:6px 8px;color:var(--muted2);">${o.nome||''}</td>
+        <td style="padding:6px 8px;color:var(--muted2);">${o.servico||''}</td>
+        <td style="padding:6px 8px;color:var(--muted2);">${dt}</td>
+        <td style="padding:6px 8px;color:var(--blue);font-weight:600;text-align:right;">${val}</td>
+      </tr>`;
+    }).join('');
+    container.innerHTML = `
+      <div style="border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:8px;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:var(--bg);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);">
+            <th style="padding:7px 8px;text-align:left;font-weight:600;">Código</th>
+            <th style="padding:7px 8px;text-align:left;font-weight:600;">Cliente</th>
+            <th style="padding:7px 8px;text-align:left;font-weight:600;">Serviço</th>
+            <th style="padding:7px 8px;text-align:left;font-weight:600;">Data</th>
+            <th style="padding:7px 8px;text-align:right;font-weight:600;">Valor</th>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg);border-radius:8px;">
+        <span style="font-size:.78rem;color:var(--muted2);">${data.length} pedido${data.length!==1?'s':''} · Total</span>
+        <span style="font-size:.9rem;font-weight:700;color:var(--navy);">R$ ${total.toFixed(2).replace('.',',')}</span>
+      </div>
+      ${isComissao?`<div style="margin-top:6px;display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#EAF3DE;border-radius:8px;border-left:3px solid #3B6D11;">
+        <span style="font-size:.78rem;color:#27500A;font-weight:600;">Comissão a pagar (15%)</span>
+        <span style="font-size:.9rem;font-weight:700;color:#27500A;">R$ ${comissao.toFixed(2).replace('.',',')}</span>
+      </div>`:''}`;
+  } catch(e) {
+    container.innerHTML='<div style="font-size:.78rem;color:var(--muted2);">Erro ao carregar pedidos.</div>';
+  }
+}
+
+async function exportarServicosParceiro(parceiroId) {
+  const p = parceiros.find(x=>x.id===parceiroId);
+  if(!p) return;
+  const {data} = await sb.from('orders').select('codigo,nome,servico,valor,status,created_at').eq('parceiro_id',parceiroId).order('created_at',{ascending:false});
+  if(!data||!data.length) { alert('Nenhum pedido para exportar.'); return; }
+  const isComissao = (p.modelo||'').includes('15%')||(p.modelo||'').includes('Indicação');
+  const total = data.reduce((a,o)=>a+(parseFloat(o.valor)||0),0);
+  const comissao = isComissao ? total*0.15 : null;
+  const linhas = [
+    ['Código','Cliente','Serviço','Data','Valor (R$)'],
+    ...data.map(o=>[
+      o.codigo||o.id?.substring(0,8)||'',
+      o.nome||'',
+      o.servico||'',
+      new Date(o.created_at).toLocaleDateString('pt-BR'),
+      (parseFloat(o.valor)||0).toFixed(2).replace('.',',')
+    ]),
+    [],
+    ['','','','Total:', total.toFixed(2).replace('.',',')],
+    ...(isComissao?[['','','','Comissão (15%):', comissao.toFixed(2).replace('.',',')]]:[[]])
+  ];
+  const csv = linhas.map(r=>r.join(';')).join('
+');
+  const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`servicos_${p.nome.replace(/\s+/g,'_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`;
+  a.click(); URL.revokeObjectURL(url);
 }
 
 </script>
