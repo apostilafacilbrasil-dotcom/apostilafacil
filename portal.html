@@ -3461,7 +3461,7 @@ function renderDetalhe(p) {
       <span class="prc-footer-status">${et.label} · ${p.cidade||''}</span>
       ${btnMover}
     </div>`;
-  setTimeout(()=>carregarServicosParceiro('${p.id}','${p.modelo||''}'), 50);
+  setTimeout(()=>carregarServicosParceiro(parcSelecionado.id, parcSelecionado.modelo||''), 50);
 }
 
 async function moverEtapa(id, novaEtapa) {
@@ -3759,8 +3759,7 @@ async function exportarServicosParceiro(parceiroId) {
     ['','','','Total:', total.toFixed(2).replace('.',',')],
     ...(isComissao?[['','','','Comissão (15%):', comissao.toFixed(2).replace('.',',')]]:[[]])
   ];
-  const csv = linhas.map(r=>r.join(';')).join('
-');
+  const csv = linhas.map(r=>r.join(';')).join('\n');
   const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
