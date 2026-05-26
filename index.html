@@ -86,7 +86,7 @@ button{cursor:pointer}
 .wpp-bar-btn:hover{background:#EBF4FF;}
 @media(max-width:600px){.wpp-bar-sub{display:none;}}
 .counters-section{padding:1.6rem 4vw;background:#fff;border-top:1px solid rgba(13,27,42,.1);border-bottom:1px solid rgba(13,27,42,.1);}
-.counters-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);}
+.counters-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);}
 .counter-item{padding:1.35rem 1rem;text-align:center;border-right:1px solid rgba(13,27,42,.1);}
 .counter-item:last-child{border-right:none;}
 .counter-num{font-family:"Bebas Neue",sans-serif;font-size:3rem;line-height:1;color:#2E7EC6;}
@@ -386,7 +386,6 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
   <div class="counters-inner">
     <div class="counter-item"><div class="counter-num"><span id="cnt1">0</span><span class="counter-suf">+</span></div><div class="counter-label">Clientes atendidos</div></div>
     <div class="counter-item"><div class="counter-num"><span id="cnt2">0</span><span class="counter-suf">h</span></div><div class="counter-label">Prazo de entrega</div></div>
-    <div class="counter-item"><div class="counter-num"><span id="cnt3">0</span><span class="counter-suf">★</span></div><div class="counter-label">Avaliação Google</div></div>
     <div class="counter-item"><div class="counter-num"><span id="cnt4">0</span><span class="counter-suf">+</span></div><div class="counter-label">Países aceitos</div></div>
   </div>
 </div>
@@ -703,9 +702,9 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
     </div>
   </div>
   <div class="footer-bottom">
-    <span>© 2026 ApostilaSimples. Todos os direitos reservados.</span>
+    <span>© 2026 Apostila Simples. Todos os direitos reservados.</span>
     <span>Desenvolvido no Brasil</span>
-    <span><a href="#" onclick="openPrivacy();return false;" style="color:#4A6A82;text-decoration:none">Privacidade</a> · <a href="#" onclick="openPrivacy();return false;" style="color:#4A6A82;text-decoration:none">Termos</a></span>
+    <span><a href="#" onclick="openPrivacy();return false;" style="color:#4A6A82;text-decoration:none">Política de Privacidade</a> · <a href="#" onclick="openPrivacy();return false;" style="color:#4A6A82;text-decoration:none">Termos de Uso</a></span>
   </div>
 </footer>
 
@@ -967,17 +966,18 @@ function closeWhatsModal(){document.getElementById('whatsModal').style.display='
 function animateCounter(id,target,duration,decimals){const el=document.getElementById(id);if(!el)return;const current=parseFloat(el.textContent.replace(/\./g,'').replace(',','.'));const start=performance.now();function update(now){const p=Math.min((now-start)/duration,1);const ease=1-Math.pow(1-p,3);const val=current+(target-current)*ease;el.textContent=decimals?val.toFixed(1):Math.floor(val).toLocaleString('pt-BR');if(p<1)requestAnimationFrame(update);}requestAnimationFrame(update);}
 
 async function carregarContadores(){
+  const BASE=1200;
+  const h=Math.max(0,(Date.now()-new Date('2026-05-18T00:00:00').getTime())/(1000*60*60));
+  const incremento=Math.floor(h);
   try{
     const sb=window._sbClient||(window._sbClient=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY));
     const {count}=await sb.from('orders').select('*',{count:'exact',head:true}).in('status',['pedido_aprovado','em_producao','entregue','pagamento_confirmado','pagamento_em_analise','aguardando_pagamento','pagamento_parcial']);
-    const total = Math.max(count||0, 1200);
+    const total=Math.max(count||0,BASE)+incremento;
     animateCounter('cnt1',total,1500,false);
   } catch(e){
-    const BASE=1200;const h=Math.max(0,(Date.now()-new Date('2026-05-18T00:00:00').getTime())/(1000*60*60));
-    animateCounter('cnt1',BASE+Math.floor(h/4),1500,false);
+    animateCounter('cnt1',BASE+incremento,1500,false);
   }
   animateCounter('cnt2',24,1200,false);
-  animateCounter('cnt3',4.9,1500,true);
   animateCounter('cnt4',120,1800,false);
 }
 
