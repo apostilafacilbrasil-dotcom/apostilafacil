@@ -3303,9 +3303,8 @@ async function criarOrcamentoManual(){
   });
   closeNewOrcModal();
   ['newNome','newWhats','newEmail','newPais','newValor','newObs'].forEach(id=>document.getElementById(id).value='');
-  loadAdminData();
-  // Mostrar modal de ações pós-criação
   mostrarModalPosOrcamento(codigo, nome, email, whats, servico, pais, valor);
+  setTimeout(()=>loadAdminData(), 300);
 }
 
 function mostrarModalPosOrcamento(codigo, nome, email, whats, servico, pais, valor) {
