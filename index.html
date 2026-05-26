@@ -32,7 +32,7 @@ body{background:#F0F7FF;color:#0D1B2A;font-family:Inter,system-ui,sans-serif;ove
 a{text-decoration:none;color:inherit}
 button,input,select,textarea{font-family:inherit}
 button{cursor:pointer}
-.nav{position:fixed;top:0;left:0;right:0;z-index:50;height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 4vw;background:#0D1B2A;border-bottom:1px solid rgba(46,126,198,.2);}
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;height:100px;display:flex;align-items:center;justify-content:space-between;padding:0 4vw;background:#0D1B2A;border-bottom:1px solid rgba(46,126,198,.2);}
 .nav-mid{display:flex;gap:2rem;align-items:center;font-size:.8rem;letter-spacing:.04em;color:rgba(255,255,255,.75);}
 .nav-mid a{position:relative;padding-bottom:2px;}
 .nav-mid a:hover{color:#fff;}
@@ -42,7 +42,7 @@ button{cursor:pointer}
 .nav-cta:hover{filter:brightness(1.1);}
 .menu-btn{background:none;border:none;width:34px;height:34px;cursor:pointer;display:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
 .menu-btn span{display:block;width:22px;height:2px;background:#fff;}
-.mobile-menu{display:none;position:fixed;top:76px;left:0;right:0;background:rgba(13,27,42,.98);border-bottom:1px solid rgba(46,126,198,.2);z-index:49;}
+.mobile-menu{display:none;position:fixed;top:100px;left:0;right:0;background:rgba(13,27,42,.98);border-bottom:1px solid rgba(46,126,198,.2);z-index:49;}
 .mobile-menu.open{display:block}
 .mobile-menu a{display:block;padding:1rem 4vw;border-top:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.8);font-size:.82rem;letter-spacing:.06em;}
 .mobile-menu a:hover{color:#fff;}
@@ -51,7 +51,7 @@ button{cursor:pointer}
   .nav-mid,.nav-cta{display:none;}
   .menu-btn{display:flex;}
 }
-.hero{position:relative;min-height:calc(100vh - 76px);padding:6.4rem 4vw 4rem;display:grid;grid-template-columns:1.4fr 0.6fr;gap:2.5rem;align-items:center;}
+.hero{position:relative;min-height:calc(100vh - 100px);padding:6.4rem 4vw 4rem;display:grid;grid-template-columns:1.4fr 0.6fr;gap:2.5rem;align-items:center;}
 .hero-kicker{grid-column:1/2;display:inline-flex;align-items:center;margin:0 0 .8rem;color:#2E7EC6;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;background:rgba(46,126,198,.10);border:1px solid rgba(46,126,198,.28);padding:.55rem 1.1rem;border-radius:30px;}
 .hero-title{grid-column:1/2;font-family:"Bebas Neue",sans-serif;font-size:clamp(3.2rem,6vw,6.2rem);line-height:.95;max-width:720px;color:#0D1B2A;}
 .hero-title .green{color:#2E7EC6;}
@@ -297,7 +297,7 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
 <body>
   <header class="nav">
   <a href="#" style="display:inline-flex;align-items:center;gap:.6rem;text-decoration:none;background:#0D1B2A;padding:7px 16px;border-radius:6px;">
-    <img src="logo.png" width="52" height="52" alt="Apostila Simples" style="border-radius:50%;display:block;">
+    <img src="logo.png" width="88" height="88" alt="Apostila Simples" style="border-radius:50%;display:block;">
     <span style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.1em;color:#fff;line-height:1;white-space:nowrap">APOSTILA <span style="color:#2E7EC6">SIMPLES</span></span>
   </a>
   <nav class="nav-mid">
@@ -316,7 +316,7 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
 </header>
 
 <!-- BANNER INDICAÇÃO -->
-<div id="bannerIndicacao" style="display:none;position:fixed;top:76px;left:0;right:0;z-index:49;background:linear-gradient(135deg,#00875A,#2E7EC6);padding:.65rem 4vw;">
+<div id="bannerIndicacao" style="display:none;position:fixed;top:100px;left:0;right:0;z-index:49;background:linear-gradient(135deg,#00875A,#2E7EC6);padding:.65rem 4vw;">
   <div style="max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
     <div style="display:flex;align-items:center;gap:.75rem;">
       <span style="font-size:1.2rem;">🎁</span>
@@ -666,7 +666,7 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
   <div class="footer-inner">
     <div class="footer-col footer-brand">
       <div style="display:inline-flex;align-items:center;gap:.6rem;margin-bottom:1rem;background:#0D1B2A;padding:7px 16px;border-radius:6px;">
-        <img src="logo.png" width="52" height="52" alt="Apostila Simples" style="border-radius:50%;display:block;">
+        <img src="logo.png" width="88" height="88" alt="Apostila Simples" style="border-radius:50%;display:block;">
         <span style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.1em;color:#fff;line-height:1;white-space:nowrap">APOSTILA <span style="color:#2E7EC6">SIMPLES</span></span>
       </div>
       <p>Apostilamento e tradução juramentada 100% online.</p>
