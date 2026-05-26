@@ -3307,46 +3307,26 @@ async function criarOrcamentoManual(){
   setTimeout(()=>loadAdminData(), 300);
 }
 
-function mostrarModalPosOrcamento(codigo, nome, email, whats, servico, pais, valor) {
+function enviarWppOrcamento(codigo, nome, whats, servico, pais, valor) {
   const wppNum = '55'+(whats||'').replace(/\D/g,'');
-  const valorFmt = valor ? 'R$ '+valor.toFixed(2).replace('.',',') : 'A confirmar';
-  const msgWpp = encodeURIComponent(
-    'Olá, '+nome+'! Segue o resumo do seu orçamento:\n\n'+
+  const valorFmt = valor ? 'R$ '+parseFloat(valor).toFixed(2).replace('.',',') : 'A confirmar';
+  const msg = 'Olá, '+nome+'! Segue o resumo do seu orçamento:\n\n'+
     '📋 *Código:* '+codigo+'\n'+
     '📄 *Serviço:* '+servico+'\n'+
     '🌍 *País:* '+(pais||'A confirmar')+'\n'+
     '💰 *Valor:* '+valorFmt+'\n\n'+
     'Para prosseguir, acesse: https://www.apostilasimples.com.br/apostila\n\n'+
-    'Qualquer dúvida, estou à disposição!'
-  );
+    'Qualquer dúvida, estou à disposição!';
+  window.open('https://wa.me/'+wppNum+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function mostrarModalPosOrcamento(codigo, nome, email, whats, servico, pais, valor) {
   const modal = document.createElement('div');
   modal.id = 'modalPosOrc';
   modal.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(13,27,42,.6);display:flex;align-items:center;justify-content:center;padding:1.5rem;';
-  modal.innerHTML = `
-    <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(13,27,42,.2);">
-      <div style="text-align:center;margin-bottom:1.5rem;">
-        <div style="width:52px;height:52px;background:#EAF3DE;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:1.4rem;">✅</div>
-        <h3 style="font-size:1.1rem;font-weight:700;color:#0D1B2A;margin:0 0 .3rem;">Orçamento ${codigo} criado!</h3>
-        <p style="font-size:.85rem;color:#6B7280;margin:0;">Como deseja notificar ${nome}?</p>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.25rem;">
-        ${email ? `<button onclick="enviarEmailOrcamento('${codigo}','${nome}','${email}','${servico}','${pais||''}',${valor||0})" style="display:flex;align-items:center;gap:.75rem;padding:.9rem 1.1rem;border:1.5px solid #dde;border-radius:10px;background:#fff;cursor:pointer;font-size:.88rem;color:#0D1B2A;font-weight:500;text-align:left;transition:.15s;" onmouseover="this.style.borderColor='#2E7EC6'" onmouseout="this.style.borderColor='#dde'">
-          <span style="font-size:1.3rem;">📧</span>
-          <div>
-            <div style="font-weight:600;">Enviar resumo por e-mail</div>
-            <div style="font-size:.75rem;color:#6B7280;">${email}</div>
-          </div>
-        </button>` : ''}
-        ${whats ? `<a href="https://wa.me/${wppNum}?text=${msgWpp}" target="_blank" style="display:flex;align-items:center;gap:.75rem;padding:.9rem 1.1rem;border:1.5px solid #dde;border-radius:10px;background:#fff;cursor:pointer;font-size:.88rem;color:#0D1B2A;font-weight:500;text-decoration:none;transition:.15s;" onmouseover="this.style.borderColor='#25D366'" onmouseout="this.style.borderColor='#dde'">
-          <span style="font-size:1.3rem;">💬</span>
-          <div>
-            <div style="font-weight:600;">Enviar pelo WhatsApp</div>
-            <div style="font-size:.75rem;color:#6B7280;">${whats}</div>
-          </div>
-        </a>` : ''}
-        <button onclick="document.getElementById('modalPosOrc').remove()" style="padding:.75rem;border:none;background:none;color:#6B7280;cursor:pointer;font-size:.85rem;">Agora não</button>
-      </div>
-    </div>`;
+  const emailBtn = email ? '<button onclick="enviarEmailOrcamento(\''+codigo+'\',\''+nome+'\',\''+email+'\',\''+servico+'\',\''+encodeURIComponent(pais||'')+'\','+parseFloat(valor||0)+')" style="display:flex;align-items:center;gap:.75rem;padding:.9rem 1.1rem;border:1.5px solid #dde;border-radius:10px;background:#fff;cursor:pointer;font-size:.88rem;color:#0D1B2A;font-weight:500;text-align:left;width:100%;" onmouseover="this.style.borderColor=\'#2E7EC6\'" onmouseout="this.style.borderColor=\'#dde\'"><span style="font-size:1.3rem;">📧</span><div><div style="font-weight:600;">Enviar resumo por e-mail</div><div style="font-size:.75rem;color:#6B7280;">'+email+'</div></div></button>' : '';
+  const wppBtn = whats ? '<button onclick="enviarWppOrcamento(\''+codigo+'\',\''+nome+'\',\''+whats+'\',\''+servico+'\',\''+encodeURIComponent(pais||'')+'\','+parseFloat(valor||0)+')" style="display:flex;align-items:center;gap:.75rem;padding:.9rem 1.1rem;border:1.5px solid #dde;border-radius:10px;background:#fff;cursor:pointer;font-size:.88rem;color:#0D1B2A;font-weight:500;text-align:left;width:100%;" onmouseover="this.style.borderColor=\'#25D366\'" onmouseout="this.style.borderColor=\'#dde\'"><span style="font-size:1.3rem;">💬</span><div><div style="font-weight:600;">Enviar pelo WhatsApp</div><div style="font-size:.75rem;color:#6B7280;">'+whats+'</div></div></button>' : '';
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(13,27,42,.2);"><div style="text-align:center;margin-bottom:1.5rem;"><div style="width:52px;height:52px;background:#EAF3DE;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:1.4rem;">✅</div><h3 style="font-size:1.1rem;font-weight:700;color:#0D1B2A;margin:0 0 .3rem;">Orçamento '+codigo+' criado!</h3><p style="font-size:.85rem;color:#6B7280;margin:0;">Como deseja notificar '+nome+'?</p></div><div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.25rem;">'+emailBtn+wppBtn+'<button onclick="document.getElementById(\'modalPosOrc\').remove()" style="padding:.75rem;border:none;background:none;color:#6B7280;cursor:pointer;font-size:.85rem;">Agora não</button></div></div>';
   document.body.appendChild(modal);
   modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
 }
