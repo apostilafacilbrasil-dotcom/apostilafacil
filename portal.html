@@ -1127,6 +1127,7 @@ function navTo(page){
   if(page==='afiliados') carregarAfiliados();
   if(page==='parceiros') carregarParceiros();
   if(page==='configuracoes') carregarConfiguracoes();
+  if(page==='pedidos'){ const b=document.getElementById('snavBadgePedidos'); if(b){b.textContent='';b.style.display='none';} }
 }
 
 function toggleSidebar(){
