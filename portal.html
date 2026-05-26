@@ -1340,10 +1340,10 @@ async function loadAdminData(){
   document.getElementById('statRevenue').textContent='R$'+revenue.toFixed(0);
   document.getElementById('statPago').textContent='R$'+pago.toFixed(0);
   document.getElementById('statTicket').textContent='R$'+ticket.toFixed(0);
-  // Badge de novos no menu lateral
-  const novos=allOrders.filter(o=>isNew(o.created_at)).length;
+  // Badge de pedidos que precisam de atenção
+  const precisamAtencao=allOrders.filter(o=>['orcamento_criado','orcamento_enviado','followup_1','followup_2','followup_3','aguardando_retorno','negociacao','revisando_valor','aguardando_pagamento','pagamento_parcial','pagamento_em_analise','em_producao'].includes(o.status)).length;
   const badge=document.getElementById('snavBadgePedidos');
-  if(badge){ badge.textContent=novos||''; badge.style.display=novos?'inline':'none'; }
+  if(badge){ badge.textContent=precisamAtencao||''; badge.style.display=precisamAtencao?'inline':'none'; }
   renderRevenueChart();
   carregarSaquesPendentes();
   await carregarConfiguracoes();
