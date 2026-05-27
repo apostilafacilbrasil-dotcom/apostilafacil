@@ -1127,7 +1127,7 @@ function navTo(page){
   if(page==='afiliados') carregarAfiliados();
   if(page==='parceiros') carregarParceiros();
   if(page==='configuracoes') carregarConfiguracoes();
-  if(page==='pedidos'){ const b=document.getElementById('snavBadgePedidos'); if(b){b.textContent='';b.style.display='none';} }
+  if(page==='pedidos'){ localStorage.setItem('pedidos_ultima_visita', Date.now()); const b=document.getElementById('snavBadgePedidos'); if(b){b.textContent='';b.style.display='none';} }
 }
 
 function toggleSidebar(){
@@ -1341,10 +1341,11 @@ async function loadAdminData(){
   document.getElementById('statRevenue').textContent='R$'+revenue.toFixed(0);
   document.getElementById('statPago').textContent='R$'+pago.toFixed(0);
   document.getElementById('statTicket').textContent='R$'+ticket.toFixed(0);
-  // Badge de pedidos que precisam de atenção
-  const precisamAtencao=allOrders.filter(o=>['orcamento_criado','orcamento_enviado','followup_1','followup_2','followup_3','aguardando_retorno','negociacao','revisando_valor','aguardando_pagamento','pagamento_parcial','pagamento_em_analise','em_producao'].includes(o.status)).length;
+  // Badge — só mostra pedidos novos desde a última vez que visitou a seção
+  const ultimaVisita = parseInt(localStorage.getItem('pedidos_ultima_visita')||'0');
+  const novosDesdeVisita = allOrders.filter(o=>new Date(o.created_at).getTime() > ultimaVisita).length;
   const badge=document.getElementById('snavBadgePedidos');
-  if(badge){ badge.textContent=precisamAtencao||''; badge.style.display=precisamAtencao?'inline':'none'; }
+  if(badge){ badge.textContent=novosDesdeVisita||''; badge.style.display=novosDesdeVisita?'inline':'none'; }
   renderRevenueChart();
   carregarSaquesPendentes();
   await carregarConfiguracoes();
