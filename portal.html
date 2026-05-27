@@ -2777,7 +2777,7 @@ async function updateStatus(id, status, selectEl){
     if(order && (!order.codigo || order.codigo.startsWith('ORC-'))){
       const {data:prjData}=await sb.from('orders').select('codigo').like('codigo','PRJ-%').order('codigo',{ascending:false}).limit(1);
       const ultimoNum=prjData&&prjData.length>0?parseInt((prjData[0].codigo||'PRJ-0000').split('-')[1]):0;
-      updateData.codigo='PRJ-'+String(ultimoNum+1).padStart(4,'0');
+      updateData.codigo='PRJ-'+String(Math.max(ultimoNum,1412)+1).padStart(4,'0');
       order.codigo=updateData.codigo;
     }
     // Definir pagamento como aguardando ao aprovar
@@ -3284,7 +3284,7 @@ async function criarOrcamentoManual(){
   if(!nome){ alert('Informe o nome do cliente.'); return; }
   const {data:orcData}=await sb.from('orders').select('codigo').like('codigo','ORC-%').order('codigo',{ascending:false}).limit(1);
   const ultimoNum=orcData&&orcData.length>0?parseInt((orcData[0].codigo||'ORC-0000').split('-')[1]):0;
-  const codigo='ORC-'+String(ultimoNum+1).padStart(4,'0');
+  const codigo='ORC-'+String(Math.max(ultimoNum,1412)+1).padStart(4,'0');
   const arquivosUrls=[];
   const newFilesInput=document.getElementById('newFiles');
   if(newFilesInput&&newFilesInput.files.length>0){
