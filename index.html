@@ -761,7 +761,7 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
   </button>
 </div>
 
-<div id="cookieBanner" style="position:fixed;bottom:0;left:0;right:0;z-index:500;background:#111;border-top:1px solid rgba(13,27,42,.1);padding:1rem 4vw;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+<div id="cookieBanner" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#111;border-top:1px solid rgba(13,27,42,.1);padding:1rem 4vw;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
   <p style="font-size:.78rem;color:#ccc;margin:0;max-width:600px">Usamos cookies essenciais. <a href="#" onclick="openPrivacy();return false;" style="color:#2E7EC6;text-decoration:none">Política de Privacidade</a>.</p>
   <button onclick="acceptCookies()" style="background:#2E7EC6;color:#fff;border:none;padding:.6rem 1.4rem;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:8px;">Aceitar</button>
 </div>
@@ -1056,7 +1056,41 @@ let simFiles=[];
 function formSimHandleMulti(inp){const files=Array.from(inp.files||[]);if(!files.length)return;if(simFiles.length+files.length>20){openWhatsModal('Muitos arquivos!','Para pedidos com mais de 20 arquivos, nosso time faz um orçamento pelo WhatsApp.');return;}files.forEach(file=>{if(!simFiles.some(f=>f.name===file.name&&f.size===file.size)){simFiles.push({name:file.name,size:file.size,palavras:0,status:'analisando'});processSimFile(file);}});renderSimFiles();}
 function renderSimFiles(){const list=document.getElementById('simFileList');const badge=document.getElementById('formWordBadge');const ftxt=document.getElementById('formUploadText');if(!simFiles.length){list.innerHTML='';badge.style.display='none';return;}list.innerHTML=simFiles.map((f,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(46,126,198,.06);border:1px solid rgba(46,126,198,.2);padding:.4rem .75rem;font-size:.75rem;border-radius:6px;"><span style="color:#0D1B2A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%">${f.status==='analisando'?'⏳':f.status==='erro'?'⚠️':'✔'} ${f.name}</span><span style="display:flex;align-items:center;gap:.75rem;flex-shrink:0"><span style="color:#2E7EC6">${f.status==='analisando'?'...':f.status==='erro'?'erro':f.palavras+' palavras'}</span><button onclick="removeSimFile(${i})" style="background:none;border:none;color:#4A6A82;cursor:pointer;font-size:.85rem;padding:0">✕</button></span></div>`).join('');const total=simFiles.reduce((s,f)=>s+(f.palavras||0),0);const done=simFiles.every(f=>f.status!=='analisando');ftxt.textContent=simFiles.length+' arquivo(s) selecionado(s)';if(done&&total>0){badge.style.display='block';badge.textContent=total+' palavras no total';formSimPalavras=total;formSimCalc();}else if(done){badge.style.display='none';formSimPalavras=0;formSimCalc();}}
 function removeSimFile(i){simFiles.splice(i,1);formSimPalavras=simFiles.reduce((s,f)=>s+(f.palavras||0),0);renderSimFiles();formSimCalc();}
-function processSimFile(file){const ext=file.name.split('.').pop().toLowerCase();const fw=t=>t.trim().split(/\s+/).filter(w=>w.length>=2&&/[a-zA-ZÀ-ú]/.test(w)&&!/^[0-9]+$/.test(w));const fname=file.name;const setOK=(fname,count)=>{const f=simFiles.find(x=>x.name===fname);if(f){f.palavras=count;f.status='ok';}renderSimFiles();};const setErr=(fname)=>{const f=simFiles.find(x=>x.name===fname);if(f)f.status='erro';renderSimFiles();};if(file.type==='application/pdf'||ext==='pdf'){const r=new FileReader();r.onload=async function(e){try{const pdf=await pdfjsLib.getDocument({data:new Uint8Array(e.target.result)}).promise;let txt='';for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i);const tc=await pg.getTextContent();txt+=tc.items.map(s=>s.str).join(' ')+' ';}const wc=fw(txt).length;if(wc>0){setOK(fname,wc);return;}let ot='';for(let i=1;i<=Math.min(pdf.numPages,4);i++){const pg=await pdf.getPage(i);const vp=pg.getViewport({scale:2});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;const blob=await new Promise(res=>cv.toBlob(res,'image/png'));const res=await Tesseract.recognize(blob,'por+eng');ot+=' '+res.data.text;}setOK(fname,fw(ot).length);}catch(ex){setErr(fname);}};r.readAsArrayBuffer(file);}else if(ext==='docx'){const r=new FileReader();r.onload=function(e){mammoth.extractRawText({arrayBuffer:e.target.result}).then(res=>setOK(fname,fw(res.value).length)).catch(()=>setErr(fname));};r.readAsArrayBuffer(file);}else if(file.type.startsWith('image/')||['jpg','jpeg','png'].includes(ext)){Tesseract.recognize(file,'por+eng').then(res=>setOK(fname,fw(res.data.text).length)).catch(()=>setErr(fname));}}
+function processSimFile(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  const fw=t=>t.trim().split(/\s+/).filter(w=>w.length>=2&&/[a-zA-ZÀ-ú]/.test(w)&&!/^[0-9]+$/.test(w));
+  const fname=file.name;
+  const setOK=(fn,count)=>{const f=simFiles.find(x=>x.name===fn);if(f){f.palavras=count;f.status='ok';}renderSimFiles();};
+  const setErr=(fn)=>{const f=simFiles.find(x=>x.name===fn);if(f)f.status='erro';renderSimFiles();};
+  if(file.type==='application/pdf'||ext==='pdf'){
+    carregarPdfJs(()=>{
+      const r=new FileReader();
+      r.onload=async function(e){
+        try{
+          const pdf=await pdfjsLib.getDocument({data:new Uint8Array(e.target.result)}).promise;
+          let txt='';
+          for(let i=1;i<=pdf.numPages;i++){const pg=await pdf.getPage(i);const tc=await pg.getTextContent();txt+=tc.items.map(s=>s.str).join(' ')+' ';}
+          const wc=fw(txt).length;
+          if(wc>0){setOK(fname,wc);return;}
+          carregarTesseract(async()=>{
+            let ot='';
+            for(let i=1;i<=Math.min(pdf.numPages,4);i++){const pg=await pdf.getPage(i);const vp=pg.getViewport({scale:2});const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;const blob=await new Promise(res=>cv.toBlob(res,'image/png'));const res=await Tesseract.recognize(blob,'por+eng');ot+=' '+res.data.text;}
+            setOK(fname,fw(ot).length);
+          });
+        }catch(ex){setErr(fname);}
+      };
+      r.readAsArrayBuffer(file);
+    });
+  }else if(ext==='docx'){
+    carregarMammoth(()=>{
+      const r=new FileReader();
+      r.onload=function(e){mammoth.extractRawText({arrayBuffer:e.target.result}).then(res=>setOK(fname,fw(res.value).length)).catch(()=>setErr(fname));};
+      r.readAsArrayBuffer(file);
+    });
+  }else if(file.type.startsWith('image/')||['jpg','jpeg','png'].includes(ext)){
+    carregarTesseract(()=>{Tesseract.recognize(file,'por+eng').then(res=>setOK(fname,fw(res.data.text).length)).catch(()=>setErr(fname));});
+  }
+}
 
 function checkLimits(){const qty=parseInt((document.getElementById('quantidade')||{}).value)||1;if(qty===99){document.getElementById('quantidade').value='10';openWhatsModal('Muitos documentos?','Para pedidos com mais de 10 documentos, nosso time faz um orçamento pelo WhatsApp.');return false;}return true;}
 function handleFiles(files){Array.from(files).forEach(file=>{if(!selectedFiles.some(f=>f.name===file.name&&f.size===file.size))selectedFiles.push(file);});if(selectedFiles.length>20){selectedFiles=selectedFiles.slice(0,20);openWhatsModal('Muitos arquivos!','Para pedidos com mais de 20 arquivos, nosso time faz um orçamento pelo WhatsApp.');}renderFiles();}
