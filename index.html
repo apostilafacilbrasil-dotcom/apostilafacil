@@ -21,8 +21,8 @@
 <title>Apostila Simples | Apostila de Haia Online</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 <style>
@@ -754,7 +754,7 @@ body{background:radial-gradient(circle at 78% 6%,rgba(46,126,198,.12),transparen
       <p>Apostilamento e tradução juramentada 100% online.</p>
       <div class="footer-contact">
         <div><span style="color:#4A6A82">✉ contato@apostilasimples.com.br</span></div>
-        <div><span style="color:#4A6A82">💬 (11) 99999-9999</span></div>
+        <div><a href="https://wa.me/5511999999999" target="_blank" style="color:#4A6A82;text-decoration:none;">💬 Atendimento pelo WhatsApp</a></div>
       </div>
     </div>
     <div class="footer-col">
@@ -853,7 +853,6 @@ function carregarPdfJs(cb){
 }
 function carregarMammoth(cb){ carregarScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js', cb); }
 function carregarTesseract(cb){ carregarScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js', cb); }
-function carregarD3(cb){ carregarScript('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js', ()=>{ carregarScript('https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js', cb); }); }
 function carregarThree(cb){ carregarScript('https://cdn.jsdelivr.net/npm/three@0.161/build/three.min.js', cb); }
 </script>
 <script>
@@ -1303,6 +1302,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   function iniciarGlobo(){
+    try{
     if(!window.THREE) return;
     const W=canvas.width||280, H=canvas.height||280;
     const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
@@ -1400,6 +1400,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(autoSpin&&!isDrag) g.rotation.y+=0.003;
       renderer.render(scene,camera);
     })();
+    }catch(e){console.warn('[Globo] Three.js indisponivel:',e);}
   }
 })();
 </script>
