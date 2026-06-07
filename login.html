@@ -1069,6 +1069,7 @@ sb.auth.onAuthStateChange(async (event, session)=>{
       document.getElementById('clientPanel').style.display='none';
       document.getElementById('afiliadoPanel').style.display='none';
       document.getElementById('sidebarNav').style.display='flex';
+      navTo('dashboard');
       loadAdminData();
       iniciarPolling();
       carregarNotificacoesStorage();
