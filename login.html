@@ -1069,7 +1069,9 @@ sb.auth.onAuthStateChange(async (event, session)=>{
       document.getElementById('clientPanel').style.display='none';
       document.getElementById('afiliadoPanel').style.display='none';
       document.getElementById('sidebarNav').style.display='flex';
+      console.log('[DEBUG ADMIN] adminRow encontrado, chamando navTo(dashboard)');
       navTo('dashboard');
+      console.log('[DEBUG ADMIN] navTo(dashboard) concluído');
       loadAdminData();
       iniciarPolling();
       carregarNotificacoesStorage();
@@ -1296,8 +1298,10 @@ function atualizarBadgeAba(qtd){
 
 // ── ADMIN DATA ──
 async function loadAdminData(){
+  console.log('[DEBUG ADMIN] loadAdminData() iniciado');
   const {data:leads}=await sb.from('leads').select('*').order('created_at',{ascending:false});
   allLeads=leads||[];
+  console.log('[DEBUG ADMIN] leads carregados:', allLeads.length, '| raw data era null?', leads===null);
   renderLeads(allLeads);
   const {data:orders}=await sb.from('orders').select('*').order('created_at',{ascending:false});
   allOrders=(orders||[]).map(o=>{
@@ -1307,6 +1311,7 @@ async function loadAdminData(){
     if(!Array.isArray(arqs)) arqs=[];
     return {...o,_lead:lead||null,_arquivos:arqs};
   });
+  console.log('[DEBUG ADMIN] orders carregados:', allOrders.length, '| raw data era null?', orders===null);
   buildFilterBar();
   applyFilters();
   const total=allOrders.length;
@@ -1328,10 +1333,14 @@ async function loadAdminData(){
   const novosDesdeVisita = allOrders.filter(o=>new Date(o.created_at).getTime() > ultimaVisita).length;
   const badge=document.getElementById('snavBadgePedidos');
   if(badge){ badge.textContent=novosDesdeVisita||''; badge.style.display=novosDesdeVisita?'inline':'none'; }
+  console.log('[DEBUG ADMIN] antes de renderRevenueChart()');
   try { renderRevenueChart(); } catch(e){ console.error('renderRevenueChart falhou:', e); }
+  console.log('[DEBUG ADMIN] depois de renderRevenueChart()');
   carregarSaquesPendentes();
   await carregarConfiguracoes();
+  console.log('[DEBUG ADMIN] antes de calcularLucroDashboard()');
   calcularLucroDashboard();
+  console.log('[DEBUG ADMIN] loadAdminData() concluído');
 }
 
 let revenueChartInstance = null;
