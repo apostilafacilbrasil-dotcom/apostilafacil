@@ -339,10 +339,6 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
     </div>
     <h2 class="auth-title">Acesse sua conta</h2>
     <p class="auth-sub">Acompanhe seus pedidos ou gerencie o painel.</p>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="showAuthTab('login')">Entrar</button>
-      <button class="auth-tab" onclick="showAuthTab('register')">Criar conta</button>
-    </div>
     <div id="authErr" class="auth-err"></div>
     <div id="loginForm">
       <div class="field"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com"/></div>
@@ -366,13 +362,6 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
       </div>
     </div>
 
-    <div id="registerForm" style="display:none">
-      <div class="field"><label>Nome completo</label><input type="text" id="regNome" placeholder="Seu nome"/></div>
-      <div class="field"><label>E-mail</label><input type="email" id="regEmail" placeholder="seu@email.com"/></div>
-      <div class="field"><label>WhatsApp</label><input type="tel" id="regWhats" placeholder="(11) 99999-9999"/></div>
-      <div class="field"><label>Senha</label><input type="password" id="regPass" placeholder="Mínimo 6 caracteres"/></div>
-      <button class="btn-primary" onclick="doRegister()">Criar conta</button>
-    </div>
   </div>
 </div>
 
@@ -989,7 +978,6 @@ thead th.sort-desc::after{content:' ↓';color:var(--blue);}
 <script>
 const SUPABASE_URL = 'https://kclbawvrvmiiyngkzibi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w';
-const ADMIN_EMAIL  = 'contato@apostilasimples.com.br';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let allOrders = [];
@@ -1000,19 +988,12 @@ let sortField = 'created_at';
 let sortDir   = 'desc';
 
 // ── AUTH TABS ──
-function showAuthTab(tab){
-  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='login')||(i===1&&tab==='register')));
-  document.getElementById('loginForm').style.display    = tab==='login'?'block':'none';
-  document.getElementById('registerForm').style.display = tab==='register'?'block':'none';
-  document.getElementById('authErr').classList.remove('show');
-}
 function showErr(msg){ const el=document.getElementById('authErr'); el.textContent=msg; el.classList.add('show'); }
 
 // ── LOGIN ──
 function mostrarEsqueciSenha(){
   document.getElementById('loginForm').style.display='none';
   document.getElementById('esqueciSenhaForm').style.display='block';
-  document.getElementById('registerForm').style.display='none';
   const errEl=document.getElementById('authErr');
   if(errEl) errEl.textContent='';
 }
@@ -1061,17 +1042,6 @@ async function doLogin(){
   } catch(e){ showErr('Erro de conexão: '+e.message); btn.textContent='ACESSAR PORTAL'; btn.disabled=false; }
 }
 
-// ── REGISTER ──
-async function doRegister(){
-  const nome=document.getElementById('regNome').value.trim(), email=document.getElementById('regEmail').value.trim(),
-        whats=document.getElementById('regWhats').value.trim(), pass=document.getElementById('regPass').value;
-  if(!nome||!email||!pass){ showErr('Preencha todos os campos.'); return; }
-  if(pass.length<6){ showErr('A senha precisa ter pelo menos 6 caracteres.'); return; }
-  const {error}=await sb.auth.signUp({email,password:pass,options:{data:{nome,whatsapp:whats}}});
-  if(error){ showErr(error.message); return; }
-  await sb.from('leads').upsert({email,nome,whatsapp:whats,created_at:new Date().toISOString()});
-  showErr('Conta criada! Verifique seu e-mail para confirmar.');
-}
 
 document.getElementById('btnLogout').onclick = ()=> sb.auth.signOut();
 
@@ -1083,7 +1053,18 @@ sb.auth.onAuthStateChange(async (event, session)=>{
     const email=session.user.email;
     const userEl=document.getElementById('sidebarUser');
     if(userEl) userEl.textContent=email;
-    if(session.user.email===ADMIN_EMAIL){
+    const {data:adminRow, error:adminErr} = await sb
+      .from('usuarios_admin')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+    if(adminErr){
+      console.error('Erro ao validar admin:', adminErr);
+      await sb.auth.signOut();
+      showErr('Não foi possível validar seu acesso. Tente novamente.');
+      return;
+    }
+    if(adminRow){
       document.getElementById('adminPanel').style.display='block';
       document.getElementById('clientPanel').style.display='none';
       document.getElementById('afiliadoPanel').style.display='none';
@@ -1371,7 +1352,7 @@ function renderRevenueChart(){
     if(receitaMap[k]!==undefined){
       receitaMap[k]+=(o.valor||0);
       qtdMap[k]++;
-      if(o.pago) pagosMap[k]+=(o.valor||0);
+      if(o.status_pagamento==='pagamento_confirmado'||o.pago) pagosMap[k]+=(o.valor||0);
       if(o.status==='entregue'){
         entreguesMap[k]++;
         const c=calcularCustoPedido(o);
@@ -2623,10 +2604,10 @@ async function salvarNotas(id){
 }
 
 async function togglePago(id, checked){
-  const updateData = {pago: checked, data_pagamento: checked ? new Date().toISOString() : null};
+  const updateData = {pago: checked, status_pagamento: checked?'pagamento_confirmado':'nenhum', data_pagamento: checked ? new Date().toISOString() : null};
   await sb.from('orders').update(updateData).eq('id', id);
   const order = allOrders.find(o=>o.id===id);
-  if(order){ order.pago=checked; order.data_pagamento=updateData.data_pagamento; }
+  if(order){ order.pago=checked; order.status_pagamento=updateData.status_pagamento; order.data_pagamento=updateData.data_pagamento; }
   // Atualizar visual do toggle sem fechar modal
   const track=document.getElementById('pagoTrack-'+id);
   const thumb=document.getElementById('pagoThumb-'+id);
@@ -2636,7 +2617,7 @@ async function togglePago(id, checked){
   if(label){ label.style.color=checked?'#00875A':'#4A6A82'; label.childNodes[label.childNodes.length-1].textContent=checked?'✓ Pago':'Marcar como pago'; }
   // Atualizar stats e gráfico
   renderRevenueChart();
-  const pago=allOrders.filter(o=>o.pago).reduce((s,o)=>s+(o.valor||0),0);
+  const pago=allOrders.filter(o=>o.status_pagamento==='pagamento_confirmado'||o.pago).reduce((s,o)=>s+(o.valor||0),0);
   document.getElementById('statPago').textContent='R$'+pago.toFixed(0);
 }
 
@@ -3215,7 +3196,7 @@ async function gerarRelatorioMensal(inicioISO, fimISO, labelPeriodo){
       headers:{'Content-Type':'application/json','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbGJhd3Zydm1paXluZ2t6aWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjExNjEsImV4cCI6MjA5NDY5NzE2MX0.BHzAGVSWxAeX2lXLWpva6MCupc4wKcUeTMA_dkkqu_w'},
       body:JSON.stringify({
         nome:'Admin',
-        email: ADMIN_EMAIL,
+        email: 'contato@apostilasimples.com.br',
         servico:'Relatório',
         codigo:'',
         tipo:'relatorio_mensal',
@@ -3223,7 +3204,7 @@ async function gerarRelatorioMensal(inicioISO, fimISO, labelPeriodo){
         mes: mesAtual,
       }),
     });
-    showNotifBar('📊 Relatório enviado para '+ADMIN_EMAIL,'#00875A');
+    showNotifBar('📊 Relatório enviado para contato@apostilasimples.com.br','#00875A');
   } catch(e){
     showNotifBar('❌ Erro ao gerar relatório: '+e.message,'#C0392B');
   } finally {
@@ -3249,7 +3230,7 @@ function exportarCSV(){
       o.pais||'',
       o.valor?Number(o.valor).toFixed(2):'',
       statusLabel[o.status]||o.status||'',
-      o.pago?'Sim':'Não',
+      (o.status_pagamento==='pagamento_confirmado'||o.pago)?'Sim':'Não',
       formatDate(o.created_at),
       formatDate(o.data_entrega),
     ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
