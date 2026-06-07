@@ -1328,7 +1328,7 @@ async function loadAdminData(){
   const novosDesdeVisita = allOrders.filter(o=>new Date(o.created_at).getTime() > ultimaVisita).length;
   const badge=document.getElementById('snavBadgePedidos');
   if(badge){ badge.textContent=novosDesdeVisita||''; badge.style.display=novosDesdeVisita?'inline':'none'; }
-  renderRevenueChart();
+  try { renderRevenueChart(); } catch(e){ console.error('renderRevenueChart falhou:', e); }
   carregarSaquesPendentes();
   await carregarConfiguracoes();
   calcularLucroDashboard();
